@@ -1,0 +1,10 @@
+Makefile
+moc_*
+.qmake*
+*.o
+
+ashlar
+
+node_modules
+dist
+.cache

@@ -1,0 +1,9 @@
+[submodule "tm-parser"]
+	path = tm-parser
+	url = git@github.com:icedman/tm-parser
+[submodule "js-qt"]
+	path = js-qt
+	url = git@github.com:icedman/js-qt-native
+[submodule "Onigmo"]
+	path = Onigmo
+	url = https://github.com/k-takata/Onigmo.git

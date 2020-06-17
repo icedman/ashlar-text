@@ -1,0 +1,210 @@
+
+QWidget {
+  background: @widgetBg;
+  color: @widgetFg;
+  border: none;
+}
+
+/* scrollbars */
+QScrollBar:vertical {
+  width: 12px;
+  background: @scrollBg;
+  padding: 3px;
+  border: none;
+}
+QScrollBar::handle:vertical {
+  background: @scrollHandleBg;
+  border-radius: 3px;
+}
+QScrollBar::add-line:vertical {
+  border: none;
+  background: none;
+}
+QScrollBar::sub-line:vertical {
+  border: none;
+  background: none;
+}
+QScrollBar::handle:hover:vertical {
+  background: @scrollHandleHoverBg;
+}
+QScrollBar:horizontal {
+  height: 12px;
+  background: @scrollBg;
+  padding: 3px;
+  border: none;
+}
+QScrollBar::handle:horizontal {
+  background: @scrollHandleBg;
+  border-radius: 3px;
+}
+QScrollBar::add-line:horizontal {
+  border: none;
+  background: none;
+}
+QScrollBar::sub-line:horizontal {
+  border: none;
+  background: none;
+}
+QScrollBar::handle:hover:horizontal {
+  background: @scrollHandleHoverBg;
+}
+
+/* splitter */
+QSplitter::handle {
+  background: @splitterBg;
+}
+
+/* sidebar */
+QTreeView {
+ background: @treeBg;
+ color: @treeFg;
+ border: none;
+ show-decoration-selected: 0;
+ font-size: 12pt;
+ outline: 0
+}
+QTreeView::item {
+  border: none;
+  padding: 2px;
+  show-decoration-selected: 0
+}
+QTreeView::item::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+  border: none;
+}
+QTreeView::item::!selected::focus,
+QTreeView::item::selected {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}
+
+/* Tabbar */
+QTabBar {
+ background: @tabBg;
+ color: @tabFg;
+ border: none;
+ show-decoration-selected: 0;
+ font-size: 10pt;
+}
+QTabBar::tab {
+  border: none;
+  padding: 4px;
+  padding-left: 14px;
+  padding-right: 14px;
+  show-decoration-selected: 0;
+  background: @tabItemBg;
+  color: @tabItemFg;
+}
+QTabBar::tab::hover {
+  background: @tabItemHoverBg;
+  color: @tabItemHoverFg;
+  border: none;
+}
+QTabBar::tab::!selected::focus,
+QTabBar::tab::selected {
+  background: @tabItemActiveBg;
+  color: @tabItemActiveFg;
+  border: none;
+}
+
+/* statusbar */
+QStatusBar {
+  background: @statusBg;
+  color: @statusFg;
+  font-size: 10pt;
+  padding: 4px;
+}
+
+QSizeGrip { background: transparent }
+
+/* menubar */
+QMenuBar {
+  background: @bgColor;
+  color: @fgColor;
+  border: none;
+}
+@MenuBar::item {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+QMenuBar::item::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+  border: none;
+}
+QMenuBar::item::selected {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}
+
+/* menu */
+QMenu {
+  background: @treeItemBg;
+  color: @fgColor;
+  border: none;
+}
+QMenu::icon {
+  margin-left: 8px;
+  color: @fgColor;
+}
+QMenu::item::disabled {
+  color: @fgDisabledColor;
+}
+QMenu::item {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  min-width: 100px;
+  background: @treeItemBg;
+  color: @treeItemFg;
+}
+QMenu::item::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+  border: none;
+}
+QMenu::item::selected {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}
+
+/* lineedit */
+QLineEdit {
+  border: 1px solid @inputBorder;
+  padding: 6px;
+  background: @treeBg;
+  color: @treeFg;
+}
+QLineEdit::focus {
+  border-color: @treeItemHoverBg;
+}
+
+/* button */
+QPushButton {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  background: @treeItemBg;
+  color: @treeItemFg;
+  border: 1px solid @inputBorder;
+}
+
+QPushButton[checkable=true] {
+  background: transparent;
+}
+QPushButton::checked {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+}
+QPushButton::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+}
