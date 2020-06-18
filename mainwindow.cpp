@@ -255,7 +255,7 @@ void MainWindow::newFile()
     tabSelected(tabIdx);
 }
 
-void MainWindow::saveFile()
+void MainWindow::saveFile(bool saveNew)
 {
     QString fileName = currentEditor()->fileName;
 
@@ -264,7 +264,7 @@ void MainWindow::saveFile()
     }
 
     // std::cout << fileName.toUtf8().constData() << std::endl;
-    if (fileName.isNull() || fileName.isEmpty()) {
+    if (saveNew || fileName.isNull() || fileName.isEmpty()) {
         fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", "");
     }
 
@@ -274,6 +274,11 @@ void MainWindow::saveFile()
             statusBar()->showMessage("Saved " + currentEditor()->fileName, 5000);
         }
     }
+}
+
+void MainWindow::saveFileAs()
+{
+    saveFile(true);
 }
 
 void MainWindow::openFile(const QString& path)
@@ -424,6 +429,9 @@ void MainWindow::setupMenu()
     fileMenu->addAction(
         tr("&Save..."),
         this, [this]() { saveFile(); }, QKeySequence::Save);
+    fileMenu->addAction(
+        tr("Save As..."),
+        this, [this]() { saveFileAs(); }, QKeySequence::SaveAs);
     fileMenu->addAction(tr("E&xit"), qApp,
         &QApplication::quit, QKeySequence::Quit);
 

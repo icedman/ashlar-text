@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "parcel index.html",
-    "build": "rm -rf dist && parcel build  --public-url . index.html && cp dist/* resources/",
+    "build": "rm -rf dist && parcel build  --public-url . index.html && rm resources/* && cp dist/* resources/",
     "modules:init": "git submodule update --init --recursive",
     "modules:update": "git submodule update --recursive --remote"
   }

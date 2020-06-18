@@ -147,7 +147,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
 
     if (definitions.isMember(iconName)) {
         Json::Value def = definitions[iconName];
-        
+
         if (def.isMember("fontCharacter")) {
             fontCharacter += def["fontCharacter"].asString();
             fontCharacter += "x";
@@ -212,12 +212,12 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
             iconName = icons->definition["folderExpanded"].asString();
             if (!iconName.length()) {
                 iconName = icons->definition["folder"].asString();
-            }        
+            }
         } else {
             iconName = icons->definition["folder"].asString();
         }
     }
-    
+
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }

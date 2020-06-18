@@ -44,7 +44,7 @@ private:
     QTimer timer;
 
 private slots:
-    void expandItem(const QModelIndex &);
+    void expandItem(const QModelIndex&);
     void singleClick();
 };
 
