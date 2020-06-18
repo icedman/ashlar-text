@@ -253,7 +253,7 @@ void Editor::updateMiniMap(bool force)
     }
 
     if (force) {
-        mini->setSizes(0,0,0,0);
+        mini->setSizes(0, 0, 0, 0);
     }
     mini->setSizes(first, gutter->lineNumbers.size(), vscroll->value(), vscroll->maximum());
 }
@@ -267,16 +267,16 @@ void Editor::updateScrollBar()
     } else {
         vscroll->hide();
     }
-    
+
     vscroll->setMaximum(max);
     vscroll->setSingleStep(editorScroll->singleStep());
     vscroll->setPageStep(editorScroll->pageStep());
-    
+
     // yep-minimap is a scrollbar
     mini->setMaximum(max);
     mini->setSingleStep(editorScroll->singleStep());
     mini->setPageStep(editorScroll->pageStep());
-    
+
     updateMiniMap();
 
     editor->paintToBuffer();
@@ -472,7 +472,8 @@ Overlay::Overlay(QWidget* parent)
     updateTimer.start(750);
 }
 
-void Overlay::updateCursor() {
+void Overlay::updateCursor()
+{
 
     TextmateEdit* editor = qobject_cast<TextmateEdit*>(QApplication::focusWidget());
     if (!editor) {
@@ -485,13 +486,14 @@ void Overlay::updateCursor() {
 }
 
 // xxx::hacky
-float computeX(QRectF r, QPlainTextEdit *editor, QTextCursor cs, int relativePosition, float fw) {
+float computeX(QRectF r, QPlainTextEdit* editor, QTextCursor cs, int relativePosition, float fw)
+{
     QTextCursor ac(cs);
     ac.movePosition(QTextCursor::StartOfLine);
     ac.setPosition(ac.position() + relativePosition);
-    
+
     float computedW = relativePosition * fw;
-    for(int i=0; i<2;i ++) {
+    for (int i = 0; i < 2; i++) {
         QTextCursor oc = editor->cursorForPosition(QPoint(r.left() + computedW, r.top()));
         int diff = ac.position() - oc.position();
         if (diff == 0) {
@@ -537,13 +539,12 @@ void Overlay::paintEvent(QPaintEvent*)
             // cursors
             //-----------------
             if (cursorOn) {
-                for(auto cursor : cursors) {
+                for (auto cursor : cursors) {
                     if (cursor.block() == block) {
                         layout->drawCursor(&p, rect.topLeft(), cursor.position() - block.position());
                     }
                 }
             }
-
         }
         block = block.next();
     }
@@ -565,7 +566,7 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     editor = (Editor*)parent;
 }
 
-void TextmateEdit::contextMenuEvent(QContextMenuEvent *event) 
+void TextmateEdit::contextMenuEvent(QContextMenuEvent* event)
 {
     // QMenu *menu = createStandardContextMenu();
     // menu->addAction(tr("My Menu Item"));
@@ -579,10 +580,10 @@ void TextmateEdit::paintToBuffer()
     // paint to buffer
     QPixmap map(width(), height());
     // map.fill(Qt::transparent);
-    
+
     QPainter p(&map);
     p.setRenderHint(QPainter::Antialiasing);
-    
+
     TextmateEdit* editor = this;
     Editor* e = (Editor*)editor->parent();
     p.fillRect(rect(), e->backgroundColor);
@@ -598,13 +599,13 @@ void TextmateEdit::paintToBuffer()
     QTextBlock block = editor->_firstVisibleBlock();
 
     QFontMetrics fm(font());
-    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) /25;
+    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) / 25;
     float fs = fw * 1.2;
 
     //-----------------
     // selections
     //-----------------
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         if (!cursor.hasSelection()) {
             continue;
         }
@@ -633,7 +634,7 @@ void TextmateEdit::paintToBuffer()
                 }
 
                 r.setWidth(w);
-                p.fillRect(QRect(r.left()+x,r.top(),w,r.height()), e->selectionBgColor);
+                p.fillRect(QRect(r.left() + x, r.top(), w, r.height()), e->selectionBgColor);
             }
 
             if (!cs.movePosition(QTextCursor::Down)) {
@@ -694,7 +695,7 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
-    bool handled = Commands::keyPressEvent(e); 
+    bool handled = Commands::keyPressEvent(e);
     Editor* _editor = MainWindow::instance()->currentEditor();
 
     if (!handled && e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
@@ -717,9 +718,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
             Commands::autoIndent(_editor);
         }
 
-        if (!(e->modifiers() & Qt::ControlModifier) &&
-            e->key() != Qt::Key_Delete &&
-            e->key() != Qt::Key_Backspace) {
+        if (!(e->modifiers() & Qt::ControlModifier) && e->key() != Qt::Key_Delete && e->key() != Qt::Key_Backspace) {
             Commands::autoClose(_editor, e->text());
         }
     }
@@ -729,11 +728,11 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     paintToBuffer();
 }
 
-void TextmateEdit::updateExtraCursors(QKeyEvent *e)
+void TextmateEdit::updateExtraCursors(QKeyEvent* e)
 {
     QTextCursor cursor = textCursor();
     bool redraw = false;
-    for(auto &c : extraCursors) {
+    for (auto& c : extraCursors) {
         QTextCursor::MoveMode mode = e->modifiers() & Qt::ShiftModifier ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor;
         switch (e->key()) {
         case Qt::Key_Left:
@@ -748,7 +747,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
             if (e->modifiers() & Qt::ControlModifier) {
                 c.movePosition(QTextCursor::WordRight, mode);
             } else {
-            c.movePosition(QTextCursor::Right, mode);
+                c.movePosition(QTextCursor::Right, mode);
             }
             redraw = true;
             break;
@@ -791,7 +790,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
             break;
         case Qt::Key_Z:
             if (e->modifiers() & Qt::ControlModifier) {
-                if(e->modifiers() & Qt::ShiftModifier) {
+                if (e->modifiers() & Qt::ShiftModifier) {
                     document()->redo(&c);
                 } else {
                     document()->undo(&c);
@@ -809,7 +808,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
     }
 
     if (!e->text().isEmpty() && (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::ShiftModifier)) {
-        for(auto c : extraCursors) {
+        for (auto c : extraCursors) {
             if (c.position() == cursor.position()) {
                 continue;
             }

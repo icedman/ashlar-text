@@ -40,6 +40,7 @@ public:
     void setupLayout();
     void applyTheme();
     void applySettings();
+    void setHost(QString host);
 
     Editor* openTab(const QString& path = QString());
 
@@ -66,11 +67,10 @@ public:
     Json::Value settings;
 
     QString projectPath;
-    
-public:
 
+public:
     void keyPressEvent(QKeyEvent* e) override;
-    
+
 public slots:
     void warmConfigure();
     void tabSelected(int index);
@@ -93,7 +93,9 @@ private:
     QTimer updateTimer;
 
     JSApp jsApp;
-    Engine *engine;
+    Engine* engine;
+
+    QString hostPath;
 };
 
 #endif // MAINWINDOW_H

@@ -12,23 +12,21 @@ struct pixmap_wrapper_t {
 };
 typedef std::shared_ptr<pixmap_wrapper_t> pixmap_wrapper_ptr;
 
-enum icon_type_t {
-    icon_none,
+enum icon_type_t { icon_none,
     icon_font,
-    icon_svg
-};
+    icon_svg };
 
 std::string to_utf8(uint32_t cp)
 {
     /*
-    https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595
+  https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595
 
-    if using C++11 or later, you can do this:
-    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-    return conv.to_bytes( (char32_t)cp );
+  if using C++11 or later, you can do this:
+  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+  return conv.to_bytes( (char32_t)cp );
 
-    Otherwise...
-    */
+  Otherwise...
+  */
 
     std::string result;
 
@@ -69,7 +67,7 @@ std::string wstring_convert(std::string str)
         if (startIdx == std::string::npos)
             break;
         std::string::size_type endIdx = str.length();
-        //str.find_first_not_of("0123456789abcdefABCDEF", startIdx+2);
+        // str.find_first_not_of("0123456789abcdefABCDEF", startIdx+2);
         if (endIdx == std::string::npos)
             break;
         std::string tmpStr = str.substr(startIdx + 2, endIdx - (startIdx + 2));
@@ -87,7 +85,8 @@ std::string wstring_convert(std::string str)
     return str;
 }
 
-QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
+QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix,
+    std::vector<Extension>& _extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -154,12 +153,12 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
             icon_type = icon_font;
             // std::cout << fontCharacter << std::endl;
         }
-        
+
         // image type
         if (icon_type == icon_none && def.isMember("iconPath")) {
             std::string imagePath = icons->icons_path + "/" + def["iconPath"].asString();
-            // QString imagePath = QString(icons->icons_path.c_str()) + def["iconPath"];
-            // std::cout << imagePath << std::endl;
+            // QString imagePath = QString(icons->icons_path.c_str()) +
+            // def["iconPath"]; std::cout << imagePath << std::endl;
 
             svg = QPixmap(imagePath.c_str());
             icon_type = icon_svg;
@@ -189,7 +188,8 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     return px->img;
 }
 
-QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::vector<Extension>& extensions)
+QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open,
+    std::vector<Extension>& extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -206,28 +206,27 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
     std::string fontColor;
 
     /*
-    if (extensions.isMember(_suffix)) {
-        iconName = extensions[_suffix].asString();
-    }
+  if (extensions.isMember(_suffix)) {
+      iconName = extensions[_suffix].asString();
+  }
 
-    if (!iconName.length()) {
-        Json::Value languageIds = icons->definition["languageIds"];
+  if (!iconName.length()) {
+      Json::Value languageIds = icons->definition["languageIds"];
 
-        std::string _fileName = "x." + _suffix;
-        language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
-        if (lang) {
-            if (languageIds.isMember(lang->id)) {
-                iconName = languageIds[lang->id].asString();
-            }
-        }
+      std::string _fileName = "x." + _suffix;
+      language_info_ptr lang = language_from_file(_fileName.c_str(),
+  _extensions); if (lang) { if (languageIds.isMember(lang->id)) { iconName =
+  languageIds[lang->id].asString();
+          }
+      }
 
-        if (!iconName.length()) {
-            if (languageIds.isMember(_suffix)) {
-                iconName = languageIds[_suffix].asString();
-            }
-        }
-    }
-    */
+      if (!iconName.length()) {
+          if (languageIds.isMember(_suffix)) {
+              iconName = languageIds[_suffix].asString();
+          }
+      }
+  }
+  */
 
     if (!iconName.length()) {
         iconName = icons->definition["folder"].asString();
@@ -256,12 +255,12 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
             icon_type = icon_font;
             // std::cout << fontCharacter << std::endl;
         }
-        
+
         // image type
         if (icon_type == icon_none && def.isMember("iconPath")) {
             std::string imagePath = icons->icons_path + "/" + def["iconPath"].asString();
-            // QString imagePath = QString(icons->icons_path.c_str()) + def["iconPath"];
-            // std::cout << imagePath << std::endl;
+            // QString imagePath = QString(icons->icons_path.c_str()) +
+            // def["iconPath"]; std::cout << imagePath << std::endl;
 
             svg = QPixmap(imagePath.c_str());
             icon_type = icon_svg;

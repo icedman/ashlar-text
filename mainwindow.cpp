@@ -4,11 +4,11 @@
 
 #include <iostream>
 
+#include "commands.h"
 #include "mainwindow.h"
 #include "reader.h"
 #include "settings.h"
 #include "theme.h"
-#include "commands.h"
 
 #include "qt/core.h"
 
@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget* parent)
     configure();
 
     // setWindowFlags(Qt::FramelessWindowHint);
-    
+
     setupLayout();
     setupMenu();
 
@@ -55,8 +55,8 @@ Editor* MainWindow::currentEditor() { return (Editor*)editors->currentWidget(); 
 QStringList MainWindow::editorsPath()
 {
     QStringList res;
-    for(int i=0; i<editors->count(); i++) {
-        Editor *e = qobject_cast<Editor*>(editors->widget(i));
+    for (int i = 0; i < editors->count(); i++) {
+        Editor* e = qobject_cast<Editor*>(editors->widget(i));
         if (e) {
             res << e->fullPath();
         }
@@ -66,8 +66,8 @@ QStringList MainWindow::editorsPath()
 
 Editor* MainWindow::findEditor(QString path)
 {
-    for(int i=0; i<editors->count(); i++) {
-        Editor *e = qobject_cast<Editor*>(editors->widget(i));
+    for (int i = 0; i < editors->count(); i++) {
+        Editor* e = qobject_cast<Editor*>(editors->widget(i));
         if (e && e->fullPath() == path) {
             return e;
         }
@@ -85,23 +85,22 @@ void MainWindow::about()
 }
 
 void MainWindow::configure()
-{    
-	editor_settings = std::make_shared<editor_settings_t>();
-    QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
+{
+    editor_settings = std::make_shared<editor_settings_t>();
+    QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory);
     load_settings(userSettings, settings);
-    
-    QString userExtensions = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor/extensions", QStandardPaths::LocateDirectory);
+
+    QString userExtensions = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar/extensions", QStandardPaths::LocateDirectory);
     load_extensions(userExtensions, extensions);
 
     if (settings.isMember("extensions")) {
         Json::Value exts = settings["extensions"];
         if (exts.isArray()) {
-            for(auto path : exts) {
+            for (auto path : exts) {
                 load_extensions(QString(path.asString().c_str()), extensions);
             }
         }
     }
-
 
     // load_extensions(QString("./extensions"), extensions);
 
@@ -155,7 +154,7 @@ void MainWindow::configure()
         editor_settings->tab_size = 1;
     }
     if (editor_settings->tab_size > 8) {
-        editor_settings->tab_size = 8;    
+        editor_settings->tab_size = 8;
     }
 }
 
@@ -172,12 +171,17 @@ void MainWindow::loadTheme(const QString& name)
 void MainWindow::applyTheme()
 {
     theme_application(theme);
-    
+
     // update all editors
-    for(int i=0; i<editors->count(); i++) {
-        Editor *editor = (Editor*)editors->widget(i);
+    for (int i = 0; i < editors->count(); i++) {
+        Editor* editor = (Editor*)editors->widget(i);
         editor->setTheme(theme);
     }
+}
+
+void MainWindow::setHost(QString path)
+{
+    hostPath = path;
 }
 
 void MainWindow::applySettings()
@@ -245,7 +249,7 @@ void MainWindow::setupLayout()
 void MainWindow::newFile()
 {
     int tabIdx = tabs->addTab(UNTITLED_TEXT);
-    Editor *editor = createEditor();
+    Editor* editor = createEditor();
     editors->addWidget(editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(editor));
     tabSelected(tabIdx);
@@ -297,12 +301,13 @@ void MainWindow::openFile(const QString& path)
 
     if (QFile::exists(fileName)) {
         fileName = QFileInfo(fileName).absoluteFilePath();
-                     
+
         if (tabs->count() == 0) {
             projectPath = QFileInfo(fileName).path();
             sidebar->setRootPath(projectPath);
+            sidebar->hide();
         }
-        
+
         openTab(fileName);
         if (currentEditor()->fileName != fileName) {
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
@@ -315,7 +320,7 @@ void MainWindow::openFile(const QString& path)
 
 Editor* MainWindow::createEditor()
 {
-    Editor *editor = new Editor(this);
+    Editor* editor = new Editor(this);
     editor->settings = editor_settings;
     editor->setTheme(theme);
     editor->setupEditor();
@@ -325,7 +330,7 @@ Editor* MainWindow::createEditor()
 void MainWindow::tabSelected(int index)
 {
     if (index >= tabs->count()) {
-        index = tabs->count()-1;
+        index = tabs->count() - 1;
     }
 
     // std::cout << "Tabs:" << tabs->count() << std::endl;
@@ -398,7 +403,7 @@ Editor* MainWindow::openTab(const QString& _path)
     }
 
     tabIdx = tabs->addTab(_fileName);
-    Editor *_editor= createEditor(); // << creates a new editor
+    Editor* _editor = createEditor(); // << creates a new editor
     editors->addWidget(_editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
     tabSelected(tabIdx);
@@ -455,13 +460,16 @@ void MainWindow::warmConfigure()
 
     engine->addFactory(new UICoreFactory());
     panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
-    splitterv->addWidget(panels); 
+    splitterv->addWidget(panels);
 
     // QString file = QFileInfo("./dist/index.html").absoluteFilePath();
     // engine->loadHtmlFile(file, QUrl::fromLocalFile(file));
 
-    // engine->runFromUrl(QUrl::fromLocalFile(QFileInfo("./dist/index.html").absoluteFilePath()));
-    engine->runFromUrl(QUrl("http://localhost:1234/index.html"));
+    if (!hostPath.isEmpty()) {
+        engine->runFromUrl(QUrl("http://localhost:1234/index.html"));
+    } else {
+        engine->runFromUrl(QUrl::fromLocalFile(QFileInfo("./resources/index.html").absoluteFilePath()));
+    }
 
     connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
 }
@@ -470,7 +478,7 @@ void MainWindow::attachJSObjects()
 {
     engine->frame->addToJavaScriptWindowObject("app", &jsApp);
 
-    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
+    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory);
     keyBindingPath += "/keybinding.json";
 
     QFile file(keyBindingPath);
@@ -480,7 +488,6 @@ void MainWindow::attachJSObjects()
         engine->runScript("console.log(keyjson)");
         engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 250)");
     }
-
 }
 
 void MainWindow::emitEvent(QString event, QString payload)

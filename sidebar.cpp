@@ -51,7 +51,7 @@ void Sidebar::setRootPath(QString path)
     }
 
     MainWindow* main = MainWindow::instance();
-    
+
     fileModel = new FileSystemModel(this);
     fileModel->mainWindow = main;
     fileModel->setRootPath(path);

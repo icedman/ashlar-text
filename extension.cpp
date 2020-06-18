@@ -33,7 +33,6 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 
     QStringList filter = { "themes", "iconThemes", "languages" };
 
-
     QDirIterator it(path);
     while (it.hasNext()) {
         QString extensionPath = it.next();
@@ -84,11 +83,11 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 static bool load_language_configuration(const QString path, language_info_ptr lang)
 {
     Json::Value root = parse::loadJson(path.toStdString());
-    
+
     if (root.empty()) {
         return false;
     }
-    
+
     if (root.isMember("comments")) {
         Json::Value comments = root["comments"];
 
@@ -140,7 +139,7 @@ static bool load_language_configuration(const QString path, language_info_ptr la
             lang->pairs = lang->pairOpen.size();
         }
     }
-    
+
     return true;
 }
 
@@ -185,9 +184,9 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                     resolvedExtension = ext;
                     resolvedLanguage = lang["id"].asString();
                     resolvedGrammars = contribs["grammars"];
-                    
+
                     qDebug() << resolvedLanguage.c_str();
-                    
+
                     break;
                 }
             }

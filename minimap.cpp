@@ -174,7 +174,7 @@ void MiniMap::scrollByMouseY(float y)
 }
 
 void MiniMap::updateScroll()
-{   
+{
     float val = (float)QScrollBar::value();
     float d = (scrollToY - val) * 0.2;
     float newVal = val + d;

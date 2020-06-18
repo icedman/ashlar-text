@@ -16,7 +16,7 @@ public slots:
     void endEditor();
     QStringList editors();
     QString currentEditor();
-    
+
     void log(QString log);
 
     void tab(int i);
@@ -24,9 +24,9 @@ public slots:
     void closeTab();
     void exit();
     void theme(QString name);
-    
+
     QString projectPath();
-    
+
     // active editor
     void toggleComment();
     void toggleBlockComment();
@@ -41,11 +41,10 @@ public slots:
     bool find(QString string, QString options = QString());
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();
-       
+
     void showInspector(bool showHtml);
 
 private:
-
     Editor* editor();
     Editor* _editor;
 };

@@ -1,5 +1,5 @@
-#include <QTextDocument>
 #include <QDebug>
+#include <QTextDocument>
 
 #include <iostream>
 
@@ -96,7 +96,7 @@ void Highlighter::highlightBlock(const QString& text)
     }
 
     // std::cout << "highlightBlock" << std::endl;
-    
+
     bool firstLine = true;
     parse::stack_ptr parser_state = NULL;
 
@@ -111,10 +111,11 @@ void Highlighter::highlightBlock(const QString& text)
         blockData = new HighlightBlockData;
     }
 
-    std::map<size_t, scope::scope_t> scopes;
-     // = blockData->scopes;
-    // scopes.clear();
-    
+    // std::map<size_t, scope::scope_t> scopes;
+
+    std::map<size_t, scope::scope_t> scopes = blockData->scopes;
+    scopes.clear();
+
     QTextBlock prevBlock = currentBlock().previous();
     HighlightBlockData* prevBlockData = reinterpret_cast<HighlightBlockData*>(prevBlock.userData());
     if (prevBlockData) {
@@ -145,7 +146,8 @@ void Highlighter::highlightBlock(const QString& text)
     if (text.length() > 500) {
         // that would be too long to parse (unminify first)
     } else {
-        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);;
+        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+        ;
     }
 
     blockData->spans.clear();
@@ -189,7 +191,7 @@ void Highlighter::highlightBlock(const QString& text)
         style_t s = theme->styles_for_scope("comment");
 
         if (beginComment != -1) {
-            format = QSyntaxHighlighter::format(beginComment); 
+            format = QSyntaxHighlighter::format(beginComment);
             if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_COMMENT) {
                 beginComment = -1;
             }
@@ -216,8 +218,8 @@ void Highlighter::highlightBlock(const QString& text)
         std::vector<bracket_info_t> brackets;
         for (char* c = (char*)first; c < last;) {
             bool found = false;
-        
-            format = QSyntaxHighlighter::format(c-first);
+
+            format = QSyntaxHighlighter::format(c - first);
             int prop = format.intProperty(SCOPE_PROPERTY_ID);
             if (prop == SCOPE_COMMENT || prop == SCOPE_STRING) {
                 c++;

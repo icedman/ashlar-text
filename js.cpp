@@ -1,8 +1,8 @@
-#include <QDebug>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QLabel>
 #include <QBoxLayout>
+#include <QDebug>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 
 #include "commands.h"
 #include "editor.h"
@@ -65,7 +65,8 @@ QStringList JSApp::editors()
     return mw->editorsPath();
 }
 
-Editor* JSApp::editor() {
+Editor* JSApp::editor()
+{
     if (_editor) {
         return _editor;
     }

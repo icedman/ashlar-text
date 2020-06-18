@@ -8,13 +8,14 @@
   "dependencies": {
     "clsx": "^1.1.1",
     "debounce": "^1.2.0",
+    "parcel-bundler": "^1.12.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "uuid": "^8.1.0"
   },
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build  --public-url . index.html",
+    "build": "rm -rf dist && parcel build  --public-url . index.html && cp dist/* resources/",
     "modules:init": "git submodule update --init --recursive",
     "modules:update": "git submodule update --recursive --remote"
   }

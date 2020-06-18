@@ -28,16 +28,6 @@ const update = json => {
     // events map events
     registry[json.id] = registry[json.id] || {};
     
-    if (!registry[json.id].$widget) {
-      $qt.widget(json.id);
-      let id = json.id.replace(/:/g, '_');
-      let wid = `$widgets_${id}`;
-      setTimeout(() => {
-        registry[json.id].$widget = window[wid];
-        delete window[wid]; // unpollute window
-      }, 0);
-    }
-
     _events.forEach(e => {
       registry[json.id][e] = json[e] || ((evt) => {});
     });
@@ -51,10 +41,24 @@ const unmount = json => {
   } catch (err) {}
 };
 
+const widget = (id) => {
+  return new Promise((resolve, reject) => {
+    $qt.widget(id);
+    let cid = id.replace(/:/g, '_');
+    let wid = `$widgets_${cid}`;
+    setTimeout(() => {
+      registry[id].$widget = window[wid];
+      delete window[wid]; // unpollute window
+      resolve(registry[id].$widget);
+    }, 0);
+  });
+}
+
 const qt = {
   mount,
   unmount,
-  update
+  update,
+  widget
 };
 
 window.$widgets = registry;

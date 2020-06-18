@@ -1,8 +1,8 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include <QTextCursor>
 #include <QKeyEvent>
+#include <QTextCursor>
 
 #include "editor.h"
 

@@ -35,7 +35,7 @@ class Overlay : public QWidget {
     Q_OBJECT
 public:
     Overlay(QWidget* parent = nullptr);
-    
+
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent* event) override;
 
@@ -53,25 +53,19 @@ class TextmateEdit : public QPlainTextEdit {
 public:
     TextmateEdit(QWidget* parent = nullptr);
 
-    QTextBlock _firstVisibleBlock()
-    {
-        return firstVisibleBlock();
-    }
+    QTextBlock _firstVisibleBlock() { return firstVisibleBlock(); }
 
     QRectF _blockBoundingGeometry(QTextBlock& block)
     {
         return blockBoundingGeometry(block);
     }
 
-    QPointF _contentOffset()
-    {
-        return contentOffset();
-    }
+    QPointF _contentOffset() { return contentOffset(); }
 
 public:
     void addExtraCursor(QTextCursor cursor = QTextCursor());
     void removeExtraCursors();
-    void updateExtraCursors(QKeyEvent *e);
+    void updateExtraCursors(QKeyEvent* e);
     QList<QTextCursor> extraCursors;
 
     void paintToBuffer();
@@ -80,7 +74,7 @@ private:
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
-    void contextMenuEvent(QContextMenuEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
 
     Overlay* overlay;
     Editor* editor;
@@ -108,9 +102,7 @@ public:
 
     void toggleFold(size_t line);
 
-    QString fullPath() {
-        return fileName;
-    }
+    QString fullPath() { return fileName; }
 
     QString fileName;
     TextmateEdit* editor;

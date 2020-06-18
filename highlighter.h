@@ -34,16 +34,16 @@ struct bracket_info_t {
 #define SCOPE_PROPERTY_ID 0x99
 
 enum {
-    SCOPE_UNSET     = 0,
-    SCOPE_STRING    = 1,
-    SCOPE_COMMENT   = 2,
-    SCOPE_OTHER     = 3,
+    SCOPE_UNSET = 0,
+    SCOPE_STRING = 1,
+    SCOPE_COMMENT = 2,
+    SCOPE_OTHER = 3,
 };
 
 enum {
-    BLOCK_STATE_COMMENT         = 1 << 1,
-    BLOCK_STATE_BLOCK           = 1 << 2,
-    BLOCK_STATE_BLOCK_NESTED    = 1 << 3
+    BLOCK_STATE_COMMENT = 1 << 1,
+    BLOCK_STATE_BLOCK = 1 << 2,
+    BLOCK_STATE_BLOCK_NESTED = 1 << 3
 };
 
 class HighlightBlockData : public QTextBlockUserData {
@@ -57,7 +57,7 @@ public:
     }
 
     parse::stack_ptr parser_state;
-    scope::scope_t last_scope;
+
     bool dirty;
     bool folded;
     size_t last_prev_block_rule;

@@ -17,13 +17,18 @@ int main(int argc, char* argv[])
     parser.addOption(inspectOption);
     parser.addOption(hostOption);
     parser.process(app);
-        
+
     MainWindow window;
+
+    if (parser.isSet(hostOption)) {
+        window.setHost(parser.value(hostOption));
+    }
+
     // window.resize(640, 512);
     window.resize(1200, 700);
 
     if (argc > 1) {
-        window.openFile(argv[argc-1]);
+        window.openFile(argv[argc - 1]);
     } else {
         window.newFile();
     }

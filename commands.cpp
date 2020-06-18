@@ -6,10 +6,11 @@
 
 #define NO_IMPLEMENTATION(s) qDebug() << s << " not yet implemented";
 
-static QList<QTextCursor> build_cursors(TextmateEdit *editor) {
+static QList<QTextCursor> build_cursors(TextmateEdit* editor)
+{
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
-    
+
     QTextCursor cursor = editor->textCursor();
 
     bool addCurrentCursor = true;
@@ -31,13 +32,14 @@ static QList<QTextCursor> build_cursors(TextmateEdit *editor) {
     return cursors;
 }
 
-size_t count_indent_size(QString s) {
-  for (int i = 0; i < s.length(); i++) {
-    if (s[i] != ' ' && s[i] != " ") {
-        return i;
-    }  
-  }
-  return 0;
+size_t count_indent_size(QString s)
+{
+    for (int i = 0; i < s.length(); i++) {
+        if (s[i] != ' ' && s[i] != " ") {
+            return i;
+        }
+    }
+    return 0;
 }
 
 static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
@@ -56,7 +58,7 @@ static void Commands::insertTab(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         insertTabForCursor(editor, cursor);
     }
 }
@@ -71,7 +73,7 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
             if (s[i] == '\t') {
                 cursor.deleteChar();
                 break;
-            }   
+            }
         }
         if (s[i] == ' ' || s[i] == '\t') {
             cursor.deleteChar();
@@ -86,7 +88,7 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
     if (!editor->lang || !editor->lang->lineComment.length()) {
         return;
     }
-    
+
     QString singleLineComment = editor->lang->lineComment.c_str();
     singleLineComment += " ";
 
@@ -149,12 +151,11 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
     }
 }
 
-
 static void Commands::toggleComment(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         toggleCommentForCursor(editor, cursor);
     }
 }
@@ -172,7 +173,7 @@ static void Commands::toggleBlockComment(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         toggleBlockCommentForCursor(editor, cursor);
     }
 }
@@ -204,7 +205,7 @@ static void Commands::indent(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         toggleIndentForCursor(editor, cursor);
     }
 }
@@ -238,7 +239,7 @@ static void Commands::unindent(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         toggleUnindentForCursor(editor, cursor);
     }
 }
@@ -267,7 +268,7 @@ static void Commands::autoIndent(Editor const* editor)
 
     cursor.beginEditBlock();
     cursor.movePosition(QTextCursor::StartOfLine);
-    for(int i=0; i<white_spaces; i++) {
+    for (int i = 0; i < white_spaces; i++) {
         if (settings->tab_to_spaces) {
             cursor.insertText(" ");
         } else {
@@ -282,7 +283,7 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
     if (!editor->lang || !editor->lang->pairs) {
         return;
     }
-    
+
     if (editor->editor->extraCursors.size()) {
         return;
     }
@@ -306,12 +307,12 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
             idx++;
             continue;
         }
-    
+
         // qDebug() << "?" << b.c_str();
         // qDebug() << lastKey;
 
         int pos = line.indexOf(b.c_str());
-        if (pos == line.length()-b.length()) {
+        if (pos == line.length() - b.length()) {
             QString close = editor->lang->pairClose.at(idx).c_str();
             cursor.beginEditBlock();
             cursor.insertText(close);
@@ -349,7 +350,7 @@ static void Commands::duplicateLine(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
-    for(auto cursor : cursors) {
+    for (auto cursor : cursors) {
         duplicateLineForCursor(editor, cursor);
     }
 }
@@ -377,7 +378,7 @@ static void Commands::expandSelectionToLine(Editor const* editor)
     editor->editor->setTextCursor(res);
 
     QList<QTextCursor> cursors;
-    for(auto cursor : editor->editor->extraCursors) {
+    for (auto cursor : editor->editor->extraCursors) {
         cursors << expandSelectionToLineForCursor(editor, cursor);
     }
 
@@ -407,8 +408,8 @@ static bool Commands::find(Editor const* editor, QString string, QString options
             cs.movePosition(QTextCursor::Start);
             editor->editor->setTextCursor(cs);
             if (!editor->editor->find(string, flags)) {
-                editor->editor->setTextCursor(cursor);   
-                return false;  
+                editor->editor->setTextCursor(cursor);
+                return false;
             }
         }
         return true;
@@ -422,7 +423,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         editor->editor->setTextCursor(cs);
         if (!editor->editor->find(regx, flags)) {
             editor->editor->setTextCursor(cursor);
-            return false;   
+            return false;
         }
     }
 
@@ -434,12 +435,10 @@ static bool Commands::keyPressEvent(QKeyEvent* e)
     QString keys = QKeySequence(e->modifiers() | e->key()).toString().toLower();
     QVariant value;
     if (e->modifiers() != Qt::NoModifier) {
-        value = MainWindow::instance()->
-            js()->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { console.log(err) } ");
+        value = MainWindow::instance()->js()->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { console.log(err) } ");
     }
-    
-    MainWindow::instance()->
-            js()->runScript("try { ashlar.events.emit(\"keyPressed\", \"" + keys + "\"); } catch(err) { console.log(err) } ");
-            
+
+    MainWindow::instance()->js()->runScript("try { ashlar.events.emit(\"keyPressed\", \"" + keys + "\"); } catch(err) { console.log(err) } ");
+
     return value.toBool();
 }

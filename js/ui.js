@@ -78,19 +78,19 @@ const Search = (props) => {
   }, [ props.selectedText ]);
 
   return <View id="panel::search" style={styles.panel}>
-          <View style={{flexDirection:'row'}}>
+          <View id="panel::search::view" style={{flexDirection:'row'}}>
             <Button checked={state.regex} text='.*' style={styles.button} checkable={true} onClick={evt=>{ console.log(evt); setState({...state, regex:evt.target.value })}}/>
             <Button checked={state.cased} text='Aa' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, cased:evt.target.value })}}/>
             <Button checked={state.word}  text='❝❞' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, word :evt.target.value })}}/>
             <TextInput id="panel::search::input" text={state.find} onChangeText={onFindChanged} onSubmitEditing={doSearch} style={styles.input}/>
             <Button text='Find' style={styles.button} onPress={doSearch}/>
           </View>
-        </View>
+        </View>;
 }
 
 const AdvanceSearch = (props) => {
-  return <View id="panel::advance_search">
-          <Text>advance search is not yet implemented</Text>
+  return <View id="panel::advance_search" style={styles.panel}>
+          <Text style={styles.input}>advance search is not yet implemented</Text>
         </View>
 }
 
@@ -105,14 +105,14 @@ export const Panels = () => {
       })
     );
 
-    setTimeout(() => {
-      let widget = $widgets[panel + '::input'] ? $widgets[panel + '::input'].$widget : null;
-      if (widget) {
+    qt.widget(panel + '::input').then(widget => {
+    if (widget) {
         widget.focus();
         widget.select();
       }
-    }, 5);
-
+    }).catch(err => {
+      console.log(err);
+    });
   };
 
   ShowPanel = showPanel;
