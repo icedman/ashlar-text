@@ -16,20 +16,21 @@ FileSystemModel::FileSystemModel(QObject* parent)
 void FileSystemModel::onDirectoryLoaded(const QString& path)
 {
     QModelIndex dirIndex = index(path);
-
     emit dataChanged(dirIndex, QModelIndex());
 }
 
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 {
     if (role == Qt::DecorationRole) {
-        QFileInfo info = FileSystemModel::fileInfo(index);
+        QFileInfo info = fileInfo(index);
         QString fileName = info.fileName();
         if (info.isFile()) {
             QString suffix = info.suffix();
             return icon_for_file(mainWindow->icons, fileName, suffix, mainWindow->extensions);
         } else {
-            return icon_for_folder(mainWindow->icons, fileName, false, mainWindow->extensions);
+            QTreeView *tree = (QTreeView*)parent();
+            bool expanded = (QTreeView*)parent()->isExpanded(index);;
+            return icon_for_folder(mainWindow->icons, fileName, expanded, mainWindow->extensions);
         }
     }
 
@@ -41,7 +42,8 @@ Sidebar::Sidebar(QWidget* parent)
     , fileModel(0)
 {
     setHeaderHidden(true);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(onSingleClick()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(singleClick()));
+    connect(this, SIGNAL(clicked(const QModelIndex &)), this, SLOT(expandItem(const QModelIndex &)));
 }
 
 void Sidebar::setRootPath(QString path)
@@ -122,10 +124,8 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
     QTreeView::mousePressEvent(event);
 }
 
-void Sidebar::onSingleClick()
+void Sidebar::singleClick()
 {
-    // qDebug() << "This happens on single click";
-
     QModelIndex index = currentIndex();
     if (index.isValid()) {
         QString filePath = fileModel->filePath(index);
@@ -135,9 +135,7 @@ void Sidebar::onSingleClick()
     timer.stop();
 }
 
-/*
-You could use the QTreeView's signal expanded(const QModelIndex & index),
-and connect it to a slot of some object which can access the model->setData(OpenIcon, Qt::DecorationRole),
-and similarly use the QTreeView's signal collapsed(const QModelIndex & index), and connect it
-to a slot of some object which can access the model->setData(CloseIcon, Qt::DecorationRole).
-*/
+void Sidebar::expandItem(const QModelIndex &index)
+{
+    isExpanded(index) ? collapse(index) : expand(index);
+}

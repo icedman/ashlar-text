@@ -181,12 +181,12 @@ void Editor::setupEditor()
 
     connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), vscroll, SLOT(setValue(int)));
     connect(vscroll, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
-    connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), mini, SLOT(setValue(int)));
     connect(mini, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
 
     // updates everyone
     connect(vscroll, SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
-
+    connect(editor->horizontalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
+    
     QHBoxLayout* box = new QHBoxLayout(this);
 
     box->setMargin(0);
@@ -599,7 +599,12 @@ void TextmateEdit::paintToBuffer()
     QTextBlock block = editor->_firstVisibleBlock();
 
     QFontMetrics fm(font());
-    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) / 25;
+    
+    static const char* text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    auto initialRect = fm.boundingRect(text);
+    auto improvedRect = fm.boundingRect(initialRect, 0, text);
+    
+    float fw = (improvedRect.width() - fm.horizontalAdvance('Z')) / 25;
     float fs = fw * 1.2;
 
     //-----------------

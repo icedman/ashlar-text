@@ -44,7 +44,8 @@ private:
     QTimer timer;
 
 private slots:
-    void onSingleClick();
+    void expandItem(const QModelIndex &);
+    void singleClick();
 };
 
 #endif // SIDEBAR_H

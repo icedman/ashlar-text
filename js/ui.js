@@ -81,7 +81,7 @@ const Search = (props) => {
           <View id="panel::search::view" style={{flexDirection:'row'}}>
             <Button checked={state.regex} text='.*' style={styles.button} checkable={true} onClick={evt=>{ console.log(evt); setState({...state, regex:evt.target.value })}}/>
             <Button checked={state.cased} text='Aa' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, cased:evt.target.value })}}/>
-            <Button checked={state.word}  text='❝❞' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, word :evt.target.value })}}/>
+            <Button checked={state.word}  text='""' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, word :evt.target.value })}}/>
             <TextInput id="panel::search::input" text={state.find} onChangeText={onFindChanged} onSubmitEditing={doSearch} style={styles.input}/>
             <Button text='Find' style={styles.button} onPress={doSearch}/>
           </View>

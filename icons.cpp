@@ -85,8 +85,7 @@ std::string wstring_convert(std::string str)
     return str;
 }
 
-QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix,
-    std::vector<Extension>& _extensions)
+QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -145,6 +144,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix,
 
     if (definitions.isMember(iconName)) {
         Json::Value def = definitions[iconName];
+        
         if (def.isMember("fontCharacter")) {
             fontCharacter += def["fontCharacter"].asString();
             fontCharacter += "x";
@@ -188,8 +188,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix,
     return px->img;
 }
 
-QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open,
-    std::vector<Extension>& extensions)
+QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::vector<Extension>& extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -205,31 +204,19 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open,
     std::string fontCharacter = "x";
     std::string fontColor;
 
-    /*
-  if (extensions.isMember(_suffix)) {
-      iconName = extensions[_suffix].asString();
-  }
-
-  if (!iconName.length()) {
-      Json::Value languageIds = icons->definition["languageIds"];
-
-      std::string _fileName = "x." + _suffix;
-      language_info_ptr lang = language_from_file(_fileName.c_str(),
-  _extensions); if (lang) { if (languageIds.isMember(lang->id)) { iconName =
-  languageIds[lang->id].asString();
-          }
-      }
-
-      if (!iconName.length()) {
-          if (languageIds.isMember(_suffix)) {
-              iconName = languageIds[_suffix].asString();
-          }
-      }
-  }
-  */
-
     if (!iconName.length()) {
-        iconName = icons->definition["folder"].asString();
+        if (open) {
+            iconName = icons->definition["folderExpanded"].asString();
+            if (!iconName.length()) {
+                iconName = icons->definition["folder"].asString();
+            }        
+        } else {
+            iconName = icons->definition["folder"].asString();
+        }
+    }
+    
+    if (!iconName.length()) {
+        iconName = icons->definition["file"].asString();
     }
 
     static std::map<std::string, pixmap_wrapper_ptr> cache;
@@ -253,7 +240,7 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open,
             fontCharacter = wstring_convert(fontCharacter);
             fontColor = def["fontColor"].asString();
             icon_type = icon_font;
-            // std::cout << fontCharacter << std::endl;
+            std::cout << fontCharacter << std::endl;
         }
 
         // image type

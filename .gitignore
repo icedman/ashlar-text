@@ -6,5 +6,6 @@ moc_*
 ashlar
 
 node_modules
+resources/*
 dist
 .cache
