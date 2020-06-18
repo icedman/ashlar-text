@@ -7,6 +7,9 @@
 
 #include "icons.h"
 
+#define ICON_WIDTH 16
+#define ICON_HEIGHT 16
+
 struct pixmap_wrapper_t {
     QPixmap img;
 };
@@ -165,8 +168,8 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
         }
     }
 
-    int w = 16;
-    int h = 16;
+    int w = ICON_WIDTH;
+    int h = ICON_HEIGHT;
     px->img = QPixmap(w, h);
     px->img.fill(Qt::transparent);
 
@@ -254,8 +257,8 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
         }
     }
 
-    int w = 16;
-    int h = 16;
+    int w = ICON_WIDTH;
+    int h = ICON_HEIGHT;
     px->img = QPixmap(w, h);
     px->img.fill(Qt::transparent);
 

@@ -28,8 +28,7 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
             QString suffix = info.suffix();
             return icon_for_file(mainWindow->icons, fileName, suffix, mainWindow->extensions);
         } else {
-            QTreeView *tree = (QTreeView*)parent();
-            bool expanded = (QTreeView*)parent()->isExpanded(index);;
+            bool expanded = ((QTreeView*)parent())->isExpanded(index);;
             return icon_for_folder(mainWindow->icons, fileName, expanded, mainWindow->extensions);
         }
     }

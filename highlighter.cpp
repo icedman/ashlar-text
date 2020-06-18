@@ -37,7 +37,8 @@ void Highlighter::setDeferRendering(bool defer)
 
 void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData, std::string scope)
 {
-    std::cout << scope << std::endl;
+    // std::cout << scope << std::endl;
+    // std::cout << to_s(style.scope_selector) << std::endl;
 
     QColor clr;
     if (style.bold == bool_true || style.italic == bool_true || style.underlined == bool_true || style.strikethrough == bool_true || !style.foreground.is_blank()) {

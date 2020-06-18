@@ -144,7 +144,6 @@ commands.registerCommand("show_advance_search", () => {
   ShowPanel('panel::advance_search');
 });
 
-
 const styles = StyleSheet.create({
   panel: {
     flexDirection: 'column'
