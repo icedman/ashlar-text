@@ -2,6 +2,7 @@ import React from "react";
 import commands from "./commands";
 import events from "./events";
 import { useUI } from "./uiContext";
+import debounce from 'debounce';
 
 import { Window, Text, TextInput, View, StackedView, Button, StyleSheet } from "./lib/core";
 import qt from './lib/engine';
@@ -22,7 +23,7 @@ const simpleSearch = (keywords, options) => {
     if (options.regex) {
         searchOps.push("regular_expression");
     }
-    if (options.case) {
+    if (options.cased) {
         searchOps.push("case_sensitive");
     }
     if (options.word) {
@@ -42,7 +43,7 @@ const fileSearch = (keywords, replace, where, options) => {
     if (options.regex) {
         searchOps.push("regular_expression");
     }
-    if (options.case) {
+    if (options.cased) {
         searchOps.push("case_sensitive");
     }
     if (options.word) {
@@ -54,7 +55,7 @@ const fileSearch = (keywords, replace, where, options) => {
 }
 
 const Search = (props) => {
-  const [ state, setState ] = React.useState({ find: props.selectedText });
+  const [ state, setState ] = React.useState({ find: props.selectedText, regex: false, cased: false, word: false });
 
   const onFindChanged = (evt) => {
     setState({
@@ -64,7 +65,7 @@ const Search = (props) => {
   }
   const doSearch = () => {
     console.log(state.find);
-    simpleSearch(state.find);
+    simpleSearch(state.find, state);
   }
 
   React.useEffect(() => {
@@ -78,9 +79,9 @@ const Search = (props) => {
 
   return <View id="panel::search" style={styles.panel}>
           <View style={{flexDirection:'row'}}>
-            <Button text='.*' style={styles.button}/>
-            <Button text='Aa' style={styles.button}/>
-            <Button text='❝❞' style={styles.button}/>
+            <Button checked={state.regex} text='.*' style={styles.button} checkable={true} onClick={evt=>{ console.log(evt); setState({...state, regex:evt.target.value })}}/>
+            <Button checked={state.cased} text='Aa' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, cased:evt.target.value })}}/>
+            <Button checked={state.word}  text='❝❞' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, word :evt.target.value })}}/>
             <TextInput id="panel::search::input" text={state.find} onChangeText={onFindChanged} onSubmitEditing={doSearch} style={styles.input}/>
             <Button text='Find' style={styles.button} onPress={doSearch}/>
           </View>
@@ -89,7 +90,7 @@ const Search = (props) => {
 
 const AdvanceSearch = (props) => {
   return <View id="panel::advance_search">
-          <Text>advance search</Text>
+          <Text>advance search is not yet implemented</Text>
         </View>
 }
 
@@ -105,7 +106,7 @@ export const Panels = () => {
     );
 
     setTimeout(() => {
-      let widget = window.$widgets[panel + '::input'] ? window.$widgets[panel + '::input'].$widget : null;
+      let widget = $widgets[panel + '::input'] ? $widgets[panel + '::input'].$widget : null;
       if (widget) {
         widget.focus();
         widget.select();

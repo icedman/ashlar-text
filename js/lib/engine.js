@@ -34,6 +34,7 @@ const update = json => {
       let wid = `$widgets_${id}`;
       setTimeout(() => {
         registry[json.id].$widget = window[wid];
+        delete window[wid]; // unpollute window
       }, 0);
     }
 
