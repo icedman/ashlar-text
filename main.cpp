@@ -10,6 +10,12 @@ int main(int argc, char* argv[])
     app.setQuitOnLastWindowClosed(true);
 
     QCommandLineParser parser;
+    QCommandLineOption inspectOption({ "i", "inspect" }, "show inspector");
+    QCommandLineOption hostOption({ "x", "host" }, "development scripting host", "host", "");
+    parser.addPositionalArgument("file", "file to edit");
+    parser.addHelpOption();
+    parser.addOption(inspectOption);
+    parser.addOption(hostOption);
     parser.process(app);
         
     MainWindow window;
@@ -17,12 +23,16 @@ int main(int argc, char* argv[])
     window.resize(1200, 700);
 
     if (argc > 1) {
-        window.openFile(argv[1]);
+        window.openFile(argv[argc-1]);
     } else {
         window.newFile();
     }
 
     window.show();
+
+    if (parser.isSet(inspectOption)) {
+        window.js()->showInspector(false);
+    }
 
     return app.exec();
 }

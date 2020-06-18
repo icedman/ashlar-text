@@ -431,10 +431,15 @@ static bool Commands::find(Editor const* editor, QString string, QString options
 
 static bool Commands::keyPressEvent(QKeyEvent* e)
 {
+    QString keys = QKeySequence(e->modifiers() | e->key()).toString().toLower();
+    QVariant value;
     if (e->modifiers() != Qt::NoModifier) {
-        QString keys = QKeySequence(e->modifiers() | e->key()).toString();
-        return MainWindow::instance()->processKeys(keys.toLower());
+        value = MainWindow::instance()->
+            js()->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { console.log(err) } ");
     }
-
-    return false;
+    
+    MainWindow::instance()->
+            js()->runScript("try { ashlar.events.emit(\"keyPressed\", \"" + keys + "\"); } catch(err) { console.log(err) } ");
+            
+    return value.toBool();
 }

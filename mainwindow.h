@@ -45,7 +45,6 @@ public:
 
     void closeEvent(QCloseEvent* event);
 
-    bool processKeys(QString keys);
     void emitEvent(QString event, QString payload);
     Engine* js() { return engine; }
 

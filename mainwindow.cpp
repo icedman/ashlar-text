@@ -483,17 +483,6 @@ void MainWindow::attachJSObjects()
 
 }
 
-bool MainWindow::processKeys(QString keys)
-{
-    if (!engine) {
-        return false;    
-    }
-
-    QVariant value = engine->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { app.log(err) } ");
-
-    return value.toBool();
-}
-
 void MainWindow::emitEvent(QString event, QString payload)
 {
 }

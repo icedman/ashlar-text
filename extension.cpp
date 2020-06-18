@@ -31,6 +31,9 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 {
     // Json::Value contribs;
 
+    QStringList filter = { "themes", "iconThemes", "languages" };
+
+
     QDirIterator it(path);
     while (it.hasNext()) {
         QString extensionPath = it.next();
@@ -53,7 +56,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
             while (c_it != keys.end()) {
                 std::string name = *c_it;
 
-                if (name == "themes" || name == "iconThemes" || name == "languages") {
+                if (filter.contains(name.c_str())) {
                     append = true;
 
                     // Json::Value obj;
