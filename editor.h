@@ -28,6 +28,7 @@ struct editor_settings_t {
     bool word_wrap;
     bool auto_indent;
     bool auto_close;
+    bool debug_scopes;
 };
 
 typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;
@@ -101,16 +102,12 @@ public:
     bool openFile(const QString& path = QString());
     bool saveFile(const QString& path = QString());
     void newFile();
-
-    bool isAvailable()
-    {
-        return highlighter->isReady() && !updateTimer.isActive();
-    }
-
     void toggleFold(size_t line);
 
     QString fullPath() { return fileName; }
 
+    QStringList scopesAtCursor(QTextCursor cursor);
+    
     QString fileName;
     TextmateEdit* editor;
     Gutter* gutter;

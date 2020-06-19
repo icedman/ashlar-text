@@ -44,11 +44,12 @@ Sidebar::Sidebar(QWidget* parent)
     setHeaderHidden(true);
     connect(&timer, SIGNAL(timeout()), this, SLOT(singleClick()));
     connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(expandItem(const QModelIndex&)));
+    hide();
 }
 
 void Sidebar::setRootPath(QString path)
 {
-    if (fileModel) {
+    if (fileModel || path.isEmpty()) {
         return;
     }
 
@@ -66,6 +67,8 @@ void Sidebar::setRootPath(QString path)
 
     QModelIndex idx = fileModel->index(fileModel->rootPath());
     setRootIndex(idx);
+
+    show();
 }
 
 void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)

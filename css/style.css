@@ -89,6 +89,7 @@ QTabBar {
 }
 QTabBar::tab {
   border: none;
+  margin-top: 4px;
   padding: 4px;
   padding-left: 14px;
   padding-right: 14px;

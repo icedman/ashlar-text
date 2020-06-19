@@ -91,6 +91,21 @@ QString JSApp::projectPath()
     return mw->projectPath;
 }
 
+void JSApp::clear()
+{
+    editor()->editor->clear();
+}
+
+void JSApp::appendHtml(QString html)
+{
+    editor()->editor->appendHtml(html);
+}
+
+void JSApp::appendText(QString text)
+{
+    editor()->editor->appendPlainText(text);
+}
+
 void JSApp::toggleComment()
 {
     Commands::toggleComment(editor());
@@ -171,4 +186,14 @@ void JSApp::showInspector(bool showHtml)
 {
     MainWindow* mw = MainWindow::instance();
     mw->js()->showInspector(showHtml);
+}
+
+QStringList JSApp::scopesAtCursor()
+{
+    return editor()->scopesAtCursor(editor()->editor->textCursor());
+}
+
+QString JSApp::language()
+{
+    return editor()->lang->id.c_str();
 }

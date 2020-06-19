@@ -458,6 +458,39 @@ void Editor::toggleFold(size_t line)
     updateGutter();
 }
 
+QStringList Editor::scopesAtCursor(QTextCursor cursor)
+{
+    QStringList res;
+    QTextBlock block = cursor.block();
+    if (!block.isValid()) {
+        return res;
+    }
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    if (!blockData) {
+        return res;
+    }
+     
+    size_t pos = cursor.position();
+    cursor.movePosition(QTextCursor::StartOfLine);
+    pos -= cursor.position();
+          
+    std::map<size_t, scope::scope_t> scopes = blockData->scopes;
+    std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
+    scope::scope_t scope;
+    while (it != scopes.end()) {
+        size_t n = it->first;
+        if (n > pos) {
+            break;
+        }
+        scope = it->second;
+        it++;
+    }
+    
+    std::string scopeName = to_s(scope);
+    res << QString(scopeName.c_str()).split(' ');
+    return res;
+}
+
 //---------------------
 // overlay
 //---------------------
@@ -830,10 +863,15 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
 void TextmateEdit::insertCompletion(const QString &completion)
 {
     QTextCursor tc = textCursor();
-    int extra = completion.length() - completer->completionPrefix().length() - 1;
-    tc.movePosition(QTextCursor::Left);
-    tc.movePosition(QTextCursor::EndOfWord);
-    tc.insertText(completion.right(extra));
+    tc.select(QTextCursor::WordUnderCursor);
+    // int extra = completion.length() - completer->completionPrefix().length() - 1;
+    // tc.movePosition(QTextCursor::Left);
+    // tc.movePosition(QTextCursor::EndOfWord);
+    // tc.insertText(completion.right(extra));
+ 
+    // tc.movePosition(QTextCursor::StartOfWord);
+    // tc.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor);
+    tc.insertText(completion);
     setTextCursor(tc);
 }
 

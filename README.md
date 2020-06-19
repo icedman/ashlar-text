@@ -9,10 +9,13 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * search
 * minimap
 * multi-cursor
+* completions
+
+# needs improvement
+* auto-close
+* auto-indent
 
 # todo
-* completions
-* auto-close
 * git gutter
 * folder search
 * ui: command palette

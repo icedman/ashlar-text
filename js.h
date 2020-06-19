@@ -28,6 +28,9 @@ public slots:
     QString projectPath();
 
     // active editor
+    void clear();
+    void appendHtml(QString html);
+    void appendText(QString text);
     void toggleComment();
     void toggleBlockComment();
     void indent();
@@ -41,6 +44,10 @@ public slots:
     bool find(QString string, QString options = QString());
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();
+    
+    // debug
+    QStringList scopesAtCursor();
+    QString language();
 
     void showInspector(bool showHtml);
 

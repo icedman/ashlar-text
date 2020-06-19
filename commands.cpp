@@ -291,7 +291,27 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
     QTextCursor cursor = editor->editor->textCursor();
     QTextCursor cs(cursor);
     cs.movePosition(QTextCursor::EndOfLine);
-
+    
+    // prevent duplicated bracket because of auto-close
+    if (lastKey.length() == 1 && cs.position()-1 == cursor.position()) {
+        QString line = cursor.block().text();
+        for (auto b : editor->lang->pairClose) {
+            if (b.find(lastKey.toStdString()) == std::string::npos) {
+                continue;
+            }
+           
+            // qDebug() << "?" << b.c_str();
+            // qDebug() << lastKey;
+            
+            int pos = line.indexOf(b.c_str()) + 1;
+            if (pos == line.length() - b.length()) {
+                cursor.deleteChar();
+                return;
+            }
+        }
+    }
+    
+    // auto-close only at end of line
     if (cs.position() != cursor.position()) {
         return;
     }
@@ -301,6 +321,7 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
     if (!lastKey.length()) {
         return;
     }
+    
     int idx = 0;
     for (auto b : editor->lang->pairOpen) {
         if (b.find(lastKey.toStdString()) == std::string::npos) {

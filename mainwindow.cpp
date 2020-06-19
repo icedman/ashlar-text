@@ -140,6 +140,7 @@ void MainWindow::configure()
     editor_settings->word_wrap = settings.isMember("word_wrap") && settings["word_wrap"] == true;
     editor_settings->auto_indent = settings.isMember("auto_indent") && settings["auto_indent"] == true;
     editor_settings->auto_close = settings.isMember("auto_close") && settings["auto_close"] == true;
+    editor_settings->debug_scopes = settings.isMember("debug_scopes") && settings["debug_scopes"] == true;
 
     // std::cout << settings << std::endl;
 
@@ -192,7 +193,7 @@ void MainWindow::applySettings()
         font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         sidebar->setFont(font);
-        sidebar->show();
+        // sidebar->show();
     } else {
         sidebar->hide();
     }
@@ -237,11 +238,11 @@ void MainWindow::setupLayout()
     vbox->setSpacing(0);
 
     splitterv->addWidget(splitter);
-    // splitterv->setStretchFactor(3, 1);
+    splitterv->setStretchFactor(4, 1);
 
     splitter->addWidget(sidebar);
     splitter->addWidget(mainPane);
-    splitter->setStretchFactor(1, 3);
+    splitter->setStretchFactor(1, 4);
 
     setCentralWidget(splitterv);
 }

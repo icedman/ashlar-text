@@ -7,6 +7,7 @@
 #include "parse.h"
 #include "reader.h"
 #include "settings.h"
+#include "mainwindow.h"
 
 Highlighter::Highlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
@@ -96,6 +97,8 @@ void Highlighter::highlightBlock(const QString& text)
         return;
     }
 
+    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
+    
     // std::cout << "highlightBlock" << std::endl;
 
     bool firstLine = true;
@@ -112,10 +115,8 @@ void Highlighter::highlightBlock(const QString& text)
         blockData = new HighlightBlockData;
     }
 
-    // std::map<size_t, scope::scope_t> scopes;
-
-    std::map<size_t, scope::scope_t> scopes = blockData->scopes;
-    scopes.clear();
+    std::map<size_t, scope::scope_t> scopes;
+    blockData->scopes.clear();
 
     QTextBlock prevBlock = currentBlock().previous();
     HighlightBlockData* prevBlockData = reinterpret_cast<HighlightBlockData*>(prevBlock.userData());
@@ -148,10 +149,11 @@ void Highlighter::highlightBlock(const QString& text)
         // that would be too long to parse (unminify first)
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
-        ;
     }
 
-    blockData->spans.clear();
+    if (settings->debug_scopes) {
+        blockData->spans.clear();
+    }
 
     std::string prevScopeName;
     size_t si = 0;
@@ -160,6 +162,11 @@ void Highlighter::highlightBlock(const QString& text)
     while (it != scopes.end()) {
         n = it->first;
         scope::scope_t scope = it->second;
+
+        if (settings->debug_scopes) {
+            blockData->scopes.emplace(n, scope);
+        }
+        
         std::string scopeName = to_s(scope);
         it++;
 
@@ -282,7 +289,8 @@ void Highlighter::highlightBlock(const QString& text)
 
         // hack for if-else-
         if (blockData->brackets.size() == 2) {
-            if (blockData->brackets[0].open != blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
+            if (blockData->brackets[0].open != blockData->brackets[1].open &&
+                blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
                 blockData->brackets.clear();
             }
         }
@@ -290,7 +298,7 @@ void Highlighter::highlightBlock(const QString& text)
         // format brackets with scope
         // style_t s = theme->styles_for_scope("bracket");
         // for (auto b : blockData->brackets) {
-        //     setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
+            // setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
         // }
     }
 
