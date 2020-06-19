@@ -320,6 +320,10 @@ void MainWindow::openFile(const QString& path)
         }
 
         return;
+    } else {
+        if (!tabs->count()) {
+            newFile();
+        }
     }
 }
 
@@ -436,17 +440,17 @@ void MainWindow::setupMenu()
         &QApplication::quit, QKeySequence::Quit);
 
     // View
-    // viewMenu = new QMenu(tr("&View"), this);
-    // viewMenu->addAction(
-    //     tr("Toggle Sidebar"),
-    //     this, [this]() { sidebar->toggle(); });
-    // viewMenu->addAction(
-    //     tr("Toggle Minimap"),
-    //     this, [this]() { editor_settings->miniMap = !editor_settings->miniMap; });
-    // viewMenu->addAction(
-    //     tr("Toggle Statusbar"),
-    //     this, [this]() { saveFile(); });
-    // menuBar()->addMenu(viewMenu);
+    viewMenu = new QMenu(tr("&View"), this);
+    viewMenu->addAction(
+        tr("Toggle Sidebar"),
+        this, [this]() { sidebar->setVisible(!sidebar->isVisible()); });
+    viewMenu->addAction(
+        tr("Toggle Minimap"),
+        this, [this]() { editor_settings->mini_map = !editor_settings->mini_map; currentEditor()->hide(); currentEditor()->show(); });
+    viewMenu->addAction(
+        tr("Toggle Statusbar"),
+        this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });
+    menuBar()->addMenu(viewMenu);
 
     // Help
     QMenu* helpMenu = new QMenu(tr("&Help"), this);

@@ -556,6 +556,22 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
+static void updateCompleter(QTextDocument *doc, QCompleter *c, QString prefix) {
+    QTextCursor cursor;
+    QStringList res;
+    while(!(cursor = doc->find(prefix, cursor)).isNull()) {
+        cursor.select(QTextCursor::WordUnderCursor);
+        QString w = cursor.selectedText();
+        if (w != prefix && !res.contains(w)) {
+            res << w;
+        }
+        if (res.length() > 20) {
+            break;
+        }
+    }
+    ((QStringListModel*)c->model())->setStringList(res);
+}
+
 //---------------------
 // custom QPlainTextEdit
 //---------------------
@@ -564,6 +580,17 @@ TextmateEdit::TextmateEdit(QWidget* parent)
 {
     overlay = new Overlay(this);
     editor = (Editor*)parent;
+
+    completer = new QCompleter(this);
+    completer->setModel(new QStringListModel());
+    completer->setCompletionMode(QCompleter::PopupCompletion);
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setWrapAround(false);
+    completer->setWidget(this);
+
+    QObject::connect(completer, QOverload<const QString &>::of(&QCompleter::activated),
+                     this, &TextmateEdit::insertCompletion);
 }
 
 void TextmateEdit::contextMenuEvent(QContextMenuEvent* event)
@@ -604,7 +631,8 @@ void TextmateEdit::paintToBuffer()
     auto initialRect = fm.boundingRect(text);
     auto improvedRect = fm.boundingRect(initialRect, 0, text);
 
-    float fw = (improvedRect.width() - fm.horizontalAdvance('Z')) / 25;
+    // float fw = (improvedRect.width() - fm.horizontalAdvance('Z')) / 25;
+    float fw = improvedRect.width() / 26;
     float fs = fw * 1.2;
 
     //-----------------
@@ -698,8 +726,75 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
     overlay->mousePressEvent(e);
 }
 
+bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
+{
+    QCompleter *c = completer;
+
+    if (c->popup()->isVisible()) {
+        // The following keys are forwarded by the completer to the widget
+       switch (e->key()) {
+       case Qt::Key_Enter:
+       case Qt::Key_Return:
+       case Qt::Key_Escape:
+       case Qt::Key_Tab:
+       case Qt::Key_Backtab:
+            e->ignore();
+            return true; // let the completer do default behavior
+       default:
+           break;
+       }
+    }
+
+    bool isShortcut = false;
+    const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) ||
+                             e->modifiers().testFlag(Qt::ShiftModifier);
+    if (!c || (ctrlOrShift && e->text().isEmpty())) {
+
+        return false;
+    }
+
+    static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
+    const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
+
+    // QString completionPrefix = textUnderCursor();
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    QString completionPrefix = tc.selectedText() + e->text();
+
+    if (!isShortcut && (hasModifier || e->text().isEmpty() || completionPrefix.length() < 2
+                      || eow.contains(e->text().right(1)))) {
+        c->popup()->hide();
+        // ((QStringListModel*)c->model())->setStringList(QStringList());
+        return false;
+    }
+    
+    if (completionPrefix != c->completionPrefix()) {
+        c->setCompletionPrefix(completionPrefix);
+        updateCompleter(document(), completer, completionPrefix);
+    }
+
+    int width = c->popup()->sizeHintForColumn(0);
+    if (width < 200) {
+        width = 200;
+    }
+    QRect cr = cursorRect();
+    cr.setWidth(width + c->popup()->verticalScrollBar()->sizeHint().width());
+    c->complete(cr); // popup it up!
+    return false;
+}
+
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
+    bool isNewline = !(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1);
+    bool isDelete = !(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace);
+    if (!isDelete){
+        if (completerKeyPressEvent(e)) {
+            return;
+        }
+    } else if (completer->popup()->isVisible()) {
+        completer->popup()->hide();
+    }
+
     bool handled = Commands::keyPressEvent(e);
     Editor* _editor = MainWindow::instance()->currentEditor();
 
@@ -719,11 +814,10 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         QPlainTextEdit::keyPressEvent(e);
         updateExtraCursors(e);
 
-        if (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1) {
+        if (isNewline) {
             Commands::autoIndent(_editor);
         }
-
-        if (!(e->modifiers() & Qt::ControlModifier) && e->key() != Qt::Key_Delete && e->key() != Qt::Key_Backspace) {
+        if (!isDelete) {
             Commands::autoClose(_editor, e->text());
         }
     }
@@ -731,6 +825,16 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     overlay->cursorOn = true;
     overlay->update();
     paintToBuffer();
+}
+
+void TextmateEdit::insertCompletion(const QString &completion)
+{
+    QTextCursor tc = textCursor();
+    int extra = completion.length() - completer->completionPrefix().length() - 1;
+    tc.movePosition(QTextCursor::Left);
+    tc.movePosition(QTextCursor::EndOfWord);
+    tc.insertText(completion.right(extra));
+    setTextCursor(tc);
 }
 
 void TextmateEdit::updateExtraCursors(QKeyEvent* e)

@@ -5,6 +5,7 @@
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTimer>
+#include <QCompleter>
 #include <QWidget>
 
 #include "extension.h"
@@ -71,6 +72,7 @@ public:
     void paintToBuffer();
 
 private:
+    bool completerKeyPressEvent(QKeyEvent *e);
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
@@ -78,6 +80,11 @@ private:
 
     Overlay* overlay;
     Editor* editor;
+
+    QCompleter *completer;
+
+private Q_SLOTS:
+    void insertCompletion(const QString &completion);
 };
 
 class Editor : public QWidget {
