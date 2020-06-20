@@ -35,18 +35,16 @@ void Gutter::paintEvent(QPaintEvent* event)
     int fh = QFontMetrics(font).height();
     int fw = QFontMetrics(font).width('w');
 
+    QTextDocument* doc = tm->document();
+
     // find cursor
     QTextCursor cursor = tm->textCursor();
     QTextBlock cursorBlock = cursor.block();
-    int cursorPosition = cursor.position();
-    int cursorLine = -1;
-    if (cursorBlock.isValid()) {
-        cursorLine = cursorBlock.firstLineNumber();
-    }
 
     // the numbers
     foreach (block_info_t ln, lineNumbers) {
-        if (ln.number == cursorLine) {
+        QTextBlock block = doc->findBlockByNumber(ln.number);
+        if (block == cursorBlock) {
             p.fillRect(QRect(0, ln.position + fh, width(), fh), backgroundColor.lighter(150));
         }
         p.drawText(0, ln.position, width() - 4 - (fw * 1), fh, Qt::AlignRight, QString::number(ln.number));
@@ -54,7 +52,6 @@ void Gutter::paintEvent(QPaintEvent* event)
 
     // the brackets
     foreach (block_info_t ln, lineNumbers) {
-        QTextDocument* doc = tm->document();
         QTextBlock block = doc->findBlockByNumber(ln.number - 1);
         if (!block.isValid()) {
             continue;
