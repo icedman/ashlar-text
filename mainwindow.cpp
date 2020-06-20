@@ -142,6 +142,7 @@ void MainWindow::configure()
     editor_settings->auto_close = settings.isMember("auto_close") && settings["auto_close"] == true;
     editor_settings->debug_scopes = settings.isMember("debug_scopes") && settings["debug_scopes"] == true;
 
+    // qDebug() << editor_settings->word_wrap;
     // std::cout << settings << std::endl;
 
     // fix invalids

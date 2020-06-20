@@ -96,7 +96,7 @@ void Highlighter::highlightBlock(const QString& text)
     if (!theme || !grammar) {
         return;
     }
-
+    
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     
     // std::cout << "highlightBlock" << std::endl;
@@ -144,6 +144,7 @@ void Highlighter::highlightBlock(const QString& text)
     const char* last = first + text.length() + 1;
 
     // std::cout << str << "<<<<" << std::endl;
+
 
     if (text.length() > 500) {
         // that would be too long to parse (unminify first)

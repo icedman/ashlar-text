@@ -518,26 +518,6 @@ void Overlay::updateCursor()
     update();
 }
 
-// xxx::hacky
-float computeX(QRectF r, QPlainTextEdit* editor, QTextCursor cs, int relativePosition, float fw)
-{
-    QTextCursor ac(cs);
-    ac.movePosition(QTextCursor::StartOfLine);
-    ac.setPosition(ac.position() + relativePosition);
-
-    float computedW = relativePosition * fw;
-    for (int i = 0; i < 2; i++) {
-        QTextCursor oc = editor->cursorForPosition(QPoint(r.left() + computedW, r.top()));
-        int diff = ac.position() - oc.position();
-        if (diff == 0) {
-            break;
-        }
-        computedW += (fw * diff);
-    }
-
-    return computedW;
-}
-
 void Overlay::paintEvent(QPaintEvent*)
 {
     // this actually draws the QPlainTextEdit widget .. with some extras
@@ -657,16 +637,8 @@ void TextmateEdit::paintToBuffer()
     cursors << textCursor();
 
     QTextBlock block = editor->_firstVisibleBlock();
-
     QFontMetrics fm(font());
-
-    static const char* text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    auto initialRect = fm.boundingRect(text);
-    auto improvedRect = fm.boundingRect(initialRect, 0, text);
-
-    // float fw = (improvedRect.width() - fm.horizontalAdvance('Z')) / 25;
-    float fw = improvedRect.width() / 26;
-    float fs = fw * 1.2;
+    float fh = fm.height();
 
     //-----------------
     // selections
@@ -676,31 +648,48 @@ void TextmateEdit::paintToBuffer()
             continue;
         }
 
-        QTextCursor cs(cursor);
+        QTextCursor cs(cursor);                
         cs.setPosition(cs.selectionStart());
+        // qDebug() << "[" << cursor.selectionStart() << "," << cursor.selectionEnd() << "]";
+
         while (cs.position() < cursor.selectionEnd()) {
             QTextBlock block = cs.block();
             QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-            if (r.top() > height())
+            if (r.top() > height()) {
                 break;
+            }
 
             if (block.isVisible()) {
-                QTextCursor ss(cs);
-                QTextCursor se(cs);
-                ss.movePosition(QTextCursor::StartOfLine);
-                se.movePosition(QTextCursor::EndOfLine);
-                if (se.position() > cursor.selectionEnd()) {
-                    se.setPosition(cursor.selectionEnd());
-                }
+                QTextLayout* layout = block.layout();
 
-                float x = computeX(r, editor, ss, cs.position() - ss.position(), fw);
-                float w = computeX(r, editor, cs, se.position() - ss.position(), fw) - x;
-                if (w < fs) {
-                    w = fs;
-                }
+                for(int i=0; i<layout->lineCount(); i++) {
+                    QTextLine line = layout->lineAt(i);
+                    int sx = line.textStart();
 
-                r.setWidth(w);
-                p.fillRect(QRect(r.left() + x, r.top(), w, r.height()), e->selectionBgColor);
+                    // qDebug() << "#" << i << " sx:" << sx;
+                    if (sx + block.position() < cursor.selectionStart()) {
+                        sx = cursor.selectionStart() - block.position();
+                        // qDebug() << "adjust:" << sx;
+                    }
+
+                    int ex = sx + line.textLength();
+                    
+                    // qDebug() << "#" << i << " ex:" << ex;
+                    if (ex + block.position() > cursor.selectionEnd()) {
+                        ex = cursor.selectionEnd() - block.position();
+                        // qDebug() << "adjust:" << ex;
+                    }
+
+                    qreal srx = line.cursorToX(&sx);
+                    qreal erx = line.cursorToX(&ex);
+                    float w = erx - srx;
+                    float h = fh;
+
+                    // qDebug() << "(" << sx << "," << ex << ")" << " [" << srx << "-" << erx << "]";
+
+                    r.setWidth(w);
+                    p.fillRect(QRect(r.left() + srx, r.top() + (i * fh), w, h), e->selectionBgColor);
+                }
             }
 
             if (!cs.movePosition(QTextCursor::Down)) {
@@ -731,7 +720,12 @@ void TextmateEdit::paintToBuffer()
             //-----------------
             // render the block
             //-----------------
-            layout->draw(&p, r.topLeft());
+            // layout->draw(&p, r.topLeft());
+            QVector<QTextLayout::FormatRange> selectionFormats;
+            // if (blockFormats.contains(block.firstLineNumber())) {
+            //     selectionFormats = blockFormats[block.firstLineNumber()];
+            // }
+            layout->draw(&p, r.topLeft(), selectionFormats, rect());
         }
         block = block.next();
     }
