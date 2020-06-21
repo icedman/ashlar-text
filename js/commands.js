@@ -3,6 +3,7 @@ const registry = {};
 const commands = {
   registerCommand: (name, fn) => {
     registry[name] = fn;
+    console.log("command registered: " + name);
   },
 
   executeCommand: (name, args) => {

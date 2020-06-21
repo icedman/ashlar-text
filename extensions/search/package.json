@@ -1,0 +1,25 @@
+{
+  "name": "search",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "engines": {
+    "ashlar": "^0.0.1"
+  },
+  "dependencies": {
+    "uuid": "^8.1.0"
+  },
+  "scripts": {
+    "start": "parcel watch index.js",
+    "build": "parcel build index.js"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "title": "show search",
+        "command": "search.show_search",
+        "category": ""
+      }
+    ]
+  }
+}

@@ -22,6 +22,7 @@ const keybinding = {
     last_key.time = t;
     last_key.keys = k;
     try {
+      console.log(kb.command);
       commands.executeCommand(kb.command, kb.args);
     } catch (err) {
       console.log(err);
@@ -29,17 +30,14 @@ const keybinding = {
     return true;
   },
 
-  loadMap: m => {
-    try {
-      let jm = m; //  JSON.parse(m);
-      jm.forEach(kb => {
-        key_mapping[kb["keys"]] = kb;
-      });
+  bindKeys: kb => {
+    key_mapping[kb["keys"]] = kb;
+  },
 
-      // app.log(JSON.stringify(key_mapping));
-    } catch (err) {
-      console.log(err);
-    }
+  loadMap: m => {
+    m.forEach(kb => {
+      key_mapping[kb["keys"]] = kb;
+    });
   }
 };
 
