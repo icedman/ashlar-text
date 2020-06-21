@@ -469,11 +469,11 @@ QStringList Editor::scopesAtCursor(QTextCursor cursor)
     if (!blockData) {
         return res;
     }
-     
+
     size_t pos = cursor.position();
     cursor.movePosition(QTextCursor::StartOfLine);
     pos -= cursor.position();
-          
+
     std::map<size_t, scope::scope_t> scopes = blockData->scopes;
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
     scope::scope_t scope;
@@ -485,7 +485,7 @@ QStringList Editor::scopesAtCursor(QTextCursor cursor)
         scope = it->second;
         it++;
     }
-    
+
     std::string scopeName = to_s(scope);
     res << QString(scopeName.c_str()).split(' ');
     return res;
@@ -569,10 +569,12 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
-static void updateCompleter(QTextDocument *doc, QCompleter *c, QString prefix) {
+static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix)
+{
     QTextCursor cursor;
     QStringList res;
-    while(!(cursor = doc->find(prefix, cursor)).isNull()) {
+    // qDebug() << prefix;
+    while (!(cursor = doc->find(prefix, cursor)).isNull()) {
         cursor.select(QTextCursor::WordUnderCursor);
         QString w = cursor.selectedText();
         if (w != prefix && !res.contains(w)) {
@@ -602,8 +604,8 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     completer->setWrapAround(false);
     completer->setWidget(this);
 
-    QObject::connect(completer, QOverload<const QString &>::of(&QCompleter::activated),
-                     this, &TextmateEdit::insertCompletion);
+    QObject::connect(completer, QOverload<const QString&>::of(&QCompleter::activated),
+        this, &TextmateEdit::insertCompletion);
 }
 
 void TextmateEdit::contextMenuEvent(QContextMenuEvent* event)
@@ -648,7 +650,7 @@ void TextmateEdit::paintToBuffer()
             continue;
         }
 
-        QTextCursor cs(cursor);                
+        QTextCursor cs(cursor);
         cs.setPosition(cs.selectionStart());
         // qDebug() << "[" << cursor.selectionStart() << "," << cursor.selectionEnd() << "]";
 
@@ -662,7 +664,7 @@ void TextmateEdit::paintToBuffer()
             if (block.isVisible()) {
                 QTextLayout* layout = block.layout();
 
-                for(int i=0; i<layout->lineCount(); i++) {
+                for (int i = 0; i < layout->lineCount(); i++) {
                     QTextLine line = layout->lineAt(i);
                     int sx = line.textStart();
 
@@ -673,7 +675,7 @@ void TextmateEdit::paintToBuffer()
                     }
 
                     int ex = sx + line.textLength();
-                    
+
                     // qDebug() << "#" << i << " ex:" << ex;
                     if (ex + block.position() > cursor.selectionEnd()) {
                         ex = cursor.selectionEnd() - block.position();
@@ -755,26 +757,25 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
 {
-    QCompleter *c = completer;
+    QCompleter* c = completer;
 
     if (c->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
-       switch (e->key()) {
-       case Qt::Key_Enter:
-       case Qt::Key_Return:
-       case Qt::Key_Escape:
-       case Qt::Key_Tab:
-       case Qt::Key_Backtab:
+        switch (e->key()) {
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+        case Qt::Key_Escape:
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
             e->ignore();
             return true; // let the completer do default behavior
-       default:
-           break;
-       }
+        default:
+            break;
+        }
     }
 
     bool isShortcut = false;
-    const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) ||
-                             e->modifiers().testFlag(Qt::ShiftModifier);
+    const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) || e->modifiers().testFlag(Qt::ShiftModifier);
     if (!c || (ctrlOrShift && e->text().isEmpty())) {
 
         return false;
@@ -783,21 +784,18 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctrlOrShift;
 
-    // QString completionPrefix = textUnderCursor();
     QTextCursor tc = textCursor();
     tc.select(QTextCursor::WordUnderCursor);
     QString completionPrefix = tc.selectedText() + e->text();
 
-    if (!isShortcut && (hasModifier || e->text().isEmpty() || completionPrefix.length() < 2
-                      || eow.contains(e->text().right(1)))) {
+    if (!isShortcut && (hasModifier || e->text().isEmpty() || completionPrefix.length() < 2 || eow.contains(e->text().right(1)))) {
         c->popup()->hide();
-        // ((QStringListModel*)c->model())->setStringList(QStringList());
         return false;
     }
-    
+
     if (completionPrefix != c->completionPrefix()) {
-        c->setCompletionPrefix(completionPrefix);
         updateCompleter(document(), completer, completionPrefix);
+        c->setCompletionPrefix(completionPrefix);
     }
 
     int width = c->popup()->sizeHintForColumn(0);
@@ -812,13 +810,14 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
-    bool isNewline = !(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1);
-    bool isDelete = !(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace);
-    if (!isDelete){
+    bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
+    bool isDelete = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace));
+    if (!isDelete) {
         if (completerKeyPressEvent(e)) {
             return;
         }
-    } else if (completer->popup()->isVisible()) {
+    }
+    if (isDelete && completer->popup()->isVisible()) {
         completer->popup()->hide();
     }
 
@@ -854,17 +853,10 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     paintToBuffer();
 }
 
-void TextmateEdit::insertCompletion(const QString &completion)
+void TextmateEdit::insertCompletion(const QString& completion)
 {
     QTextCursor tc = textCursor();
     tc.select(QTextCursor::WordUnderCursor);
-    // int extra = completion.length() - completer->completionPrefix().length() - 1;
-    // tc.movePosition(QTextCursor::Left);
-    // tc.movePosition(QTextCursor::EndOfWord);
-    // tc.insertText(completion.right(extra));
- 
-    // tc.movePosition(QTextCursor::StartOfWord);
-    // tc.movePosition(QTextCursor::EndOfWord, QTextCursor::KeepAnchor);
     tc.insertText(completion);
     setTextCursor(tc);
 }

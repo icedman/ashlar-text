@@ -208,3 +208,7 @@ QPushButton::hover {
   background: @treeItemHoverBg;
   color: @treeItemHoverFg;
 }
+
+QWebView {
+  background: #fff;
+}

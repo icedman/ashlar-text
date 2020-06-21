@@ -44,10 +44,14 @@ public slots:
     bool find(QString string, QString options = QString());
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();
-    
+
     // debug
     QStringList scopesAtCursor();
     QString language();
+
+    // void reloadExtensions();
+    // void loadExtension(QString name);
+    void runScriptFile(QString path);
 
     void showInspector(bool showHtml);
 

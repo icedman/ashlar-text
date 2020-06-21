@@ -56,7 +56,8 @@ public:
     QStringList editorsPath();
 
     int currentTab() { return tabs->currentIndex(); }
-
+    bool loadExtension(QString name);
+        
     static MainWindow* instance();
 
 public:
@@ -76,7 +77,8 @@ public slots:
     void warmConfigure();
     void tabSelected(int index);
     void tabClose(int index);
-
+    void loadAllExtensions();
+    
 private Q_SLOTS:
     void attachJSObjects();
 

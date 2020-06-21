@@ -93,10 +93,11 @@ void MainWindow::configure()
     QString userExtensions = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar/extensions", QStandardPaths::LocateDirectory);
     load_extensions(userExtensions, extensions);
 
-    if (settings.isMember("extensions")) {
-        Json::Value exts = settings["extensions"];
+    if (settings.isMember("extensions_paths")) {
+        Json::Value exts = settings["extensions_paths"];
         if (exts.isArray()) {
             for (auto path : exts) {
+                qDebug() << path.asString().c_str();
                 load_extensions(QString(path.asString().c_str()), extensions);
             }
         }
@@ -397,7 +398,6 @@ Editor* MainWindow::openTab(const QString& _path)
         Editor* _editor = qvariant_cast<Editor*>(data);
         if (_editor->fileName == path) {
             tabIdx = i;
-            std::cout << i << std::endl;
             break;
         }
     }
@@ -476,9 +476,6 @@ void MainWindow::warmConfigure()
     panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
     splitterv->addWidget(panels);
 
-    // QString file = QFileInfo("./dist/index.html").absoluteFilePath();
-    // engine->loadHtmlFile(file, QUrl::fromLocalFile(file));
-
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl("http://localhost:1234/index.html"));
     } else {
@@ -491,7 +488,12 @@ void MainWindow::warmConfigure()
 void MainWindow::attachJSObjects()
 {
     engine->frame->addToJavaScriptWindowObject("app", &jsApp);
+    QTimer::singleShot(50, this, SLOT(loadAllExtensions()));
+}
 
+bool MainWindow::loadExtension(QString name)
+{    
+    // keybinding
     QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory);
     keyBindingPath += "/keybinding.json";
 
@@ -500,12 +502,34 @@ void MainWindow::attachJSObjects()
         QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { console.log(err) }";
         engine->runScript(script);
         engine->runScript("console.log(keyjson)");
+        engine->runScript("console.log(ashlar)");
         engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 250)");
+    }
+    
+    // attach extensions   
+    for (auto ext : extensions) {
+        if (ext.name == name) {
+            qDebug() << "extension loaded:" << name;
+            engine->runScriptFile(ext.entryPath);
+        }
+    }        
+    return true;
+}
+
+void MainWindow::loadAllExtensions()
+{
+    settings.isMember("extensions");
+    std::vector<std::string> keys = settings["extensions"].getMemberNames();
+    std::vector<std::string>::iterator it = keys.begin();
+    while (it != keys.end()) {
+        loadExtension((*it).c_str());
+        it++;
     }
 }
 
 void MainWindow::emitEvent(QString event, QString payload)
 {
+     engine->runScript("try { ashlar.events.emit(\"" + event + "\", \"" + payload + "\"); } catch(err) { console.log(err) } ");
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e)

@@ -4,10 +4,10 @@
 #include <iostream>
 
 #include "highlighter.h"
+#include "mainwindow.h"
 #include "parse.h"
 #include "reader.h"
 #include "settings.h"
-#include "mainwindow.h"
 
 Highlighter::Highlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
@@ -96,9 +96,9 @@ void Highlighter::highlightBlock(const QString& text)
     if (!theme || !grammar) {
         return;
     }
-    
+
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
-    
+
     // std::cout << "highlightBlock" << std::endl;
 
     bool firstLine = true;
@@ -145,7 +145,6 @@ void Highlighter::highlightBlock(const QString& text)
 
     // std::cout << str << "<<<<" << std::endl;
 
-
     if (text.length() > 500) {
         // that would be too long to parse (unminify first)
     } else {
@@ -167,7 +166,7 @@ void Highlighter::highlightBlock(const QString& text)
         if (settings->debug_scopes) {
             blockData->scopes.emplace(n, scope);
         }
-        
+
         std::string scopeName = to_s(scope);
         it++;
 
@@ -290,8 +289,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         // hack for if-else-
         if (blockData->brackets.size() == 2) {
-            if (blockData->brackets[0].open != blockData->brackets[1].open &&
-                blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
+            if (blockData->brackets[0].open != blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
                 blockData->brackets.clear();
             }
         }
@@ -299,7 +297,7 @@ void Highlighter::highlightBlock(const QString& text)
         // format brackets with scope
         // style_t s = theme->styles_for_scope("bracket");
         // for (auto b : blockData->brackets) {
-            // setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
+        // setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
         // }
     }
 

@@ -2,19 +2,24 @@ import React from "react";
 import events from "./events";
 
 import commands from "./commands";
+import extensions from "./extensions";
 import keybinding from "./keybinding";
 
 // ui
 import { StoreProvider as UIProvider } from "./uiContext";
-import { Panels } from "./ui";
+import { ui, Panels } from "./ui";
 
 const ashlar = {
   commands,
+  extensions,
   keybinding,
-  events
+  events,
+  ui
 };
 
-/*
+window.ashlar = ashlar;
+
+ /*
  * base commands
  */
 /* prettier-ignore */
@@ -46,6 +51,3 @@ export const App = () => {
     </UIProvider>
   );
 };
-
-window.ashlar = ashlar;
-export default ashlar;

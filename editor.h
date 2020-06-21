@@ -1,11 +1,11 @@
 #ifndef EDITOR_WINDOW_H
 #define EDITOR_WINDOW_H
 
+#include <QCompleter>
 #include <QPlainTextEdit>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTimer>
-#include <QCompleter>
 #include <QWidget>
 
 #include "extension.h"
@@ -73,7 +73,7 @@ public:
     void paintToBuffer();
 
 private:
-    bool completerKeyPressEvent(QKeyEvent *e);
+    bool completerKeyPressEvent(QKeyEvent* e);
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
@@ -82,10 +82,10 @@ private:
     Overlay* overlay;
     Editor* editor;
 
-    QCompleter *completer;
+    QCompleter* completer;
 
 private Q_SLOTS:
-    void insertCompletion(const QString &completion);
+    void insertCompletion(const QString& completion);
 };
 
 class Editor : public QWidget {
@@ -107,7 +107,7 @@ public:
     QString fullPath() { return fileName; }
 
     QStringList scopesAtCursor(QTextCursor cursor);
-    
+
     QString fileName;
     TextmateEdit* editor;
     Gutter* gutter;

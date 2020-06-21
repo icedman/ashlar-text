@@ -47,9 +47,9 @@ const widget = (id) => {
     let cid = id.replace(/:/g, '_');
     let wid = `$widgets_${cid}`;
     setTimeout(() => {
-      registry[id].$widget = window[wid];
+      let widget = window[wid];
       delete window[wid]; // unpollute window
-      resolve(registry[id].$widget);
+      resolve(widget);
     }, 0);
   });
 }

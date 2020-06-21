@@ -1,0 +1,25 @@
+{
+  "name": "hello-world",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "engines": {
+      "ashlar": "^0.0.1"
+  },
+  "dependencies": {
+  },
+  "scripts": {
+    "start": "parcel watch index.js",
+    "build": "parcel build index.js"
+  },
+  "main": "./dist/index.js",
+  "contributes": {
+    "commands": [
+        {
+            "title": "say hello",
+            "command": "hello_world.say_hello",
+            "category": ""
+        }
+    ]
+  }
+}

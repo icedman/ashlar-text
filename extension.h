@@ -13,8 +13,12 @@
 
 class Extension {
 public:
+    QString name;
     QString path;
     Json::Value package;
+
+    QString entryPath;
+    bool hasCommands;
 };
 
 struct language_info_t {
@@ -46,11 +50,8 @@ typedef std::shared_ptr<icon_theme_t> icon_theme_ptr;
 
 void load_settings(const QString path, Json::Value& settings);
 void load_extensions(const QString path, std::vector<Extension>& extensions);
-icon_theme_ptr icon_theme_from_name(const QString path,
-    std::vector<Extension>& extensions);
-theme_ptr theme_from_name(const QString path,
-    std::vector<Extension>& extensions);
-language_info_ptr language_from_file(const QString path,
-    std::vector<Extension>& extensions);
+icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& extensions);
+theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions);
+language_info_ptr language_from_file(const QString path, std::vector<Extension>& extensions);
 
 #endif // EXTENSION_H

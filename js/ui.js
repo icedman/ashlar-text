@@ -2,9 +2,23 @@ import React from "react";
 import commands from "./commands";
 import events from "./events";
 import { useUI } from "./uiContext";
-import debounce from 'debounce';
 
-import { Window, Text, TextInput, View, StackedView, Button, StyleSheet } from "./lib/core";
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  Button,
+  Switch,
+  ScrollView,
+  SplitterView,
+  StackedView,
+  FlatList,
+  SectionList,
+  Window,
+  StyleSheet
+} from "./lib/core";
+
 import qt from './lib/engine';
 
 let ShowPanel = (panel) => {};
@@ -63,6 +77,7 @@ const Search = (props) => {
       find: evt.target.value
     })
   }
+  
   const doSearch = () => {
     console.log(state.find);
     simpleSearch(state.find, state);
@@ -79,7 +94,7 @@ const Search = (props) => {
 
   return <View id="panel::search" style={styles.panel}>
           <View id="panel::search::view" style={{flexDirection:'row'}}>
-            <Button checked={state.regex} text='.*' style={styles.button} checkable={true} onClick={evt=>{ console.log(evt); setState({...state, regex:evt.target.value })}}/>
+            <Button checked={state.regex} text='.*' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, regex:evt.target.value })}}/>
             <Button checked={state.cased} text='Aa' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, cased:evt.target.value })}}/>
             <Button checked={state.word}  text='""' style={styles.button} checkable={true} onClick={evt=>{ setState({...state, word :evt.target.value })}}/>
             <TextInput id="panel::search::input" text={state.find} onChangeText={onFindChanged} onSubmitEditing={doSearch} style={styles.input}/>
@@ -116,21 +131,46 @@ export const Panels = () => {
   };
 
   ShowPanel = showPanel;
+  
+  const registerPanel = ({id, panel}) => {
+      let panels = ui.panels || {};
+      ui.dispatch(
+      ui.setState({
+        ...ui.state,
+        panels: {
+            ...panels,
+            id: panel
+        }
+      })
+    );
+  }
 
   React.useEffect(() => {
     events.on("keyPressed", keyListener);
+    events.on("registerPanel", registerPanel);
     return () => {
       events.off("keyPressed", keyListener);
+      events.off("registerPanel", registerPanel);
     }
   }, []);
 
   let show = (state.panel && state.panel.length) ? true: false;
   let selectedText = app.selectedText();
+  
+  let extraPanels;
+  if (state.panels) {
+    extraPanels = Object.keys(state.panels).map((k, idx) => {
+        const ExtraPanel = state.panels[k];
+        return <ExtraPanel key={`${k}-${idx}`}></ExtraPanel>
+    })          
+  }
+  
   return (
     <React.Fragment>
       <StackedView id="panels" current={state.panel} style={{visible:show}}>
         <Search selectedText={selectedText}/>
         <AdvanceSearch selectedText={selectedText}/>
+        {extraPanels}
       </StackedView>
     </React.Fragment>
   );
@@ -141,7 +181,7 @@ commands.registerCommand("show_search", () => {
 });
 
 commands.registerCommand("show_advance_search", () => {
-  ShowPanel('panel::advance_search');
+  ShowPanel('panel::hello-world');
 });
 
 const styles = StyleSheet.create({
@@ -157,4 +197,24 @@ const styles = StyleSheet.create({
   button: {
     margin: 2,
   }
-})
+});
+
+export const ui = {
+    React,
+    useUI,
+    core: {
+      View,
+      Text,
+      Image,
+      TextInput,
+      Button,
+      Switch,
+      ScrollView,
+      SplitterView,
+      StackedView,
+      FlatList,
+      SectionList,
+      Window,
+      StyleSheet
+    }
+}

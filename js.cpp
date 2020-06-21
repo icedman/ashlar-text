@@ -197,3 +197,8 @@ QString JSApp::language()
 {
     return editor()->lang->id.c_str();
 }
+
+void JSApp::runScriptFile(QString path)
+{
+    MainWindow::instance()->js()->runScriptFile(path);
+}
