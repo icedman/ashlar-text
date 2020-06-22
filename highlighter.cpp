@@ -123,7 +123,7 @@ void Highlighter::highlightBlock(const QString& text)
     if (prevBlockData) {
         parser_state = prevBlockData->parser_state;
         if (parser_state->rule) {
-            blockData->last_prev_block_rule = parser_state->rule->rule_id;
+            blockData->lastPrevBlockRule = parser_state->rule->rule_id;
         }
         firstLine = !(parser_state != NULL);
     }
@@ -240,7 +240,7 @@ void Highlighter::highlightBlock(const QString& text)
                 if (strstr(c, b.c_str()) == c) { // << strstr .. fails because it is lazy
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({ .char_idx = l,
+                    brackets.push_back({ .position = l,
                         .bracket = i,
                         .open = true });
                     c += b.length();
@@ -258,7 +258,7 @@ void Highlighter::highlightBlock(const QString& text)
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({ .char_idx = l,
+                    brackets.push_back({ .position = l,
                         .bracket = i,
                         .open = false });
                     c += b.length();
@@ -297,7 +297,7 @@ void Highlighter::highlightBlock(const QString& text)
         // format brackets with scope
         // style_t s = theme->styles_for_scope("bracket");
         // for (auto b : blockData->brackets) {
-        // setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
+        // setFormatFromStyle(b.position, 1, s, first, blockData, "bracket");
         // }
     }
 
@@ -313,7 +313,7 @@ void Highlighter::highlightBlock(const QString& text)
         QTextBlock next = currentBlock().next();
         if (next.isValid()) {
             HighlightBlockData* nextBlockData = reinterpret_cast<HighlightBlockData*>(next.userData());
-            if (nextBlockData && parser_state->rule->rule_id != nextBlockData->last_prev_block_rule) {
+            if (nextBlockData && parser_state->rule->rule_id != nextBlockData->lastPrevBlockRule) {
                 nextBlockData->dirty = true;
                 hasDirtyBlocks = true;
             }

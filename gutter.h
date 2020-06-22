@@ -6,13 +6,19 @@
 
 class Editor;
 
+struct gutter_info_t {
+    int position;
+    int number;
+    bool foldable;
+};
+
 class Gutter : public QWidget {
     Q_OBJECT
 
 public:
     Gutter(QWidget* parent = 0);
 
-    QVector<block_info_t> lineNumbers;
+    QVector<gutter_info_t> lineNumbers;
     QColor lineNumberColor;
     QColor backgroundColor;
     QFont font;

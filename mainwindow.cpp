@@ -272,9 +272,15 @@ void MainWindow::saveFile(bool saveNew)
     }
 
     if (!fileName.isEmpty()) {
+        QString previousName = currentEditor()->fileName;
         if (currentEditor()->saveFile(QFileInfo(fileName).absoluteFilePath())) {
             tabs->setTabText(tabs->currentIndex(), QFileInfo(currentEditor()->fileName).fileName());
             statusBar()->showMessage("Saved " + currentEditor()->fileName, 5000);
+
+            if (previousName != fileName) {
+                currentEditor()->setLanguage(language_from_file(fileName, extensions));
+                currentEditor()->openFile(fileName);
+            }
         }
     }
 }

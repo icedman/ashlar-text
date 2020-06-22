@@ -42,7 +42,7 @@ void Gutter::paintEvent(QPaintEvent* event)
     QTextBlock cursorBlock = cursor.block();
 
     // the numbers
-    foreach (block_info_t ln, lineNumbers) {
+    foreach (gutter_info_t ln, lineNumbers) {
         QTextBlock block = doc->findBlockByNumber(ln.number);
         if (block == cursorBlock) {
             p.fillRect(QRect(0, ln.position + fh, width(), fh), backgroundColor.lighter(150));
@@ -51,7 +51,7 @@ void Gutter::paintEvent(QPaintEvent* event)
     }
 
     // the brackets
-    foreach (block_info_t ln, lineNumbers) {
+    foreach (gutter_info_t ln, lineNumbers) {
         QTextBlock block = doc->findBlockByNumber(ln.number - 1);
         if (!block.isValid()) {
             continue;

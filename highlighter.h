@@ -9,12 +9,6 @@
 #include "grammar.h"
 #include "theme.h"
 
-struct block_info_t {
-    int position;
-    int number;
-    bool foldable : 1;
-};
-
 struct span_info_t {
     int start;
     int length;
@@ -25,7 +19,7 @@ struct span_info_t {
 
 struct bracket_info_t {
     size_t line;
-    size_t char_idx;
+    size_t position;
     int bracket;
     bool open;
     bool unpaired;
@@ -40,7 +34,7 @@ enum {
     SCOPE_OTHER = 3,
 };
 
-enum {
+enum block_state_e {
     BLOCK_STATE_COMMENT = 1 << 1,
     BLOCK_STATE_BLOCK = 1 << 2,
     BLOCK_STATE_BLOCK_NESTED = 1 << 3
@@ -52,7 +46,7 @@ public:
         : QTextBlockUserData()
         , dirty(false)
         , folded(false)
-        , last_prev_block_rule(0)
+        , lastPrevBlockRule(0)
     {
     }
 
@@ -60,7 +54,7 @@ public:
 
     bool dirty;
     bool folded;
-    size_t last_prev_block_rule;
+    size_t lastPrevBlockRule;
 
     std::vector<span_info_t> spans;
     std::vector<bracket_info_t> brackets;
