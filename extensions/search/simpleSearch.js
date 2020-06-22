@@ -1,5 +1,4 @@
 const { React, useUI } = ashlar.ui;
-// const E = React.createElement;
 
 const {
   View,
@@ -77,27 +76,8 @@ const SearchPanel = props => {
   setSelectedText = onFindChanged;
   
   /* prettier-ignore */
-  /*
-  return (
-        E(View, { id: SearchPanelId, style: styles.panel }, [
-        E(View, { id:'panel::search::view', style: {flexDirection: 'row'} }, [
-            E(Button, { text:'.*', style: styles.button, checkable:true,
-                onClick: (evt)=>{ setState({...state, regex:evt.target.value })}} ),
-            E(Button, { text:'Aa', style: styles.button, checkable:true,
-                onClick: (evt)=>{ setState({...state, cased:evt.target.value })}} ),
-            E(Button, { text:'""', style: styles.button, checkable:true,
-                onClick: (evt)=>{ setState({...state, word :evt.target.value })}} ),
-            E(TextInput, { id:'panel::search::input', text: state.find, 
-                onChangeText: onFindChanged,
-                onSubmitEditing: onSearch, style: styles.input }),
-            E(Button, { text:'Find', style: styles.button, onPress:onSearch })
-        ])
-        ])
-    );
-    */
-    
   return <View id={SearchPanelId} style={styles.panel}>
-          <View id='panel::search::view'  style={{flexDirection: 'row'}}>
+        <View id='panel::search::view'  style={{flexDirection: 'row'}}>
           <Button text='.*' style={styles.button} checkable onClick={(evt)=>{  setState({...state, regex: evt.target.value}); }}/>
           <Button text='Aa' style={styles.button} checkable onClick={(evt)=>{  setState({...state, cased: evt.target.value}); }}/>
           <Button text='""' style={styles.button} checkable onClick={(evt)=>{  setState({...state, word:  evt.target.value}); }}/>
@@ -105,7 +85,7 @@ const SearchPanel = props => {
               onChangeText={onFindChanged}
               onSubmitEditing={onSearch}
           />
-          </View>
+        </View>
       </View>
 };
 

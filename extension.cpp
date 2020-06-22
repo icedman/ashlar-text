@@ -47,6 +47,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         if (!ex.package.isObject()) {
             continue;
         }
+        ex.name = ex.package["name"].asString().c_str();
 
         bool append = false;
         if (ex.package.isMember("contributes")) {
@@ -73,7 +74,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         if (!append) {
             //if (ex.package.isMember("engines")) {
                 // append = ex.package["engines"].isMember("ashlar");
-                append = ex.package.isMember("ashlar");
+                append = ex.package.isMember("ashlar") || ex.name == "ashlar-text";
                 if (append) {
                     if (ex.package.isMember("contributes")) {
                         ex.hasCommands = ex.package["contributes"].isMember("commands");
@@ -87,7 +88,6 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         }
 
         if (append) {
-            ex.name = ex.package["name"].asString().c_str();
             // std::cout << ex.package["name"].asString() << std::endl;
             // qDebug() << package;
             extensions.emplace_back(ex);
@@ -312,8 +312,6 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
         icons->font.setPointSize(16);
         icons->font.setFixedPitch(true);
     }
-
-    // todo implement svg icons
 
     icons->definition = json;
     return icons;

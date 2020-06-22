@@ -3,6 +3,17 @@
 
 #include <QObject>
 
+class JSFs : public QObject {
+    Q_OBJECT
+
+public:
+
+public slots:
+    QString readFile(QString path);
+    bool appendFile(QString content, QString path);
+    bool writeFile(QString content, QString path);
+};
+
 class Editor;
 class JSApp : public QObject {
     Q_OBJECT

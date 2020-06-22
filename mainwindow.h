@@ -95,6 +95,7 @@ private:
 
     QTimer updateTimer;
 
+    JSFs jsFs;
     JSApp jsApp;
     Engine* engine;
 

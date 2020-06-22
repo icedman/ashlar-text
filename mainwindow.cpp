@@ -321,9 +321,7 @@ void MainWindow::openFile(const QString& path)
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
         }
-        
     
-
         if (tabs->count() == 2) {
             if (tabs->tabText(0) == UNTITLED_TEXT) {
                 Editor* e = qobject_cast<Editor*>(editors->widget(0));
@@ -332,7 +330,6 @@ void MainWindow::openFile(const QString& path)
                 }
             }
         }       
-        
         
         return;
     } else {
@@ -360,6 +357,7 @@ void MainWindow::tabSelected(int index)
     // std::cout << "Tabs:" << tabs->count() << std::endl;
     // std::cout << "Editors:" << editors->count() << std::endl;
     // std::cout << "Selected:" << index << std::endl;
+    
     if (index != -1) {
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
@@ -491,7 +489,15 @@ void MainWindow::warmConfigure()
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl(hostPath));
     } else {
-        engine->runFromUrl(QUrl::fromLocalFile(QFileInfo("./resources/index.html").absoluteFilePath()));
+        
+        for (auto ext : extensions) {
+            if (ext.name == "ashlar-text") {
+                engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(ext.entryPath).absoluteFilePath()));
+                // engine->runScriptFile(QUrl::fromLocalFile(QFileInfo(ext.entryPath).absoluteFilePath()));
+                break;
+            }
+        }
+        
     }
 
     connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
@@ -500,6 +506,8 @@ void MainWindow::warmConfigure()
 void MainWindow::attachJSObjects()
 {
     engine->frame->addToJavaScriptWindowObject("app", &jsApp);
+    engine->frame->addToJavaScriptWindowObject("fs", &jsFs);
+
     QTimer::singleShot(50, this, SLOT(loadAllExtensions()));
 }
 
@@ -510,7 +518,7 @@ bool MainWindow::loadExtension(QString name)
             qDebug() << "extension loaded:" << name;
             engine->runScriptFile(ext.entryPath);
         }
-    }        
+    }    
     return true;
 }
 
@@ -528,7 +536,7 @@ void MainWindow::loadAllExtensions()
         engine->runScript("console.log(ashlar)");
         engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 250)");
     }
-        
+
     // attach extensions   
     settings.isMember("extensions");
     std::vector<std::string> keys = settings["extensions"].getMemberNames();

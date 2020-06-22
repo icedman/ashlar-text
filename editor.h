@@ -7,6 +7,7 @@
 #include <QTextCursor>
 #include <QTimer>
 #include <QWidget>
+#include <QFileSystemWatcher>
 
 #include "extension.h"
 #include "grammar.h"
@@ -124,9 +125,11 @@ public:
     parse::grammar_ptr grammar;
 
 private:
+    QTimer savingTimer;
     QTimer updateTimer;
     QScrollBar* vscroll;
     QTextBlock updateIterator;
+    QFileSystemWatcher watcher;
 
 private Q_SLOTS:
     void updateScrollBar();
@@ -135,6 +138,8 @@ private Q_SLOTS:
     void updateMiniMap(bool force = false);
     void updateRequested(const QRect& rect, int d);
     void highlightBlocks();
+    
+    void fileChanged(const QString &path);
 };
 
 #endif // EDITOR_WINDOW_H

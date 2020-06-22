@@ -17,8 +17,11 @@ Editor::Editor(QWidget* parent)
     , mini(0)
     , highlighter(0)
     , editor(0)
+    , savingTimer(this)
     , updateTimer(this)
 {
+    savingTimer.setSingleShot(true);
+    connect(&watcher, SIGNAL(fileChanged(const QString &)), this, SLOT(fileChanged(const QString &)));
 }
 
 Editor::~Editor()
@@ -35,9 +38,13 @@ bool Editor::saveFile(const QString& path)
 {
     QFile file(path);
     if (file.open(QFile::WriteOnly | QFile::Text)) {
+        savingTimer.start(2000);
         QTextStream out(&file);
         out << editor->toPlainText();
+        
         fileName = path;
+        watcher.removePaths(watcher.files());
+        watcher.addPath(fileName);
         return true;
     }
     return false;
@@ -49,10 +56,12 @@ bool Editor::openFile(const QString& path)
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         fileName = path;
         highlighter->setLanguage(lang);
+        
+        watcher.removePaths(watcher.files());
+        watcher.addPath(fileName);
 
         if (file.size() > (1024 * 16)) {
             // todo do super load!
-
             if (file.size() > (1024 * 256)) {
                 std::cout << "do threaded syntax highlighting at load" << std::endl;
             }
@@ -69,6 +78,21 @@ bool Editor::openFile(const QString& path)
         return true;
     }
     return false;
+}
+
+void Editor::fileChanged(const QString &path)
+{
+    if (savingTimer.isActive()) {
+        return;
+    }
+    
+    // todo .. if has undo.. prompt
+    qDebug() << "file changed, reloading...";
+    
+    QTextCursor tc = editor->textCursor();
+    if (openFile(fileName)) {
+        editor->setTextCursor(tc);
+    }    
 }
 
 void Editor::setTheme(theme_ptr _theme)
