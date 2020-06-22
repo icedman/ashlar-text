@@ -71,8 +71,9 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         }
 
         if (!append) {
-            if (ex.package.isMember("engines")) {
-                append = ex.package["engines"].isMember("ashlar");
+            //if (ex.package.isMember("engines")) {
+                // append = ex.package["engines"].isMember("ashlar");
+                append = ex.package.isMember("ashlar");
                 if (append) {
                     if (ex.package.isMember("contributes")) {
                         ex.hasCommands = ex.package["contributes"].isMember("commands");
@@ -82,7 +83,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
                         ex.entryPath = QFileInfo(extensionPath + '/' + main).absoluteFilePath();
                     }
                 }
-            }
+            // }
         }
 
         if (append) {

@@ -50,7 +50,7 @@ export const Panels = () => {
     events.on("keyPressed", KeyListener);
     events.on("requestPanel", RequestPanel);
     return () => {
-      events.off("keyPressed", keyListener);
+      events.off("keyPressed", KeyListener);
       events.off("requestPanel", RequestPanel);
     }
   }, []);
@@ -75,9 +75,13 @@ export const ui = {
     registerPanel: (id, panel) => {
         registry[id] = panel;
     },
+    
+    showPanel: (id) => {
+        events.emit('requestPanel', {panel: id});
+    },
+    
     React,
     useUI,
-    uuid,
     core: {
       View,
       Text,

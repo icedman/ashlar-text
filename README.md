@@ -16,18 +16,19 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 # needs improvement
 * auto-close
 * auto-indent
+* extension support
 
 # todo
+* file system watch
 * bracket pairing
 * git gutter
-* folder search
-* extension support
-* package management
+* file search
 * ui: command palette
 * ui: dialog
 * ui: menu
 * ui: statusbar
+* package management
+* enable more textmate parsing codes/features
 
 # issues
 * problem with very long lines
-* problem with selection rendering for wraped lines

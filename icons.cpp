@@ -21,15 +21,7 @@ enum icon_type_t { icon_none,
 
 std::string to_utf8(uint32_t cp)
 {
-    /*
-  https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595
-
-  if using C++11 or later, you can do this:
-  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-  return conv.to_bytes( (char32_t)cp );
-
-  Otherwise...
-  */
+    // https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595.
 
     std::string result;
 

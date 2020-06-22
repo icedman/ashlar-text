@@ -460,6 +460,5 @@ static bool Commands::keyPressEvent(QKeyEvent* e)
     }
 
     MainWindow::instance()->js()->runScript("try { ashlar.events.emit(\"keyPressed\", \"" + keys + "\"); } catch(err) { console.log(err) } ");
-
     return value.toBool();
 }

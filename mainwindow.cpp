@@ -321,7 +321,19 @@ void MainWindow::openFile(const QString& path)
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
         }
+        
+    
 
+        if (tabs->count() == 2) {
+            if (tabs->tabText(0) == UNTITLED_TEXT) {
+                Editor* e = qobject_cast<Editor*>(editors->widget(0));
+                if (!e->editor->document()->isUndoAvailable()) {
+                    tabClose(0);
+                }
+            }
+        }       
+        
+        
         return;
     } else {
         if (!tabs->count()) {
@@ -477,7 +489,7 @@ void MainWindow::warmConfigure()
     splitterv->addWidget(panels);
 
     if (!hostPath.isEmpty()) {
-        engine->runFromUrl(QUrl("http://localhost:1234/index.html"));
+        engine->runFromUrl(QUrl(hostPath));
     } else {
         engine->runFromUrl(QUrl::fromLocalFile(QFileInfo("./resources/index.html").absoluteFilePath()));
     }

@@ -3,12 +3,7 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "license": "MIT",
-  "engines": {
-    "ashlar": "^0.0.1"
-  },
-  "dependencies": {
-    "uuid": "^8.1.0"
-  },
+  "ashlar": "^0.0.1",
   "scripts": {
     "start": "parcel watch index.js",
     "build": "parcel build index.js"
@@ -21,5 +16,12 @@
         "category": ""
       }
     ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "parcel-bundler": "^1.12.4"
   }
 }
