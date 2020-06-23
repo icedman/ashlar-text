@@ -6,7 +6,8 @@
   "ashlar": "^0.0.1",
   "scripts": {
     "start": "parcel watch index.js",
-    "build": "parcel build index.js"
+    "build": "parcel build index.js",
+    "publish": "yarn build & rm -rf node_modules"
   },
   "contributes": {
     "commands": [

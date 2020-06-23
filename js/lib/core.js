@@ -11,6 +11,8 @@ import FlatList from "./flatlist";
 import SectionList from "./sectionlist";
 import Window from "./window";
 import StatusBar from "./statusbar";
+import { MenuBar, Menu, MenuItem } from "./menu";
+
 import StyleSheet from "./stylesheet";
 
 export {
@@ -27,5 +29,6 @@ export {
   SectionList,
   Window,
   StatusBar,
+  MenuBar, Menu, MenuItem,
   StyleSheet
 };

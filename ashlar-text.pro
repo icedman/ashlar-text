@@ -57,3 +57,13 @@ LIBS+= ./tm-parser/build/subprojects/jsoncpp-1.8.4/libjsoncpp.a
 
 INCPATH += ./Onigmo
 LIBS+= ./Onigmo/.libs/libonigmo.a
+
+resources.path += /usr/local/share/ashlar
+resources.files += ./resources/* \
+        ./css/* \
+        ./extensions
+        
+target.path = /usr/local/bin/
+
+INSTALLS += target \
+            resources

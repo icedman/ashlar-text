@@ -119,7 +119,8 @@ const search_commands = [
     name: "show_search",
     action: () => {
       show_search();
-    }
+    },
+    keys: "ctrl+f"
   }
 ];
 
