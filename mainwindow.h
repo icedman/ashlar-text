@@ -46,6 +46,7 @@ public:
     Editor* openTab(const QString& path = QString());
 
     void closeEvent(QCloseEvent* event);
+    void readSavedGeometry();
 
     void emitEvent(QString event, QString payload);
     Engine* js() { return engine; }

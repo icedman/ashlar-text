@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget* parent)
     , icons(0)
 {
     _instance = this;
+    
     configure();
 
     // setWindowFlags(Qt::FramelessWindowHint);
@@ -491,9 +492,21 @@ void MainWindow::setupMenu()
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
+void MainWindow::readSavedGeometry()
 {
-    // save geometry
+    QSettings settings("ashlar", "ashlar");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+    
+    qDebug() << "restore";
+    qDebug() << settings.value("geometry").toByteArray();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("ashlar", "ashlar");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
     QMainWindow::closeEvent(event);
 }
 

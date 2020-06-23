@@ -595,15 +595,19 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
-static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix)
+static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix, QTextBlock currentBlock)
 {
     QTextCursor cursor;
     QStringList res;
     // qDebug() << prefix;
     while (!(cursor = doc->find(prefix, cursor)).isNull()) {
+        if (cursor.block() == currentBlock) {
+            continue;
+        }
         cursor.select(QTextCursor::WordUnderCursor);
         QString w = cursor.selectedText();
-        if (w != prefix && !res.contains(w)) {
+        // if (w != prefix && !res.contains(w)) {
+        if (!res.contains(w)) {
             res << w;
         }
         if (res.length() > 20) {
@@ -820,8 +824,9 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     }
 
     if (completionPrefix != c->completionPrefix()) {
-        updateCompleter(document(), completer, completionPrefix);
+        updateCompleter(document(), completer, completionPrefix, tc.block());
         c->setCompletionPrefix(completionPrefix);
+        c->popup()->setCurrentIndex(c->completionModel()->index(0,0));
     }
 
     int width = c->popup()->sizeHintForColumn(0);

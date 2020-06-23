@@ -162,13 +162,16 @@ static bool load_language_configuration(const QString path, language_info_ptr la
 
 language_info_ptr language_from_file(const QString path, std::vector<Extension>& extensions)
 {
+    qDebug() << "language_from_file";
+    qDebug() << path;
+    
     static std::map<std::string, language_info_ptr> cache;
     language_info_ptr lang = std::make_shared<language_info_t>();
 
     QFileInfo info(path);
     std::string suffix = ".";
     suffix += info.suffix().toStdString();
-
+    
     auto it = cache.find(suffix);
     if (it != cache.end()) {
         qDebug() << "langauge matched from cache";
