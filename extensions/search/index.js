@@ -6,6 +6,7 @@ const search = {
       ashlar.commands.registerCommand("search." + cmd.name, cmd.action);
     });
 
+    // todo.. defer/wait of engine to heat up
     setTimeout(() => {
       ashlar.ui.registerPanel(SearchPanelId, SearchPanel);
     }, 0);

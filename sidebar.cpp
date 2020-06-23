@@ -78,8 +78,13 @@ void Sidebar::setRootPath(QString path)
 
 void Sidebar::setActiveFile(QString path)
 {
+    if (!fileModel) {
+        return;
+    }
     QModelIndex index = ((QFileSystemModel*)model())->index(path);
-    setSelection(visualRect(index), QItemSelectionModel::ClearAndSelect);
+    if (index.isValid()) {
+        setSelection(visualRect(index), QItemSelectionModel::ClearAndSelect);
+    }
 }
 
 void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)

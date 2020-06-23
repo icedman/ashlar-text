@@ -25,7 +25,21 @@ import qt from './lib/engine';
 
 let RequestPanel = (id) => {};
 
-const registry = {};
+const panelRegistry = {};
+const statusRegistry = {};
+
+const ShowStatus = (msg, timeout) => {
+    ashlar.qt
+      .widget("statusBar")
+      .then(widget => {
+        if (widget) {
+            widget.showMessage(msg, timeout);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+}
 
 const KeyListener = (key) => {
   if (key === 'esc') {
@@ -57,16 +71,20 @@ export const Panels = () => {
   }, []);
 
   let show = (state.panel && state.panel.length) ? true: false;
-  let renderedPanels= Object.keys(registry).map((k, idx) => {
-    const ExtraPanel = registry[k];
-    return <ExtraPanel key={`${k}-${idx}`}></ExtraPanel>
+  let renderedPanels= Object.keys(panelRegistry).map((k, idx) => {
+    const Component = panelRegistry[k];
+    return <Component key={`${k}-${idx}`}></Component>
   });
- 
+  let renderedStatus= Object.keys(statusRegistry).map((k, idx) => {
+    const Component = statusRegistry[k];
+    return <Component key={`${k}-${idx}`}></Component>
+  });
+  
   return (
     <React.Fragment>
       <pre>{JSON.stringify(state, null, 4)}</pre>
       <StatusBar id="statusBar">
-          <Text>Hello World</Text>
+        {renderedStatus}
       </StatusBar>
       <StackedView id="panels" current={state.panel} style={{visible:show}}>
         {renderedPanels}
@@ -76,12 +94,20 @@ export const Panels = () => {
 };
 
 export const ui = {
+    registerStatus: (id, status) => {
+        statusRegistry[id] = status;
+    },
+    
     registerPanel: (id, panel) => {
-        registry[id] = panel;
+        panelRegistry[id] = panel;
     },
     
     showPanel: (id) => {
         events.emit('requestPanel', {panel: id});
+    },
+    
+    showStatus: (msg, timeout) => {
+        ShowStatus(msg, timeout);
     },
     
     React,
