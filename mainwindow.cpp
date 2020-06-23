@@ -503,6 +503,9 @@ void MainWindow::warmConfigure()
 
     engine->addFactory(new UICoreFactory());
     panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
+    statusbar = qobject_cast<QStatusBar*>(engine->create("statusBar", "StatusBar", true)->widget());
+    setStatusBar(statusbar);
+    
     splitterv->addWidget(panels);
 
     if (!hostPath.isEmpty()) {
@@ -520,6 +523,10 @@ void MainWindow::warmConfigure()
     }
 
     connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
+    
+    // reapply
+    applySettings();
+    applyTheme();
 }
 
 void MainWindow::attachJSObjects()

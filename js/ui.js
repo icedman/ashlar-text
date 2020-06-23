@@ -17,6 +17,7 @@ import {
   FlatList,
   SectionList,
   Window,
+  StatusBar,
   StyleSheet
 } from "./lib/core";
 
@@ -64,6 +65,9 @@ export const Panels = () => {
   return (
     <React.Fragment>
       <pre>{JSON.stringify(state, null, 4)}</pre>
+      <StatusBar id="statusBar">
+          <Text>Hello World</Text>
+      </StatusBar>
       <StackedView id="panels" current={state.panel} style={{visible:show}}>
         {renderedPanels}
       </StackedView>
@@ -95,6 +99,7 @@ export const ui = {
       FlatList,
       SectionList,
       Window,
+      StatusBar,
       StyleSheet
     }
 }

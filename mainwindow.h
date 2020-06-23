@@ -90,6 +90,7 @@ private:
     QSplitter* splitterv;
     QStackedWidget* editors;
     QStackedWidget* panels;
+    QStatusBar *statusbar;
     Tabs* tabs;
     Sidebar* sidebar;
 
