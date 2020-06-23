@@ -11,6 +11,7 @@ FileSystemModel::FileSystemModel(QObject* parent)
 {
     setOptions(QFileSystemModel::DontUseCustomDirectoryIcons);
     connect(this, SIGNAL(directoryLoaded(const QString&)), this, SLOT(onDirectoryLoaded(const QString&)));
+    // void fileRenamed(const QString &path, const QString &oldName, const QString &newName);
 }
 
 void FileSystemModel::onDirectoryLoaded(const QString& path)
@@ -40,11 +41,15 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent)
     , fileModel(0)
+    , updateTimer(this)
 {
     setHeaderHidden(true);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(singleClick()));
-    connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(expandItem(const QModelIndex&)));
+    setAnimated(true);
     hide();
+    
+    setMinimumSize(250, 0);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    updateTimer.setSingleShot(true);
 }
 
 void Sidebar::setRootPath(QString path)
@@ -69,6 +74,12 @@ void Sidebar::setRootPath(QString path)
     setRootIndex(idx);
 
     show();
+}
+
+void Sidebar::setActiveFile(QString path)
+{
+    QModelIndex index = ((QFileSystemModel*)model())->index(path);
+    setSelection(visualRect(index), QItemSelectionModel::ClearAndSelect);
 }
 
 void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
@@ -101,44 +112,33 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
     }
 }
 
-void Sidebar::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
-{
-    // QModelIndexList i = selected.indexes();
-    // if (i.size()) {
-    //     QString filePath = fileModel->filePath(i[0]);
-    //     mainWindow->openFile(filePath);
-    // }
-}
-
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
-    // open
-    timer.stop();
-
-    QTreeView::mouseDoubleClickEvent(event);
+    // QTreeView::mouseDoubleClickEvent(event);
 }
 
 void Sidebar::mousePressEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
-    timer.start(50);
-
     QTreeView::mousePressEvent(event);
+    
+    singleClick();
 }
 
 void Sidebar::singleClick()
 {
+    if (updateTimer.isActive()) {
+        return;
+    }
+    updateTimer.start(150);
+    
     QModelIndex index = currentIndex();
     if (index.isValid()) {
-        QString filePath = fileModel->filePath(index);
-        mainWindow->openFile(filePath);
+        QString fileName = fileModel->filePath(index);        
+        
+        if (QFileInfo(fileName).isDir()) {
+            isExpanded(index) ? collapse(index) : expand(index);
+        } else {
+            mainWindow->openFile(fileName);
+        }
     }
-
-    timer.stop();
-}
-
-void Sidebar::expandItem(const QModelIndex& index)
-{
-    isExpanded(index) ? collapse(index) : expand(index);
 }

@@ -30,7 +30,7 @@ public:
     Sidebar(QWidget* parent = 0);
 
     void setRootPath(QString path);
-    void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
+    void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
     MainWindow* mainWindow;
@@ -41,10 +41,8 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event);
 
 private:
-    QTimer timer;
+    QTimer updateTimer;
 
-private slots:
-    void expandItem(const QModelIndex&);
     void singleClick();
 };
 

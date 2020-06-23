@@ -60,7 +60,7 @@ QTreeView {
  color: @treeFg;
  border: none;
  show-decoration-selected: 0;
- font-size: 12pt;
+ font-size: 10pt;
  outline: 0
 }
 QTreeView::item {

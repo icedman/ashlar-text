@@ -329,13 +329,15 @@ void MainWindow::openFile(const QString& path)
         }
     
         if (tabs->count() == 2) {
-            if (tabs->tabText(0) == UNTITLED_TEXT) {
-                Editor* e = qobject_cast<Editor*>(editors->widget(0));
-                if (!e->editor->document()->isUndoAvailable()) {
-                    tabClose(0);
+            // close untitled tab
+            int idx = tabs->findTabByName(UNTITLED_TEXT);
+            if (idx != -1) {
+                Editor* e = tabs->editor(idx);
+                if (e && !e->editor->document()->isUndoAvailable()) {
+                    tabClose(idx);
                 }
             }
-        }       
+        }
         
         return;
     } else {
@@ -371,6 +373,7 @@ void MainWindow::tabSelected(int index)
             editors->setCurrentWidget(_editor);
             tabs->setCurrentIndex(index);
             _editor->editor->setFocus(Qt::ActiveWindowFocusReason);
+            sidebar->setActiveFile(_editor->fileName);
         }
     }
 }
@@ -407,7 +410,9 @@ void MainWindow::tabClose(int index)
 Editor* MainWindow::openTab(const QString& _path)
 {
     QString path = _path;
-
+    QString fileName = QFileInfo(path).fileName();
+    
+    int tabInsertIndex = 0;
     int tabIdx = -1;
     for (int i = 0; i < tabs->count(); i++) {
         QVariant data = tabs->tabData(i);
@@ -415,6 +420,14 @@ Editor* MainWindow::openTab(const QString& _path)
         if (_editor->fileName == path) {
             tabIdx = i;
             break;
+        }
+        
+        // insertion sort
+        QString editorFileName = QFileInfo(_editor->fileName).fileName();
+        if (!editorFileName.isEmpty()) {
+            if (QFileInfo(editorFileName).fileName().compare(fileName) < 0) {
+                tabInsertIndex = i+1;
+            }
         }
     }
 
@@ -428,8 +441,8 @@ Editor* MainWindow::openTab(const QString& _path)
         _fileName = UNTITLED_TEXT;
         path = QFileInfo(_fileName).absoluteFilePath();
     }
-
-    tabIdx = tabs->addTab(_fileName);
+    
+    tabIdx = tabs->insertTab(tabInsertIndex, _fileName);
     Editor* _editor = createEditor(); // << creates a new editor
     editors->addWidget(_editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
@@ -496,10 +509,10 @@ void MainWindow::warmConfigure()
         engine->runFromUrl(QUrl(hostPath));
     } else {
         
+        // load the main extension
         for (auto ext : extensions) {
             if (ext.name == "ashlar-text") {
                 engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(ext.entryPath).absoluteFilePath()));
-                // engine->runScriptFile(QUrl::fromLocalFile(QFileInfo(ext.entryPath).absoluteFilePath()));
                 break;
             }
         }
