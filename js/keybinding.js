@@ -17,12 +17,12 @@ const keybinding = {
     // prevent double call (both mainwindow & editor are trapping keyevents)
     let t = new Date().getTime();
     if (last_key.keys == k && t - last_key.time < 150) {
-      return false;
+      return true;
     }
     last_key.time = t;
     last_key.keys = k;
     try {
-      console.log(kb.command);
+      // console.log(kb.command);
       commands.executeCommand(kb.command, kb.args);
     } catch (err) {
       console.log(err);

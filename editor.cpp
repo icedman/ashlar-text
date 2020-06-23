@@ -57,7 +57,9 @@ bool Editor::openFile(const QString& path)
         fileName = path;
         highlighter->setLanguage(lang);
         
-        watcher.removePaths(watcher.files());
+        if (watcher.files().size()) {
+            watcher.removePaths(watcher.files());
+        }
         watcher.addPath(fileName);
 
         if (file.size() > (1024 * 16)) {

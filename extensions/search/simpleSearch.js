@@ -85,6 +85,7 @@ const SearchPanel = props => {
               onChangeText={onFindChanged}
               onSubmitEditing={onSearch}
           />
+          <Button text='Find' style={styles.button} onClick={onSearch}/>
         </View>
       </View>
 };

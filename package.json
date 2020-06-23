@@ -1,19 +1,17 @@
 {
   "name": "ashlar-text",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "dist/index.html",
   "repository": "git@github.com:icedman/ashlar-text.git",
   "author": "icedman <m4rvin2005@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "clsx": "^1.1.1",
-    "debounce": "^1.2.0",
     "parcel-bundler": "^1.12.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "uuid": "^8.1.0"
   },
-  "main": "dist/index.html",
   "scripts": {
     "start": "parcel index.html",
     "build": "parcel build --public-url . index.html"

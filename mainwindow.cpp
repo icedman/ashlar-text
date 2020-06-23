@@ -513,12 +513,8 @@ void MainWindow::warmConfigure()
     } else {
         
         // load the main extension
-        for (auto ext : extensions) {
-            if (ext.name == "ashlar-text") {
-                engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(ext.entryPath).absoluteFilePath()));
-                break;
-            }
-        }
+        QString basePath = QCoreApplication::applicationDirPath();
+        engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(basePath + "/dist/index.html").absoluteFilePath()));
         
     }
 
