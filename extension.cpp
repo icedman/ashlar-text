@@ -73,17 +73,17 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 
         if (!append) {
             //if (ex.package.isMember("engines")) {
-                // append = ex.package["engines"].isMember("ashlar");
-                append = ex.package.isMember("ashlar") || ex.name == "ashlar-text";
-                if (append) {
-                    if (ex.package.isMember("contributes")) {
-                        ex.hasCommands = ex.package["contributes"].isMember("commands");
-                    }
-                    if (ex.package.isMember("main")) {
-                        QString main = ex.package["main"].asString().c_str();
-                        ex.entryPath = QFileInfo(extensionPath + '/' + main).absoluteFilePath();
-                    }
+            // append = ex.package["engines"].isMember("ashlar");
+            append = ex.package.isMember("ashlar") || ex.name == "ashlar-text";
+            if (append) {
+                if (ex.package.isMember("contributes")) {
+                    ex.hasCommands = ex.package["contributes"].isMember("commands");
                 }
+                if (ex.package.isMember("main")) {
+                    QString main = ex.package["main"].asString().c_str();
+                    ex.entryPath = QFileInfo(extensionPath + '/' + main).absoluteFilePath();
+                }
+            }
             // }
         }
 
@@ -164,14 +164,14 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
 {
     qDebug() << "language_from_file";
     qDebug() << path;
-    
+
     static std::map<std::string, language_info_ptr> cache;
     language_info_ptr lang = std::make_shared<language_info_t>();
 
     QFileInfo info(path);
     std::string suffix = ".";
     suffix += info.suffix().toStdString();
-    
+
     auto it = cache.find(suffix);
     if (it != cache.end()) {
         qDebug() << "langauge matched from cache";

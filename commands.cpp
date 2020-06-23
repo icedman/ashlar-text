@@ -433,7 +433,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
                 return false;
             }
         }
-        
+
         editor->editor->centerCursor();
         return true;
     }

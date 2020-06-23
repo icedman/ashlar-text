@@ -2,12 +2,12 @@
 #define EDITOR_WINDOW_H
 
 #include <QCompleter>
+#include <QFileSystemWatcher>
 #include <QPlainTextEdit>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTimer>
 #include <QWidget>
-#include <QFileSystemWatcher>
 
 #include "extension.h"
 #include "grammar.h"
@@ -72,6 +72,7 @@ public:
     QList<QTextCursor> extraCursors;
 
     void paintToBuffer();
+    float offsetY() { return _offsetY; }
 
 private:
     bool completerKeyPressEvent(QKeyEvent* e);
@@ -79,13 +80,20 @@ private:
     void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
+    void wheelEvent(QWheelEvent* e) override;
 
     Overlay* overlay;
     Editor* editor;
 
+    float _offsetY;
+    QPointF scrollDelta;
+    QPointF scrollVelocity;
+    QTimer updateTimer;
+
     QCompleter* completer;
 
 private Q_SLOTS:
+    void updateScrollDelta();
     void insertCompletion(const QString& completion);
 };
 
@@ -138,8 +146,8 @@ private Q_SLOTS:
     void updateMiniMap(bool force = false);
     void updateRequested(const QRect& rect, int d);
     void highlightBlocks();
-    
-    void fileChanged(const QString &path);
+
+    void fileChanged(const QString& path);
 };
 
 #endif // EDITOR_WINDOW_H

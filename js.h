@@ -7,7 +7,6 @@ class JSFs : public QObject {
     Q_OBJECT
 
 public:
-
 public slots:
     QString readFile(QString path);
     bool appendFile(QString content, QString path);

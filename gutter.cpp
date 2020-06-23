@@ -37,6 +37,8 @@ void Gutter::paintEvent(QPaintEvent* event)
 
     QTextDocument* doc = tm->document();
 
+    p.translate(0, tm->offsetY());
+
     // find cursor
     QTextCursor cursor = tm->textCursor();
     QTextBlock cursorBlock = cursor.block();

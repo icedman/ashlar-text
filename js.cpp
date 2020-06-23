@@ -10,7 +10,8 @@
 
 #include "js.h"
 
-static QString sanitizePath(QString path) {
+static QString sanitizePath(QString path)
+{
     path = path.replace("~", "");
     path = path.replace("..", "");
     return QFileInfo(MainWindow::instance()->projectPath + "/" + path).absoluteFilePath();
@@ -20,7 +21,7 @@ static QString sanitizePath(QString path) {
 // limited fs
 //-----------------
 QString JSFs::readFile(QString path)
-{    
+{
     QFile file(sanitizePath(path));
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         return file.readAll();
@@ -47,7 +48,7 @@ bool JSFs::writeFile(QString content, QString path)
     }
     return true;
 }
-    
+
 //-----------------
 // main app
 //-----------------

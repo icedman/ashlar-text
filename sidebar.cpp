@@ -46,7 +46,7 @@ Sidebar::Sidebar(QWidget* parent)
     setHeaderHidden(true);
     setAnimated(true);
     hide();
-    
+
     setMinimumSize(250, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     updateTimer.setSingleShot(true);
@@ -125,7 +125,7 @@ void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 void Sidebar::mousePressEvent(QMouseEvent* event)
 {
     QTreeView::mousePressEvent(event);
-    
+
     singleClick();
 }
 
@@ -135,11 +135,11 @@ void Sidebar::singleClick()
         return;
     }
     updateTimer.start(150);
-    
+
     QModelIndex index = currentIndex();
     if (index.isValid()) {
-        QString fileName = fileModel->filePath(index);        
-        
+        QString fileName = fileModel->filePath(index);
+
         if (QFileInfo(fileName).isDir()) {
             isExpanded(index) ? collapse(index) : expand(index);
         } else {

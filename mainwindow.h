@@ -58,7 +58,7 @@ public:
 
     int currentTab() { return tabs->currentIndex(); }
     bool loadExtension(QString name);
-        
+
     static MainWindow* instance();
 
 public:
@@ -79,7 +79,7 @@ public slots:
     void tabSelected(int index);
     void tabClose(int index);
     void loadAllExtensions();
-    
+
 private Q_SLOTS:
     void attachJSObjects();
 
@@ -91,7 +91,7 @@ private:
     QSplitter* splitterv;
     QStackedWidget* editors;
     QStackedWidget* panels;
-    QStatusBar *statusbar;
+    QStatusBar* statusbar;
     Tabs* tabs;
     Sidebar* sidebar;
 

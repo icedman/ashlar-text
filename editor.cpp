@@ -9,6 +9,8 @@
 #include "reader.h"
 #include "settings.h"
 
+#define SMOOTH_SCROLL_THRESHOLD 400
+
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
     , theme(0)
@@ -21,7 +23,7 @@ Editor::Editor(QWidget* parent)
     , updateTimer(this)
 {
     savingTimer.setSingleShot(true);
-    connect(&watcher, SIGNAL(fileChanged(const QString &)), this, SLOT(fileChanged(const QString &)));
+    connect(&watcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChanged(const QString&)));
 }
 
 Editor::~Editor()
@@ -41,7 +43,7 @@ bool Editor::saveFile(const QString& path)
         savingTimer.start(2000);
         QTextStream out(&file);
         out << editor->toPlainText();
-        
+
         fileName = path;
         watcher.removePaths(watcher.files());
         watcher.addPath(fileName);
@@ -56,7 +58,7 @@ bool Editor::openFile(const QString& path)
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         fileName = path;
         highlighter->setLanguage(lang);
-        
+
         if (watcher.files().size()) {
             watcher.removePaths(watcher.files());
         }
@@ -82,19 +84,19 @@ bool Editor::openFile(const QString& path)
     return false;
 }
 
-void Editor::fileChanged(const QString &path)
+void Editor::fileChanged(const QString& path)
 {
     if (savingTimer.isActive()) {
         return;
     }
-    
+
     // todo .. if has undo.. prompt
     qDebug() << "file changed, reloading...";
-    
+
     QTextCursor tc = editor->textCursor();
     if (openFile(fileName)) {
         editor->setTextCursor(tc);
-    }    
+    }
 }
 
 void Editor::setTheme(theme_ptr _theme)
@@ -350,6 +352,10 @@ void Editor::updateGutter(bool force)
     QRectF sidebarRect(0, 0, sw, height());
 
     QTextBlock block = editor->_firstVisibleBlock();
+    if (block.previous().isValid()) {
+        block = block.previous();
+    }
+
     int index = 0;
     while (block.isValid()) {
         if (block.isVisible()) {
@@ -622,6 +628,8 @@ static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix, Q
 //---------------------
 TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
+    , updateTimer(this)
+    , _offsetY(0)
 {
     overlay = new Overlay(this);
     editor = (Editor*)parent;
@@ -636,6 +644,9 @@ TextmateEdit::TextmateEdit(QWidget* parent)
 
     QObject::connect(completer, QOverload<const QString&>::of(&QCompleter::activated),
         this, &TextmateEdit::insertCompletion);
+
+    // updateTimer.start(50);
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateScrollDelta()));
 }
 
 void TextmateEdit::contextMenuEvent(QContextMenuEvent* event)
@@ -669,8 +680,26 @@ void TextmateEdit::paintToBuffer()
     cursors << textCursor();
 
     QTextBlock block = editor->_firstVisibleBlock();
+    if (block.previous().isValid()) {
+        block = block.previous();
+    }
     QFontMetrics fm(font());
     float fh = fm.height();
+
+    QTextLayout* layout = block.layout();
+    if (layout) {
+        QTextLine line = layout->lineAt(0);
+        if (line.isValid()) {
+            fh = layout->lineAt(0).height();
+        }
+    }
+
+    _offsetY = fh * scrollDelta.y() / SMOOTH_SCROLL_THRESHOLD;
+    p.translate(0, _offsetY);
+
+    if (_offsetY != 0) {
+        overlay->cursorOn = false;
+    }
 
     //-----------------
     // selections
@@ -826,7 +855,7 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     if (completionPrefix != c->completionPrefix()) {
         updateCompleter(document(), completer, completionPrefix, tc.block());
         c->setCompletionPrefix(completionPrefix);
-        c->popup()->setCurrentIndex(c->completionModel()->index(0,0));
+        c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }
 
     int width = c->popup()->sizeHintForColumn(0);
@@ -882,6 +911,63 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     overlay->cursorOn = true;
     overlay->update();
     paintToBuffer();
+}
+
+void TextmateEdit::wheelEvent(QWheelEvent* e)
+{
+    QPointF numDegrees = e->angleDelta();
+    if (!numDegrees.isNull()) {
+        scrollVelocity += (scrollVelocity * 0.2);
+        scrollVelocity += numDegrees;
+        updateScrollDelta();
+    }
+}
+
+void TextmateEdit::updateScrollDelta()
+{
+    updateTimer.start(25);    
+    scrollDelta += (scrollVelocity * 0.6);
+    
+    float y = scrollVelocity.y() * 0.8;
+    if (y * y < 4) {
+        y = 0;
+    }
+    scrollVelocity = QPointF(0, y);
+
+    if (scrollVelocity.y() < 0) {
+        if (verticalScrollBar()->value() >= verticalScrollBar()->maximum()) {
+            scrollDelta = QPointF(0, 0);
+            scrollVelocity = QPointF(0, 0);
+            _offsetY = 0;
+        }
+        while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD) {
+            scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD);
+            verticalScrollBar()->setValue(verticalScrollBar()->value() + 1);
+        }
+    } else if (scrollVelocity.y() > 0) {
+        if (verticalScrollBar()->value() <= verticalScrollBar()->minimum()) {
+            scrollDelta = QPointF(0, 0);
+            scrollVelocity = QPointF(0, 0);
+            _offsetY = 0;
+        }
+        while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD) {
+            scrollDelta -= QPointF(0, SMOOTH_SCROLL_THRESHOLD);
+            verticalScrollBar()->setValue(verticalScrollBar()->value() - 1);
+        }
+    }
+
+    if (y == 0) {
+        y = scrollDelta.y();
+        if (y * y > 4) {
+            scrollDelta += QPointF(0, y * -0.2);
+        } else {
+            scrollDelta = QPointF(0, 0);
+            updateTimer.stop();
+        }
+    }
+
+    paintToBuffer();
+    editor->gutter->update();
 }
 
 void TextmateEdit::insertCompletion(const QString& completion)

@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget* parent)
     , icons(0)
 {
     _instance = this;
-    
+
     configure();
 
     // setWindowFlags(Qt::FramelessWindowHint);
@@ -328,7 +328,7 @@ void MainWindow::openFile(const QString& path)
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
         }
-    
+
         if (tabs->count() == 2) {
             // close untitled tab
             int idx = tabs->findTabByName(UNTITLED_TEXT);
@@ -339,7 +339,7 @@ void MainWindow::openFile(const QString& path)
                 }
             }
         }
-        
+
         return;
     } else {
         if (!tabs->count()) {
@@ -366,7 +366,7 @@ void MainWindow::tabSelected(int index)
     // std::cout << "Tabs:" << tabs->count() << std::endl;
     // std::cout << "Editors:" << editors->count() << std::endl;
     // std::cout << "Selected:" << index << std::endl;
-    
+
     if (index != -1) {
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
@@ -412,7 +412,7 @@ Editor* MainWindow::openTab(const QString& _path)
 {
     QString path = _path;
     QString fileName = QFileInfo(path).fileName();
-    
+
     int tabInsertIndex = 0;
     int tabIdx = -1;
     for (int i = 0; i < tabs->count(); i++) {
@@ -422,12 +422,12 @@ Editor* MainWindow::openTab(const QString& _path)
             tabIdx = i;
             break;
         }
-        
+
         // insertion sort
         QString editorFileName = QFileInfo(_editor->fileName).fileName();
         if (!editorFileName.isEmpty()) {
             if (QFileInfo(editorFileName).fileName().compare(fileName) < 0) {
-                tabInsertIndex = i+1;
+                tabInsertIndex = i + 1;
             }
         }
     }
@@ -442,7 +442,7 @@ Editor* MainWindow::openTab(const QString& _path)
         _fileName = UNTITLED_TEXT;
         path = QFileInfo(_fileName).absoluteFilePath();
     }
-    
+
     tabIdx = tabs->insertTab(tabInsertIndex, _fileName);
     Editor* _editor = createEditor(); // << creates a new editor
     editors->addWidget(_editor);
@@ -497,12 +497,12 @@ void MainWindow::readSavedGeometry()
     QSettings settings("ashlar", "ashlar");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
-    
+
     qDebug() << "restore";
     qDebug() << settings.value("geometry").toByteArray();
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
     QSettings settings("ashlar", "ashlar");
     settings.setValue("geometry", saveGeometry());
@@ -518,21 +518,20 @@ void MainWindow::warmConfigure()
     panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
     statusbar = qobject_cast<QStatusBar*>(engine->create("statusBar", "StatusBar", true)->widget());
     setStatusBar(statusbar);
-    
+
     splitterv->addWidget(panels);
 
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl(hostPath));
     } else {
-        
+
         // load the main extension
         QString basePath = QCoreApplication::applicationDirPath();
         engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(basePath + "/dist/index.html").absoluteFilePath()));
-        
     }
 
     connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
-    
+
     // reapply
     applySettings();
     applyTheme();
@@ -547,13 +546,13 @@ void MainWindow::attachJSObjects()
 }
 
 bool MainWindow::loadExtension(QString name)
-{   
+{
     for (auto ext : extensions) {
         if (ext.name == name) {
             qDebug() << "extension loaded:" << name;
             engine->runScriptFile(ext.entryPath);
         }
-    }    
+    }
     return true;
 }
 
@@ -572,7 +571,7 @@ void MainWindow::loadAllExtensions()
         engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 250)");
     }
 
-    // attach extensions   
+    // attach extensions
     settings.isMember("extensions");
     std::vector<std::string> keys = settings["extensions"].getMemberNames();
     std::vector<std::string>::iterator it = keys.begin();
@@ -587,7 +586,7 @@ void MainWindow::loadAllExtensions()
 
 void MainWindow::emitEvent(QString event, QString payload)
 {
-     engine->runScript("try { ashlar.events.emit(\"" + event + "\", \"" + payload + "\"); } catch(err) { console.log(err) } ");
+    engine->runScript("try { ashlar.events.emit(\"" + event + "\", \"" + payload + "\"); } catch(err) { console.log(err) } ");
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
