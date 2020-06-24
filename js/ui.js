@@ -23,6 +23,7 @@ import {
 
 import qt from './lib/engine';
 
+let TouchState = () => {};
 let RequestPanel = (id) => {};
 
 const panelRegistry = {};
@@ -47,18 +48,29 @@ const KeyListener = (key) => {
   }
 }
 
-export const Panels = () => {
+export const Widgets = () => {
   const ui = useUI();
   const state = ui.state;
 
   const showPanel = ({ panel }) => {
     ui.dispatch(
       ui.setState({
+        ...state,
         panel: panel
       })
     );
   };
 
+  const touchState = () => {
+     ui.dispatch(
+      ui.setState({
+        ...state,
+        update: uuid()
+      })
+    );
+  }
+  
+  TouchState = touchState;
   RequestPanel = showPanel;
   
   React.useEffect(() => {
@@ -96,10 +108,12 @@ export const Panels = () => {
 export const ui = {
     registerStatus: (id, status) => {
         statusRegistry[id] = status;
+        TouchState();
     },
     
     registerPanel: (id, panel) => {
         panelRegistry[id] = panel;
+        TouchState();
     },
     
     showPanel: (id) => {

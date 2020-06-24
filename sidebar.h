@@ -29,7 +29,7 @@ class Sidebar : public QTreeView {
 public:
     Sidebar(QWidget* parent = 0);
 
-    void setRootPath(QString path);
+    void setRootPath(QString path, bool deferred);
     void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
@@ -42,8 +42,12 @@ protected:
 
 private:
     QTimer updateTimer;
-
+    QString rootPath;
+    
     void singleClick();
+
+private Q_SLOTS:
+    void _setRootPath();
 };
 
 #endif // SIDEBAR_H

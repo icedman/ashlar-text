@@ -149,6 +149,7 @@ private Q_SLOTS:
     void highlightBlocks();
 
     void fileChanged(const QString& path);
+    void cursorPositionChanged();
 };
 
 #endif // EDITOR_WINDOW_H

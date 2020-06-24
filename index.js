@@ -1,5 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import ashlar, { App } from "./js/ashlar";
+import App from './js/app';
 
 ReactDOM.render(<App />, document.querySelector("#root"));

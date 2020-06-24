@@ -94,7 +94,6 @@ const SearchPanel = props => {
 const show_search = args => {
   ashlar.events.emit("requestPanel", { panel: SearchPanelId });
 
-  setTimeout(() => {
     ashlar.qt
       .widget(SearchPanelId + "::input")
       .then(widget => {
@@ -112,7 +111,6 @@ const show_search = args => {
               value: app.selectedText()
           }
       })
-  }, 50);
 };
 
 const search_commands = [

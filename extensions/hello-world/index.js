@@ -34,11 +34,6 @@ const hello = {
     hello_commands.forEach(cmd => {
       ashlar.commands.registerCommand("hello_world.say_hello", cmd.action);
     });
-    
-    // todo.. defer/wait of engine to heat up
-    // setTimeout(() => {
-      // ashlar.ui.registerStatus("status::hello", StatusHello);
-    // }, 0);
   },
 
   deactivate: () => {}

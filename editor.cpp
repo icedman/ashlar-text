@@ -11,8 +11,9 @@
 
 #define SMOOTH_SCROLL_THRESHOLD_X 400
 #define SMOOTH_SCROLL_THRESHOLD_Y 400
-#define SMOOTH_SCROLL_FRAMES 4
-#define SMOOTH_SCROLL_FRICTION 0.9
+#define SMOOTH_SCROLL_FRAMES 2
+#define SMOOTH_SCROLL_FRICTION_X 0.9
+#define SMOOTH_SCROLL_FRICTION_Y 0.8
 #define SMOOTH_SCROLL_X 8
 
 Editor::Editor(QWidget* parent)
@@ -101,6 +102,11 @@ void Editor::fileChanged(const QString& path)
     if (openFile(fileName)) {
         editor->setTextCursor(tc);
     }
+}
+
+void Editor::cursorPositionChanged()
+{
+    MainWindow::instance()->emitEvent("cursorPositionChanged", "");
 }
 
 void Editor::setTheme(theme_ptr _theme)
@@ -201,6 +207,7 @@ void Editor::setupEditor()
 
     connect(editor, SIGNAL(blockCountChanged(int)), this, SLOT(updateGutter()));
     connect(editor, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateRequested(QRect, int)));
+    connect(editor, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
 
     gutter = new Gutter();
     gutter->font = font;
@@ -364,14 +371,14 @@ void Editor::updateGutter(bool force)
     while (block.isValid()) {
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-            if (sidebarRect.intersects(rect)) {
+            // if (sidebarRect.intersects(rect)) {
                 if (gutter->lineNumbers.count() >= index)
                     gutter->lineNumbers.resize(index + 1);
                 gutter->lineNumbers[index].position = rect.top();
                 gutter->lineNumbers[index].number = block.blockNumber() + 1;
                 gutter->lineNumbers[index].foldable = isFoldable(block);
                 ++index;
-            }
+            // }
             if (rect.top() > sidebarRect.bottom() + 40)
                 break;
         }
@@ -649,7 +656,6 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     QObject::connect(completer, QOverload<const QString&>::of(&QCompleter::activated),
         this, &TextmateEdit::insertCompletion);
 
-    // updateTimer.start(50);
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateScrollDelta()));
 }
 
@@ -669,6 +675,7 @@ void TextmateEdit::paintToBuffer()
     // map.fill(Qt::transparent);
 
     QPainter p(&map);
+    if (scrollVelocity.x() == 0 && scrollVelocity.y() == 0)
     p.setRenderHint(QPainter::Antialiasing);
 
     TextmateEdit* editor = this;
@@ -684,12 +691,8 @@ void TextmateEdit::paintToBuffer()
     cursors << textCursor();
 
     QTextBlock block = editor->_firstVisibleBlock();
-    if (block.previous().isValid()) {
-        block = block.previous();
-    }
     QFontMetrics fm(font());
     float fh = fm.height();
-    float fw = fh;
 
     QTextLayout* layout = block.layout();
     if (layout) {
@@ -760,6 +763,9 @@ void TextmateEdit::paintToBuffer()
     }
 
     block = firstVisibleBlock();
+    if (block.previous().isValid()) {
+        block = block.previous();
+    }
     while (block.isValid()) {
         QRectF r = blockBoundingGeometry(block).translated(contentOffset());
         if (r.top() > height()) {
@@ -929,23 +935,18 @@ void TextmateEdit::wheelEvent(QWheelEvent* e)
     
     QPointF numDegrees = e->angleDelta();
     if (!numDegrees.isNull()) {
-        if ((scrollVelocity.y() < 0 && numDegrees.y() > 0) ||
-            (scrollVelocity.y() > 0 && numDegrees.y() < 0)) {
-            scrollVelocity = QPointF(scrollVelocity.x(), 0);
+        scrollVelocity += QPointF(numDegrees.x(), numDegrees.y()*2);
+        if (!updateTimer.isActive()) {
+            updateScrollDelta();
         }
-        scrollVelocity += numDegrees;
-        
-        if (numDegrees.y() * numDegrees.y() < 25) {
-           scrollVelocity = QPointF(scrollVelocity.x(),0);
-        }
-        
-        updateScrollDelta();
     }
 }
 
 void TextmateEdit::updateScrollDelta()
 {
-    updateTimer.start(50);
+    if (!updateTimer.isActive()) {
+        updateTimer.start(50);
+    }
     
     for(int i=0;i<SMOOTH_SCROLL_FRAMES;i++) {
         
@@ -957,8 +958,8 @@ void TextmateEdit::updateScrollDelta()
     
     scrollDelta += QPointF(scrollVelocity.x() * 1.0, scrollVelocity.y() * 0.6);
     
-    float x = scrollVelocity.x() * SMOOTH_SCROLL_FRICTION;
-    float y = scrollVelocity.y() * SMOOTH_SCROLL_FRICTION;
+    float x = scrollVelocity.x() * SMOOTH_SCROLL_FRICTION_X;
+    float y = scrollVelocity.y() * SMOOTH_SCROLL_FRICTION_Y;
     if (y * y < 4 && x * x < 4) {
         x = 0;
         y = 0;
@@ -967,27 +968,34 @@ void TextmateEdit::updateScrollDelta()
     
     float scrollX = SMOOTH_SCROLL_X * devicePixelRatio(); // double for retina?
     
+    QScrollBar *vs = verticalScrollBar();
+    QScrollBar *hs = horizontalScrollBar();
+    
     // x component
     if (scrollVelocity.x() < 0) {
-        if (horizontalScrollBar()->value() >= horizontalScrollBar()->maximum()) {
+        if (hs->value() >= hs->maximum()) {
             scrollDelta = QPointF(0, scrollDelta.y());
             scrollVelocity = QPointF(0, scrollVelocity.y());
             x = 0;
         }
+        int scroll = 0;
         while (scrollDelta.x() < -SMOOTH_SCROLL_THRESHOLD_X) {
             scrollDelta += QPointF(SMOOTH_SCROLL_THRESHOLD_X, 0);
-            horizontalScrollBar()->setValue(horizontalScrollBar()->value() + scrollX);
-        }
+            scroll += scrollX;
+        }        
+        hs->setValue(hs->value() + scroll);
     } else if (scrollVelocity.x() > 0) {
-        if (horizontalScrollBar()->value() <= horizontalScrollBar()->minimum()) {
+        if (hs->value() <= hs->minimum()) {
             scrollDelta = QPointF(0, scrollDelta.y());
             scrollVelocity = QPointF(0, scrollVelocity.y());
             x = 0;
         }
+        int scroll = 0;
         while (scrollDelta.x() > SMOOTH_SCROLL_THRESHOLD_X) {
             scrollDelta -= QPointF(SMOOTH_SCROLL_THRESHOLD_X, scrollDelta.y());
-            horizontalScrollBar()->setValue(horizontalScrollBar()->value() - scrollX);
+            scroll += scrollX;
         }
+        hs->setValue(hs->value() - scroll);
     }
 
     if (x == 0) {
@@ -1001,31 +1009,35 @@ void TextmateEdit::updateScrollDelta()
 
     // y component
     if (scrollVelocity.y() < 0) {
-        if (verticalScrollBar()->value() >= verticalScrollBar()->maximum()) {
+        if (vs->value() >= vs->maximum()) {
             scrollDelta = QPointF(scrollDelta.x(), 0);
             scrollVelocity = QPointF(scrollVelocity.x(), 0);
             y = 0;
         }
+        int scroll = 0;
         while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD_Y) {
             scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD_Y);
-            verticalScrollBar()->setValue(verticalScrollBar()->value() + 1);
+            scroll ++;
         }
+        vs->setValue(vs->value() + scroll);
     } else if (scrollVelocity.y() > 0) {
-        if (verticalScrollBar()->value() <= verticalScrollBar()->minimum()) {
+        if (vs->value() <= vs->minimum()) {
             scrollDelta = QPointF(scrollDelta.x(), 0);
             scrollVelocity = QPointF(scrollVelocity.x(), 0);
             y = 0;
         }
+        int scroll = 0;
         while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD_Y) {
             scrollDelta -= QPointF(scrollDelta.x(), SMOOTH_SCROLL_THRESHOLD_Y);
-            verticalScrollBar()->setValue(verticalScrollBar()->value() - 1);
+            scroll ++;
         }
+        vs->setValue(vs->value() - scroll);
     }
 
     if (y == 0) {
         float sy = scrollDelta.y();
-        if (sy * sy > 2) {
-            scrollDelta += QPointF(0, sy * -0.4);
+        if (sy * sy > 4) {
+            scrollDelta += QPointF(0, sy * -0.2);
         } else {
             scrollDelta = QPointF(scrollDelta.x(), 0);
         }

@@ -19,6 +19,8 @@ const ashlar = {
   qt
 };
 
+window.ashlar = ashlar;
+
 /*
  * base commands
  */
@@ -45,13 +47,5 @@ baseCommands.forEach(cmd => {
   commands.registerCommand(cmd.name, cmd.action);
 });
 
-export const App = () => {
-  return (
-    <UIProvider>
-      <Panels />
-    </UIProvider>
-  );
-};
-
-window.ashlar = ashlar;
+app.reloadExtensions();
 export default ashlar;

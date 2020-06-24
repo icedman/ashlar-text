@@ -35,10 +35,11 @@ MainWindow::MainWindow(QWidget* parent)
     applySettings();
     applyTheme();
 
-    setWindowTitle(tr("Editor"));
+    setWindowTitle(tr("Ashlar"));
     setMinimumSize(600, 400);
 
-    updateTimer.singleShot(250, this, SLOT(warmConfigure()));
+    updateTimer.singleShot(500, this, SLOT(warmConfigure()));
+    connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
 }
 
 MainWindow::~MainWindow()
@@ -308,7 +309,7 @@ void MainWindow::openFile(const QString& path)
         if (tabs->count() == 0) {
             if (!editors->count()) {
                 projectPath = fileName;
-                sidebar->setRootPath(projectPath);
+                sidebar->setRootPath(projectPath, false);
             }
             newFile();
         }
@@ -320,7 +321,7 @@ void MainWindow::openFile(const QString& path)
 
         if (tabs->count() == 0) {
             projectPath = QFileInfo(fileName).path();
-            sidebar->setRootPath(projectPath);
+            sidebar->setRootPath(projectPath, true);
             sidebar->hide();
         }
 
@@ -328,6 +329,7 @@ void MainWindow::openFile(const QString& path)
         if (currentEditor()->fileName != fileName) {
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
+            tabSelected(tabs->findTabByPath(currentEditor()->fileName));
         }
 
         if (tabs->count() == 2) {
@@ -376,6 +378,10 @@ void MainWindow::tabSelected(int index)
             tabs->setCurrentIndex(index);
             _editor->editor->setFocus(Qt::ActiveWindowFocusReason);
             sidebar->setActiveFile(_editor->fileName);
+            
+            if (!_editor->fileName.isEmpty()) {
+                emitEvent("tabSelected", _editor->fileName);
+            }
         }
     }
 }
@@ -395,6 +401,7 @@ void MainWindow::tabClose(int index)
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
         if (_editor) {
+            emitEvent("tabClosed", _editor->fileName);
             editors->removeWidget(_editor);
             tabs->removeTab(index);
             _editor->deleteLater();
@@ -525,13 +532,10 @@ void MainWindow::warmConfigure()
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl(hostPath));
     } else {
-
         // load the main extension
         QString basePath = QCoreApplication::applicationDirPath();
         engine->runFromUrl(QUrl::fromLocalFile(QFileInfo(basePath + "/dist/index.html").absoluteFilePath()));
     }
-
-    connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
 
     // reapply
     applySettings();
@@ -542,8 +546,6 @@ void MainWindow::attachJSObjects()
 {
     engine->frame->addToJavaScriptWindowObject("app", &jsApp);
     engine->frame->addToJavaScriptWindowObject("fs", &jsFs);
-
-    QTimer::singleShot(50, this, SLOT(loadAllExtensions()));
 }
 
 bool MainWindow::loadExtension(QString name)
@@ -568,7 +570,6 @@ void MainWindow::loadAllExtensions()
         QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { console.log(err) }";
         engine->runScript(script);
         engine->runScript("console.log(keyjson)");
-        engine->runScript("console.log(ashlar)");
         engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 250)");
     }
 

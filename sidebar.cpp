@@ -52,7 +52,7 @@ Sidebar::Sidebar(QWidget* parent)
     updateTimer.setSingleShot(true);
 }
 
-void Sidebar::setRootPath(QString path)
+void Sidebar::setRootPath(QString path, bool deferred)
 {
     if (fileModel || path.isEmpty()) {
         return;
@@ -62,17 +62,20 @@ void Sidebar::setRootPath(QString path)
 
     fileModel = new FileSystemModel(this);
     fileModel->mainWindow = main;
-    fileModel->setRootPath(path);
-
+    rootPath = path;
+    
     setModel(fileModel);
 
     for (int i = 1; i < fileModel->columnCount(); i++) {
         hideColumn(i);
     }
 
-    QModelIndex idx = fileModel->index(fileModel->rootPath());
-    setRootIndex(idx);
-
+    if (deferred) {
+        QTimer::singleShot(500, this, SLOT(_setRootPath()));
+    } else {
+        _setRootPath();
+    }
+    
     show();
 }
 
@@ -146,4 +149,13 @@ void Sidebar::singleClick()
             mainWindow->openFile(fileName);
         }
     }
+}
+
+void Sidebar::_setRootPath()
+{
+    // qDebug() << "root:" << rootPath;
+    fileModel->setRootPath(rootPath);
+    
+    QModelIndex idx = fileModel->index(fileModel->rootPath());
+    setRootIndex(idx);
 }

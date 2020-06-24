@@ -180,6 +180,19 @@ QString JSApp::selectedText()
     return editor()->editor->textCursor().selectedText();
 }
 
+QList<int> JSApp::cursor()
+{
+    QList<int> res;
+    QTextCursor cs = editor()->editor->textCursor();
+    QTextBlock block = cs.block();
+    if (!block.isValid()) {
+        return res;
+    }
+    res << block.firstLineNumber();
+    res << cs.position() - block.position();
+    return res;
+}
+
 void JSApp::zoomIn()
 {
     return editor()->editor->zoomIn();
@@ -234,10 +247,18 @@ QStringList JSApp::scopesAtCursor()
 
 QString JSApp::language()
 {
+    if (!editor()->lang) {
+        return "";
+    }
     return editor()->lang->id.c_str();
 }
 
 void JSApp::runScriptFile(QString path)
 {
     MainWindow::instance()->js()->runScriptFile(path);
+}
+
+void JSApp::reloadExtensions()
+{
+    MainWindow::instance()->loadAllExtensions();
 }

@@ -12,24 +12,24 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * multi-cursor
 * completions
 * ui: panel (search dialog)
+* ui: statusbar
+* smooth-scroll
 
 # needs improvement
 * auto-close
 * auto-indent
-* smooth-scroll (optimize - too cpu intensive)
 * extension support
 
 # todo
-* file system watch
+* file system watch (on rename)
+* file search, fuzzy search
 * bracket pairing
 * git gutter
 * file search
 * ui: command palette
 * ui: dialog
 * ui: menu
-* ui: statusbar
 * package management
-* enable more textmate parsing codes/features
 
 # issues
 * problem with very long lines

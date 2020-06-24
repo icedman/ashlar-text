@@ -34,7 +34,7 @@ const distillStyle = (style) => {
         if (styleExclude.indexOf(k) != -1) {
             return;
         }
-        res[k] = style[k];
+        res[k] = v;
     })
     return res;
 }
