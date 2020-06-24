@@ -9,7 +9,11 @@
 #include "reader.h"
 #include "settings.h"
 
-#define SMOOTH_SCROLL_THRESHOLD 400
+#define SMOOTH_SCROLL_THRESHOLD_X 400
+#define SMOOTH_SCROLL_THRESHOLD_Y 400
+#define SMOOTH_SCROLL_FRAMES 4
+#define SMOOTH_SCROLL_FRICTION 0.9
+#define SMOOTH_SCROLL_X 8
 
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
@@ -629,7 +633,7 @@ static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix, Q
 TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
     , updateTimer(this)
-    , _offsetY(0)
+    , _offset(QPointF(0,0))
 {
     overlay = new Overlay(this);
     editor = (Editor*)parent;
@@ -685,6 +689,7 @@ void TextmateEdit::paintToBuffer()
     }
     QFontMetrics fm(font());
     float fh = fm.height();
+    float fw = fh;
 
     QTextLayout* layout = block.layout();
     if (layout) {
@@ -694,10 +699,12 @@ void TextmateEdit::paintToBuffer()
         }
     }
 
-    _offsetY = fh * scrollDelta.y() / SMOOTH_SCROLL_THRESHOLD;
-    p.translate(0, _offsetY);
+    float x = 0; // fw * scrollDelta.x() / SMOOTH_SCROLL_THRESHOLD_X;
+    float y = fh * scrollDelta.y() / SMOOTH_SCROLL_THRESHOLD_Y;
+    _offset = QPointF(x, y);
+    p.translate(x, y);
 
-    if (_offsetY != 0) {
+    if (x != 0 && y != 0) {
         overlay->cursorOn = false;
     }
 
@@ -915,55 +922,115 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
 
 void TextmateEdit::wheelEvent(QWheelEvent* e)
 {
+    if (!editor->settings->smooth_scroll) {
+        QPlainTextEdit::wheelEvent(e);
+        return;
+    }
+    
     QPointF numDegrees = e->angleDelta();
     if (!numDegrees.isNull()) {
-        scrollVelocity += (scrollVelocity * 0.2);
+        if ((scrollVelocity.y() < 0 && numDegrees.y() > 0) ||
+            (scrollVelocity.y() > 0 && numDegrees.y() < 0)) {
+            scrollVelocity = QPointF(scrollVelocity.x(), 0);
+        }
         scrollVelocity += numDegrees;
+        
+        if (numDegrees.y() * numDegrees.y() < 25) {
+           scrollVelocity = QPointF(scrollVelocity.x(),0);
+        }
+        
         updateScrollDelta();
     }
 }
 
 void TextmateEdit::updateScrollDelta()
 {
-    updateTimer.start(25);    
-    scrollDelta += (scrollVelocity * 0.6);
+    updateTimer.start(50);
     
-    float y = scrollVelocity.y() * 0.8;
-    if (y * y < 4) {
+    for(int i=0;i<SMOOTH_SCROLL_FRAMES;i++) {
+        
+    if (scrollDelta.y() == 0 && scrollVelocity.y() == 0 &&
+        scrollDelta.x() == 0 && scrollVelocity.x() == 0) {
+        updateTimer.stop();
+        break;
+    }
+    
+    scrollDelta += QPointF(scrollVelocity.x() * 1.0, scrollVelocity.y() * 0.6);
+    
+    float x = scrollVelocity.x() * SMOOTH_SCROLL_FRICTION;
+    float y = scrollVelocity.y() * SMOOTH_SCROLL_FRICTION;
+    if (y * y < 4 && x * x < 4) {
+        x = 0;
         y = 0;
     }
-    scrollVelocity = QPointF(0, y);
+    scrollVelocity = QPointF(x, y);
+    
+    float scrollX = SMOOTH_SCROLL_X * devicePixelRatio(); // double for retina?
+    
+    // x component
+    if (scrollVelocity.x() < 0) {
+        if (horizontalScrollBar()->value() >= horizontalScrollBar()->maximum()) {
+            scrollDelta = QPointF(0, scrollDelta.y());
+            scrollVelocity = QPointF(0, scrollVelocity.y());
+            x = 0;
+        }
+        while (scrollDelta.x() < -SMOOTH_SCROLL_THRESHOLD_X) {
+            scrollDelta += QPointF(SMOOTH_SCROLL_THRESHOLD_X, 0);
+            horizontalScrollBar()->setValue(horizontalScrollBar()->value() + scrollX);
+        }
+    } else if (scrollVelocity.x() > 0) {
+        if (horizontalScrollBar()->value() <= horizontalScrollBar()->minimum()) {
+            scrollDelta = QPointF(0, scrollDelta.y());
+            scrollVelocity = QPointF(0, scrollVelocity.y());
+            x = 0;
+        }
+        while (scrollDelta.x() > SMOOTH_SCROLL_THRESHOLD_X) {
+            scrollDelta -= QPointF(SMOOTH_SCROLL_THRESHOLD_X, scrollDelta.y());
+            horizontalScrollBar()->setValue(horizontalScrollBar()->value() - scrollX);
+        }
+    }
 
+    if (x == 0) {
+        float sx = scrollDelta.x();
+        if (sx * sx > 4) {
+            scrollDelta += QPointF(sx * -0.2, 0);
+        } else {
+            scrollDelta = QPointF(0, scrollDelta.y());
+        }
+    }
+
+    // y component
     if (scrollVelocity.y() < 0) {
         if (verticalScrollBar()->value() >= verticalScrollBar()->maximum()) {
-            scrollDelta = QPointF(0, 0);
-            scrollVelocity = QPointF(0, 0);
-            _offsetY = 0;
+            scrollDelta = QPointF(scrollDelta.x(), 0);
+            scrollVelocity = QPointF(scrollVelocity.x(), 0);
+            y = 0;
         }
-        while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD) {
-            scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD);
+        while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD_Y) {
+            scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD_Y);
             verticalScrollBar()->setValue(verticalScrollBar()->value() + 1);
         }
     } else if (scrollVelocity.y() > 0) {
         if (verticalScrollBar()->value() <= verticalScrollBar()->minimum()) {
-            scrollDelta = QPointF(0, 0);
-            scrollVelocity = QPointF(0, 0);
-            _offsetY = 0;
+            scrollDelta = QPointF(scrollDelta.x(), 0);
+            scrollVelocity = QPointF(scrollVelocity.x(), 0);
+            y = 0;
         }
-        while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD) {
-            scrollDelta -= QPointF(0, SMOOTH_SCROLL_THRESHOLD);
+        while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD_Y) {
+            scrollDelta -= QPointF(scrollDelta.x(), SMOOTH_SCROLL_THRESHOLD_Y);
             verticalScrollBar()->setValue(verticalScrollBar()->value() - 1);
         }
     }
 
     if (y == 0) {
-        y = scrollDelta.y();
-        if (y * y > 4) {
-            scrollDelta += QPointF(0, y * -0.2);
+        float sy = scrollDelta.y();
+        if (sy * sy > 2) {
+            scrollDelta += QPointF(0, sy * -0.4);
         } else {
-            scrollDelta = QPointF(0, 0);
-            updateTimer.stop();
+            scrollDelta = QPointF(scrollDelta.x(), 0);
         }
+    }
+    
     }
 
     paintToBuffer();

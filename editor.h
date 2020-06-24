@@ -30,6 +30,7 @@ struct editor_settings_t {
     bool auto_indent;
     bool auto_close;
     bool debug_scopes;
+    bool smooth_scroll;
 };
 
 typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;
@@ -72,7 +73,7 @@ public:
     QList<QTextCursor> extraCursors;
 
     void paintToBuffer();
-    float offsetY() { return _offsetY; }
+    QPointF offset() { return _offset; }
 
 private:
     bool completerKeyPressEvent(QKeyEvent* e);
@@ -85,7 +86,7 @@ private:
     Overlay* overlay;
     Editor* editor;
 
-    float _offsetY;
+    QPointF _offset;
     QPointF scrollDelta;
     QPointF scrollVelocity;
     QTimer updateTimer;
