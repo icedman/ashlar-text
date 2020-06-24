@@ -31,7 +31,7 @@ static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float adva
             p.setPen(QColor(span.red, span.green, span.blue));
             p.drawLine(x, y - offsetY, x + w, y - offsetY);
         }
-
+        // p.drawPixmap(0, y - offsetY, 120, 8, blockData->buffer, 0,0,blockData->buffer.width(), blockData->buffer.height());
         return y - offsetY;
     }
 
@@ -175,7 +175,8 @@ void MiniMap::scrollByMouseY(float y)
 
 void MiniMap::updateScroll()
 {
-    float val = (float)QScrollBar::value();
+    // float val = (float)QScrollBar::value();
+    float val = (float)editor->editor->verticalScrollBar()->value();
     float d = (scrollToY - val) * 0.2;
     float newVal = val + d;
     if (sqrt(d * d) < 2) {

@@ -44,7 +44,7 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
 
     QPixmap buffer;
-
+    
     QTimer updateTimer;
     bool cursorOn;
 

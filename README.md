@@ -16,6 +16,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 # needs improvement
 * auto-close
 * auto-indent
+* smooth-scroll (optimize - too cpu intensive)
 * extension support
 
 # todo

@@ -115,6 +115,8 @@ void Highlighter::highlightBlock(const QString& text)
         blockData = new HighlightBlockData;
     }
 
+    blockData->buffer = QPixmap();
+ 
     std::map<size_t, scope::scope_t> scopes;
     blockData->scopes.clear();
 
@@ -151,9 +153,7 @@ void Highlighter::highlightBlock(const QString& text)
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
     }
 
-    if (settings->debug_scopes) {
-        blockData->spans.clear();
-    }
+    blockData->spans.clear();
 
     std::string prevScopeName;
     size_t si = 0;

@@ -372,7 +372,7 @@ void Editor::updateGutter(bool force)
                 gutter->lineNumbers[index].foldable = isFoldable(block);
                 ++index;
             }
-            if (rect.top() > sidebarRect.bottom())
+            if (rect.top() > sidebarRect.bottom() + 40)
                 break;
         }
         block = block.next();
@@ -699,7 +699,7 @@ void TextmateEdit::paintToBuffer()
         }
     }
 
-    float x = 0; // fw * scrollDelta.x() / SMOOTH_SCROLL_THRESHOLD_X;
+    float x = 0;
     float y = fh * scrollDelta.y() / SMOOTH_SCROLL_THRESHOLD_Y;
     _offset = QPointF(x, y);
     p.translate(x, y);
@@ -718,12 +718,11 @@ void TextmateEdit::paintToBuffer()
 
         QTextCursor cs(cursor);
         cs.setPosition(cs.selectionStart());
-        // qDebug() << "[" << cursor.selectionStart() << "," << cursor.selectionEnd() << "]";
 
         while (cs.position() < cursor.selectionEnd()) {
             QTextBlock block = cs.block();
             QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-            if (r.top() > height()) {
+            if (r.top() > height() + 40) {
                 break;
             }
 
@@ -732,28 +731,21 @@ void TextmateEdit::paintToBuffer()
 
                 for (int i = 0; i < layout->lineCount(); i++) {
                     QTextLine line = layout->lineAt(i);
+                    
                     int sx = line.textStart();
-
-                    // qDebug() << "#" << i << " sx:" << sx;
                     if (sx + block.position() < cursor.selectionStart()) {
                         sx = cursor.selectionStart() - block.position();
-                        // qDebug() << "adjust:" << sx;
                     }
 
                     int ex = sx + line.textLength();
-
-                    // qDebug() << "#" << i << " ex:" << ex;
                     if (ex + block.position() > cursor.selectionEnd()) {
                         ex = cursor.selectionEnd() - block.position();
-                        // qDebug() << "adjust:" << ex;
                     }
 
                     qreal srx = line.cursorToX(&sx);
                     qreal erx = line.cursorToX(&ex);
                     float w = erx - srx;
                     float h = fh;
-
-                    // qDebug() << "(" << sx << "," << ex << ")" << " [" << srx << "-" << erx << "]";
 
                     r.setWidth(w);
                     p.fillRect(QRect(r.left() + srx, r.top() + (i * fh), w, h), e->selectionBgColor);
@@ -773,28 +765,36 @@ void TextmateEdit::paintToBuffer()
         if (r.top() > height()) {
             break;
         }
-
-        if (block.isVisible()) {
+  
+        
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (blockData && block.isVisible()) {
             QTextLayout* layout = block.layout();
-
+            
             //-----------------
             // folded indicator
             //-----------------
-            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-            if (blockData && blockData->folded) {
+            if (blockData->folded) {
                 p.fillRect(r, foldedBg);
             }
 
             //-----------------
             // render the block
             //-----------------
-            // layout->draw(&p, r.topLeft());
-            QVector<QTextLayout::FormatRange> selectionFormats;
-            // if (blockFormats.contains(block.firstLineNumber())) {
-            //     selectionFormats = blockFormats[block.firstLineNumber()];
-            // }
-            layout->draw(&p, r.topLeft(), selectionFormats, rect());
+            if (e->settings->smooth_scroll) { 
+                if (!blockData->buffer.width()) {
+                    blockData->buffer = QPixmap(r.width(), r.height());
+                    blockData->buffer.fill(Qt::transparent);
+                    QPainter pp(&blockData->buffer);
+                    pp.setRenderHint(QPainter::Antialiasing);
+                    layout->draw(&pp, QPointF(0,0), QVector<QTextLayout::FormatRange>(), rect());
+                }
+                p.drawPixmap(r.left(), r.top(), blockData->buffer, 0, 0, r.width(), r.height());
+            } else {
+                layout->draw(&p, r.topLeft(), QVector<QTextLayout::FormatRange>(), rect());
+            }
         }
+        
         block = block.next();
     }
 
