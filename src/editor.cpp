@@ -33,12 +33,13 @@ Editor::Editor(QWidget* parent)
 
 Editor::~Editor()
 {
+    qDebug() << "free editor";
 }
 
-void Editor::newFile()
+void Editor::newFile(const QString& path)
 {
     editor->clear();
-    fileName = "";
+    fileName = path;
 }
 
 bool Editor::saveFile(const QString& path)
@@ -209,14 +210,14 @@ void Editor::setupEditor()
     connect(editor, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateRequested(QRect, int)));
     connect(editor, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
 
-    gutter = new Gutter();
+    gutter = new Gutter(this);
     gutter->font = font;
     gutter->editor = this;
 
-    mini = new MiniMap();
+    mini = new MiniMap(this);
     mini->editor = this;
 
-    vscroll = new QScrollBar();
+    vscroll = new QScrollBar(this);
 
     connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), vscroll, SLOT(setValue(int)));
     connect(vscroll, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
@@ -372,12 +373,12 @@ void Editor::updateGutter(bool force)
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
             // if (sidebarRect.intersects(rect)) {
-                if (gutter->lineNumbers.count() >= index)
-                    gutter->lineNumbers.resize(index + 1);
-                gutter->lineNumbers[index].position = rect.top();
-                gutter->lineNumbers[index].number = block.blockNumber() + 1;
-                gutter->lineNumbers[index].foldable = isFoldable(block);
-                ++index;
+            if (gutter->lineNumbers.count() >= index)
+                gutter->lineNumbers.resize(index + 1);
+            gutter->lineNumbers[index].position = rect.top();
+            gutter->lineNumbers[index].number = block.blockNumber() + 1;
+            gutter->lineNumbers[index].foldable = isFoldable(block);
+            ++index;
             // }
             if (rect.top() > sidebarRect.bottom() + 40)
                 break;
@@ -640,7 +641,7 @@ static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix, Q
 TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
     , updateTimer(this)
-    , _offset(QPointF(0,0))
+    , _offset(QPointF(0, 0))
 {
     overlay = new Overlay(this);
     editor = (Editor*)parent;
@@ -676,7 +677,7 @@ void TextmateEdit::paintToBuffer()
 
     QPainter p(&map);
     if (scrollVelocity.x() == 0 && scrollVelocity.y() == 0)
-    p.setRenderHint(QPainter::Antialiasing);
+        p.setRenderHint(QPainter::Antialiasing);
 
     TextmateEdit* editor = this;
     Editor* e = (Editor*)editor->parent();
@@ -725,7 +726,7 @@ void TextmateEdit::paintToBuffer()
         while (cs.position() < cursor.selectionEnd()) {
             QTextBlock block = cs.block();
             QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-            if (r.top() > height() + 40) {
+            if (r.top() > height() + 20) {
                 break;
             }
 
@@ -734,7 +735,7 @@ void TextmateEdit::paintToBuffer()
 
                 for (int i = 0; i < layout->lineCount(); i++) {
                     QTextLine line = layout->lineAt(i);
-                    
+
                     int sx = line.textStart();
                     if (sx + block.position() < cursor.selectionStart()) {
                         sx = cursor.selectionStart() - block.position();
@@ -768,15 +769,14 @@ void TextmateEdit::paintToBuffer()
     }
     while (block.isValid()) {
         QRectF r = blockBoundingGeometry(block).translated(contentOffset());
-        if (r.top() > height()) {
+        if (r.top() > height() + 20) {
             break;
         }
-  
-        
+
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
         if (blockData && block.isVisible()) {
             QTextLayout* layout = block.layout();
-            
+
             //-----------------
             // folded indicator
             //-----------------
@@ -787,20 +787,20 @@ void TextmateEdit::paintToBuffer()
             //-----------------
             // render the block
             //-----------------
-            if (e->settings->smooth_scroll) { 
+            if (e->settings->smooth_scroll) {
                 if (!blockData->buffer.width()) {
                     blockData->buffer = QPixmap(r.width(), r.height());
                     blockData->buffer.fill(Qt::transparent);
                     QPainter pp(&blockData->buffer);
                     pp.setRenderHint(QPainter::Antialiasing);
-                    layout->draw(&pp, QPointF(0,0), QVector<QTextLayout::FormatRange>(), rect());
+                    layout->draw(&pp, QPointF(0, 0), QVector<QTextLayout::FormatRange>(), rect());
                 }
                 p.drawPixmap(r.left(), r.top(), blockData->buffer, 0, 0, r.width(), r.height());
             } else {
                 layout->draw(&p, r.topLeft(), QVector<QTextLayout::FormatRange>(), rect());
             }
         }
-        
+
         block = block.next();
     }
 
@@ -932,10 +932,10 @@ void TextmateEdit::wheelEvent(QWheelEvent* e)
         QPlainTextEdit::wheelEvent(e);
         return;
     }
-    
+
     QPointF numDegrees = e->angleDelta();
     if (!numDegrees.isNull()) {
-        scrollVelocity += QPointF(numDegrees.x(), numDegrees.y()*2);
+        scrollVelocity += QPointF(numDegrees.x(), numDegrees.y() * 2);
         if (!updateTimer.isActive()) {
             updateScrollDelta();
         }
@@ -947,102 +947,100 @@ void TextmateEdit::updateScrollDelta()
     if (!updateTimer.isActive()) {
         updateTimer.start(50);
     }
-    
-    for(int i=0;i<SMOOTH_SCROLL_FRAMES;i++) {
-        
-    if (scrollDelta.y() == 0 && scrollVelocity.y() == 0 &&
-        scrollDelta.x() == 0 && scrollVelocity.x() == 0) {
-        updateTimer.stop();
-        break;
-    }
-    
-    scrollDelta += QPointF(scrollVelocity.x() * 1.0, scrollVelocity.y() * 0.6);
-    
-    float x = scrollVelocity.x() * SMOOTH_SCROLL_FRICTION_X;
-    float y = scrollVelocity.y() * SMOOTH_SCROLL_FRICTION_Y;
-    if (y * y < 4 && x * x < 4) {
-        x = 0;
-        y = 0;
-    }
-    scrollVelocity = QPointF(x, y);
-    
-    float scrollX = SMOOTH_SCROLL_X * devicePixelRatio(); // double for retina?
-    
-    QScrollBar *vs = verticalScrollBar();
-    QScrollBar *hs = horizontalScrollBar();
-    
-    // x component
-    if (scrollVelocity.x() < 0) {
-        if (hs->value() >= hs->maximum()) {
-            scrollDelta = QPointF(0, scrollDelta.y());
-            scrollVelocity = QPointF(0, scrollVelocity.y());
-            x = 0;
-        }
-        int scroll = 0;
-        while (scrollDelta.x() < -SMOOTH_SCROLL_THRESHOLD_X) {
-            scrollDelta += QPointF(SMOOTH_SCROLL_THRESHOLD_X, 0);
-            scroll += scrollX;
-        }        
-        hs->setValue(hs->value() + scroll);
-    } else if (scrollVelocity.x() > 0) {
-        if (hs->value() <= hs->minimum()) {
-            scrollDelta = QPointF(0, scrollDelta.y());
-            scrollVelocity = QPointF(0, scrollVelocity.y());
-            x = 0;
-        }
-        int scroll = 0;
-        while (scrollDelta.x() > SMOOTH_SCROLL_THRESHOLD_X) {
-            scrollDelta -= QPointF(SMOOTH_SCROLL_THRESHOLD_X, scrollDelta.y());
-            scroll += scrollX;
-        }
-        hs->setValue(hs->value() - scroll);
-    }
 
-    if (x == 0) {
-        float sx = scrollDelta.x();
-        if (sx * sx > 4) {
-            scrollDelta += QPointF(sx * -0.2, 0);
-        } else {
-            scrollDelta = QPointF(0, scrollDelta.y());
-        }
-    }
+    for (int i = 0; i < SMOOTH_SCROLL_FRAMES; i++) {
 
-    // y component
-    if (scrollVelocity.y() < 0) {
-        if (vs->value() >= vs->maximum()) {
-            scrollDelta = QPointF(scrollDelta.x(), 0);
-            scrollVelocity = QPointF(scrollVelocity.x(), 0);
+        if (scrollDelta.y() == 0 && scrollVelocity.y() == 0 && scrollDelta.x() == 0 && scrollVelocity.x() == 0) {
+            updateTimer.stop();
+            break;
+        }
+
+        scrollDelta += QPointF(scrollVelocity.x() * 1.0, scrollVelocity.y() * 0.6);
+
+        float x = scrollVelocity.x() * SMOOTH_SCROLL_FRICTION_X;
+        float y = scrollVelocity.y() * SMOOTH_SCROLL_FRICTION_Y;
+        if (y * y < 4 && x * x < 4) {
+            x = 0;
             y = 0;
         }
-        int scroll = 0;
-        while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD_Y) {
-            scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD_Y);
-            scroll ++;
-        }
-        vs->setValue(vs->value() + scroll);
-    } else if (scrollVelocity.y() > 0) {
-        if (vs->value() <= vs->minimum()) {
-            scrollDelta = QPointF(scrollDelta.x(), 0);
-            scrollVelocity = QPointF(scrollVelocity.x(), 0);
-            y = 0;
-        }
-        int scroll = 0;
-        while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD_Y) {
-            scrollDelta -= QPointF(scrollDelta.x(), SMOOTH_SCROLL_THRESHOLD_Y);
-            scroll ++;
-        }
-        vs->setValue(vs->value() - scroll);
-    }
+        scrollVelocity = QPointF(x, y);
 
-    if (y == 0) {
-        float sy = scrollDelta.y();
-        if (sy * sy > 4) {
-            scrollDelta += QPointF(0, sy * -0.2);
-        } else {
-            scrollDelta = QPointF(scrollDelta.x(), 0);
+        float scrollX = SMOOTH_SCROLL_X * devicePixelRatio(); // double for retina?
+
+        QScrollBar* vs = verticalScrollBar();
+        QScrollBar* hs = horizontalScrollBar();
+
+        // x component
+        if (scrollVelocity.x() < 0) {
+            if (hs->value() >= hs->maximum()) {
+                scrollDelta = QPointF(0, scrollDelta.y());
+                scrollVelocity = QPointF(0, scrollVelocity.y());
+                x = 0;
+            }
+            int scroll = 0;
+            while (scrollDelta.x() < -SMOOTH_SCROLL_THRESHOLD_X) {
+                scrollDelta += QPointF(SMOOTH_SCROLL_THRESHOLD_X, 0);
+                scroll += scrollX;
+            }
+            hs->setValue(hs->value() + scroll);
+        } else if (scrollVelocity.x() > 0) {
+            if (hs->value() <= hs->minimum()) {
+                scrollDelta = QPointF(0, scrollDelta.y());
+                scrollVelocity = QPointF(0, scrollVelocity.y());
+                x = 0;
+            }
+            int scroll = 0;
+            while (scrollDelta.x() > SMOOTH_SCROLL_THRESHOLD_X) {
+                scrollDelta -= QPointF(SMOOTH_SCROLL_THRESHOLD_X, scrollDelta.y());
+                scroll += scrollX;
+            }
+            hs->setValue(hs->value() - scroll);
         }
-    }
-    
+
+        if (x == 0) {
+            float sx = scrollDelta.x();
+            if (sx * sx > 4) {
+                scrollDelta += QPointF(sx * -0.2, 0);
+            } else {
+                scrollDelta = QPointF(0, scrollDelta.y());
+            }
+        }
+
+        // y component
+        if (scrollVelocity.y() < 0) {
+            if (vs->value() >= vs->maximum()) {
+                scrollDelta = QPointF(scrollDelta.x(), 0);
+                scrollVelocity = QPointF(scrollVelocity.x(), 0);
+                y = 0;
+            }
+            int scroll = 0;
+            while (scrollDelta.y() < -SMOOTH_SCROLL_THRESHOLD_Y) {
+                scrollDelta += QPointF(0, SMOOTH_SCROLL_THRESHOLD_Y);
+                scroll++;
+            }
+            vs->setValue(vs->value() + scroll);
+        } else if (scrollVelocity.y() > 0) {
+            if (vs->value() <= vs->minimum()) {
+                scrollDelta = QPointF(scrollDelta.x(), 0);
+                scrollVelocity = QPointF(scrollVelocity.x(), 0);
+                y = 0;
+            }
+            int scroll = 0;
+            while (scrollDelta.y() > SMOOTH_SCROLL_THRESHOLD_Y) {
+                scrollDelta -= QPointF(scrollDelta.x(), SMOOTH_SCROLL_THRESHOLD_Y);
+                scroll++;
+            }
+            vs->setValue(vs->value() - scroll);
+        }
+
+        if (y == 0) {
+            float sy = scrollDelta.y();
+            if (sy * sy > 4) {
+                scrollDelta += QPointF(0, sy * -0.2);
+            } else {
+                scrollDelta = QPointF(scrollDelta.x(), 0);
+            }
+        }
     }
 
     paintToBuffer();
@@ -1098,7 +1096,6 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
             break;
         case Qt::Key_V:
             if (e->modifiers() & Qt::ControlModifier) {
-                // todo pastes only from the main cursor
                 setTextCursor(c);
                 paste();
                 setTextCursor(cursor);
@@ -1107,7 +1104,6 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
             break;
         case Qt::Key_C:
             if (e->modifiers() & Qt::ControlModifier) {
-                // todo copies only from the main cursor
                 redraw = true;
             }
             break;

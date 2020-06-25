@@ -44,7 +44,7 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
 
     QPixmap buffer;
-    
+
     QTimer updateTimer;
     bool cursorOn;
 
@@ -111,7 +111,7 @@ public:
 
     bool openFile(const QString& path = QString());
     bool saveFile(const QString& path = QString());
-    void newFile();
+    void newFile(const QString& path = QString());
     void toggleFold(size_t line);
 
     QString fullPath() { return fileName; }

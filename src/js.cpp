@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QFileInfo>
 
 #include "commands.h"
 #include "editor.h"

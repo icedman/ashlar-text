@@ -1,0 +1,28 @@
+{
+  "name": "fuzzy",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "ashlar": "^0.0.1",
+  "scripts": {
+    "start": "parcel watch index.js",
+    "build": "parcel build index.js",
+    "publish": "yarn build & rm -rf node_modules"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "title": "show command search",
+        "command": "fuzzy.show_command_search",
+        "category": ""
+      }
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "parcel-bundler": "^1.12.4"
+  }
+}

@@ -212,3 +212,8 @@ QPushButton::hover {
 QWebView {
   background: #fff;
 }
+
+Select {
+  background: @treeBg;
+  padding: 2px;
+}

@@ -21,15 +21,17 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * extension support
 
 # todo
-* file system watch (on rename)
+* ui: command palette
 * file search, fuzzy search
+* file system watch (on rename)
 * bracket pairing
 * git gutter
-* file search
-* ui: command palette
 * ui: dialog
 * ui: menu
 * package management
+* animate sidebar
+* terminal
+* qprocess extension
 
 # issues
 * problem with very long lines

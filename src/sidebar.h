@@ -16,9 +16,6 @@ public:
     FileSystemModel(QObject* parent = 0);
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-
-    MainWindow* mainWindow;
-
 private:
 private Q_SLOTS:
     void onDirectoryLoaded(const QString& path);
@@ -29,11 +26,12 @@ class Sidebar : public QTreeView {
 public:
     Sidebar(QWidget* parent = 0);
 
+    void animateShow();
+    void animateHide();
     void setRootPath(QString path, bool deferred);
     void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
-
-    MainWindow* mainWindow;
+    
     FileSystemModel* fileModel;
 
 protected:
@@ -41,12 +39,16 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event);
 
 private:
+    
+    QTimer animateTimer;
     QTimer updateTimer;
     QString rootPath;
     
-    void singleClick();
+    float width;
+    float targetWidth;
 
 private Q_SLOTS:
+    void onAnimate();
     void _setRootPath();
 };
 

@@ -8,8 +8,6 @@
 #include "extension.h"
 #include "icons.h"
 #include "json/json.h"
-#include "sidebar.h"
-#include "tabs.h"
 #include "theme.h"
 
 #include "js.h"
@@ -17,6 +15,9 @@
 
 Q_DECLARE_METATYPE(Editor*)
 
+class Tabs;
+class Sidebar;
+class Select;
 class QStackedWidget;
 class QSplitter;
 
@@ -29,7 +30,7 @@ public:
 
 public slots:
     void about();
-    void newFile();
+    void newFile(const QString& path = QString());
     void saveFile(bool saveNew = false);
     void saveFileAs();
     void openFile(const QString& path = QString());
@@ -44,6 +45,7 @@ public:
     void setHost(QString host);
 
     Editor* openTab(const QString& path = QString());
+    int currentTab();
 
     void closeEvent(QCloseEvent* event);
     void readSavedGeometry();
@@ -56,10 +58,12 @@ public:
     Editor* findEditor(QString path);
     QStringList editorsPath();
 
-    int currentTab() { return tabs->currentIndex(); }
     bool loadExtension(QString name);
 
     static MainWindow* instance();
+    
+    QSplitter *horizontalSplitter() { return splitter; }
+    QSplitter *verticalSplitter() { return splitterv; }
 
 public:
     std::vector<Extension> extensions;
@@ -94,7 +98,8 @@ private:
     QStatusBar* statusbar;
     Tabs* tabs;
     Sidebar* sidebar;
-
+    Select* select;
+    
     QTimer updateTimer;
 
     JSFs jsFs;

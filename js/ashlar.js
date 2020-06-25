@@ -8,7 +8,7 @@ import keybinding from "./keybinding";
 // ui
 import { StoreProvider as UIProvider } from "./uiContext";
 import { ui, Panels } from "./ui";
-import qt from './lib/engine';
+import qt from "./lib/engine";
 
 const ashlar = {
   commands,
@@ -24,7 +24,7 @@ window.ashlar = ashlar;
 /*
  * base commands
  */
- 
+
 /* prettier-ignore */
 const baseCommands = [
     { name: "exit",                     action: () => { app.exit(); }},

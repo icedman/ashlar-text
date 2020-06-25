@@ -116,7 +116,7 @@ void Highlighter::highlightBlock(const QString& text)
     }
 
     blockData->buffer = QPixmap();
- 
+
     std::map<size_t, scope::scope_t> scopes;
     blockData->scopes.clear();
 

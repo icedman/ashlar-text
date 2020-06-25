@@ -3,16 +3,15 @@ import clsx from "clsx";
 import { v4 as uuid } from "uuid";
 import qt from "./engine";
 
-const getOrder = id=> {
+const getOrder = id => {
   let node = document.querySelector(`[id="${id}"]`);
   if (!node) {
     return -1;
   }
   let i = 0;
-  while( (node = node.previousSibling) != null ) 
-    i++;
-  return i
-}
+  while ((node = node.previousSibling) != null) i++;
+  return i;
+};
 
 const getParentId = id => {
   let node = document.querySelector(`[id="${id}"]`);

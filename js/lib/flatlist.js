@@ -25,7 +25,7 @@ const FlatList_ = props => {
 
   return (
     <ScrollView {...props}>
-      <View style={{ flexDirection: "column", alignItems: "flex-start" }}>
+      <View style={{ 'flex-direction': 'column', 'align-items': 'flex-start' }}>
         {renderedItems}
       </View>
     </ScrollView>

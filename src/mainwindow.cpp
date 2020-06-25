@@ -10,6 +10,10 @@
 #include "settings.h"
 #include "theme.h"
 
+#include "select.h"
+#include "sidebar.h"
+#include "tabs.h"
+
 #include "qt/core.h"
 
 static MainWindow* _instance;
@@ -214,6 +218,12 @@ void MainWindow::applySettings()
     } else {
         statusBar()->hide();
     }
+    
+    if (settings.isMember("menubar") == true) {
+        menuBar()->show();
+    } else {
+        menuBar()->hide();
+    }
 }
 
 void MainWindow::setupLayout()
@@ -221,10 +231,9 @@ void MainWindow::setupLayout()
     splitterv = new QSplitter(Qt::Vertical);
     splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
-
+    
     sidebar = new Sidebar(this);
-    sidebar->mainWindow = this;
-
+    
     tabs = new Tabs(this);
     tabs->setDrawBase(false);
     tabs->setExpanding(false);
@@ -250,15 +259,25 @@ void MainWindow::setupLayout()
     splitter->setStretchFactor(1, 4);
 
     setCentralWidget(splitterv);
+    
+    select = new Select(this);
 }
 
-void MainWindow::newFile()
+void MainWindow::newFile(const QString& path)
 {
     int tabIdx = tabs->addTab(UNTITLED_TEXT);
     Editor* editor = createEditor();
     editors->addWidget(editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(editor));
     tabSelected(tabIdx);
+
+    if (path.isEmpty()) {
+        editor->setLanguage(language_from_file("untitled.txt", extensions));
+    } else {
+        editor->newFile(path);
+        editor->setLanguage(language_from_file(path, extensions));
+        tabs->setTabText(tabIdx, QFileInfo(path).fileName());
+    }
 }
 
 void MainWindow::saveFile(bool saveNew)
@@ -346,7 +365,7 @@ void MainWindow::openFile(const QString& path)
         return;
     } else {
         if (!tabs->count()) {
-            newFile();
+            newFile(QFileInfo(fileName).absoluteFilePath());
         }
     }
 }
@@ -378,10 +397,8 @@ void MainWindow::tabSelected(int index)
             tabs->setCurrentIndex(index);
             _editor->editor->setFocus(Qt::ActiveWindowFocusReason);
             sidebar->setActiveFile(_editor->fileName);
-            
-            if (!_editor->fileName.isEmpty()) {
-                emitEvent("tabSelected", _editor->fileName);
-            }
+
+            emitEvent("tabSelected", _editor->fileName);
         }
     }
 }
@@ -459,14 +476,15 @@ Editor* MainWindow::openTab(const QString& _path)
     return _editor;
 }
 
+int MainWindow::currentTab() { return tabs->currentIndex(); }
 void MainWindow::setupMenu()
 {
     // File
     fileMenu = new QMenu(tr("&File"), this);
     menuBar()->addMenu(fileMenu);
 
-    fileMenu->addAction(tr("&New"), this,
-        &MainWindow::newFile, QKeySequence::New);
+    fileMenu->addAction(tr("&New"),
+        this, [this]() { newFile(); }, QKeySequence::New);
     fileMenu->addAction(
         tr("&Open..."),
         this, [this]() { openFile(); }, QKeySequence::Open);
@@ -483,13 +501,17 @@ void MainWindow::setupMenu()
     viewMenu = new QMenu(tr("&View"), this);
     viewMenu->addAction(
         tr("Toggle Sidebar"),
-        this, [this]() { sidebar->setVisible(!sidebar->isVisible()); });
+        this, [this]() { if (sidebar->isVisible()) { sidebar->animateHide(); } else { sidebar->animateShow(); } });
     viewMenu->addAction(
         tr("Toggle Minimap"),
         this, [this]() { editor_settings->mini_map = !editor_settings->mini_map; currentEditor()->hide(); currentEditor()->show(); });
     viewMenu->addAction(
         tr("Toggle Statusbar"),
-        this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });
+        this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });    
+    viewMenu->addAction(
+        tr("Show Command Palette"),
+        this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
+        
     menuBar()->addMenu(viewMenu);
 
     // Help
@@ -527,6 +549,8 @@ void MainWindow::warmConfigure()
     statusbar = qobject_cast<QStatusBar*>(engine->create("statusBar", "StatusBar", true)->widget());
     setStatusBar(statusbar);
 
+    select->setup();
+    
     splitterv->addWidget(panels);
 
     if (!hostPath.isEmpty()) {
@@ -588,7 +612,14 @@ void MainWindow::loadAllExtensions()
 
 void MainWindow::emitEvent(QString event, QString payload)
 {
-    engine->runScript("try { ashlar.events.emit(\"" + event + "\", \"" + payload + "\"); } catch(err) { console.log(err) } ");
+    if (payload.isEmpty()) {
+        payload = "\"\"";
+    } else if (payload[0] != '{' && payload != '[') {
+        payload = "\"" + payload + "\"";
+    }
+
+    // qDebug() << payload;
+    engine->runScript("try { ashlar.events.emit(\"" + event + "\", " + payload + "); } catch(err) { console.log(err) } ");
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e)

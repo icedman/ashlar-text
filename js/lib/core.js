@@ -29,6 +29,8 @@ export {
   SectionList,
   Window,
   StatusBar,
-  MenuBar, Menu, MenuItem,
+  MenuBar,
+  Menu,
+  MenuItem,
   StyleSheet
 };

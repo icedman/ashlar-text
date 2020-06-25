@@ -1,5 +1,6 @@
 #include <QDebug>
 #include <QDir>
+#include <QSplitter>
 
 #include <iostream>
 
@@ -23,15 +24,16 @@ void FileSystemModel::onDirectoryLoaded(const QString& path)
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 {
     if (role == Qt::DecorationRole) {
+        MainWindow *mw = MainWindow::instance();
         QFileInfo info = fileInfo(index);
         QString fileName = info.fileName();
         if (info.isFile()) {
             QString suffix = info.suffix();
-            return icon_for_file(mainWindow->icons, fileName, suffix, mainWindow->extensions);
+            return icon_for_file(mw->icons, fileName, suffix, mw->extensions);
         } else {
             bool expanded = ((QTreeView*)parent())->isExpanded(index);
             ;
-            return icon_for_folder(mainWindow->icons, fileName, expanded, mainWindow->extensions);
+            return icon_for_folder(mw->icons, fileName, expanded, mw->extensions);
         }
     }
 
@@ -41,15 +43,18 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent)
     , fileModel(0)
+    , animateTimer(this)
     , updateTimer(this)
 {
     setHeaderHidden(true);
     setAnimated(true);
     hide();
 
-    setMinimumSize(250, 0);
+    setMinimumSize(0, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     updateTimer.setSingleShot(true);
+    
+    connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
 }
 
 void Sidebar::setRootPath(QString path, bool deferred)
@@ -61,9 +66,8 @@ void Sidebar::setRootPath(QString path, bool deferred)
     MainWindow* main = MainWindow::instance();
 
     fileModel = new FileSystemModel(this);
-    fileModel->mainWindow = main;
     rootPath = path;
-    
+
     setModel(fileModel);
 
     for (int i = 1; i < fileModel->columnCount(); i++) {
@@ -75,8 +79,6 @@ void Sidebar::setRootPath(QString path, bool deferred)
     } else {
         _setRootPath();
     }
-    
-    show();
 }
 
 void Sidebar::setActiveFile(QString path)
@@ -92,12 +94,12 @@ void Sidebar::setActiveFile(QString path)
 
 void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
 {
-    MainWindow* main = mainWindow;
-    if (!main->settings.isObject()) {
+    MainWindow* mw = MainWindow::instance();
+    if (!mw->settings.isObject()) {
         return;
     }
 
-    Json::Value file_exclude_patterns = main->settings["file_exclude_patterns"];
+    Json::Value file_exclude_patterns = mw->settings["file_exclude_patterns"];
     int rows = fileModel->rowCount(topLeft);
     for (int i = 0; i < rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);
@@ -118,6 +120,8 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
             }
         }
     }
+
+    animateShow();
 }
 
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
@@ -128,34 +132,65 @@ void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 void Sidebar::mousePressEvent(QMouseEvent* event)
 {
     QTreeView::mousePressEvent(event);
-
-    singleClick();
-}
-
-void Sidebar::singleClick()
-{
+    
     if (updateTimer.isActive()) {
         return;
     }
+
     updateTimer.start(150);
 
     QModelIndex index = currentIndex();
     if (index.isValid()) {
+        MainWindow *mw = MainWindow::instance();
         QString fileName = fileModel->filePath(index);
 
+        QString btn = event->button() == Qt::RightButton ? "right" : "left";
+        mw->emitEvent("sidebarItemClicked", "{\"path\": \"" + fileName + "\", \"button\": \"" + btn + "\"}");
+        if (btn == "right") {
+            return;
+        }
+        
         if (QFileInfo(fileName).isDir()) {
             isExpanded(index) ? collapse(index) : expand(index);
         } else {
-            mainWindow->openFile(fileName);
+            mw->openFile(fileName);
         }
     }
 }
-
 void Sidebar::_setRootPath()
 {
     // qDebug() << "root:" << rootPath;
     fileModel->setRootPath(rootPath);
-    
+
     QModelIndex idx = fileModel->index(fileModel->rootPath());
     setRootIndex(idx);
+}
+
+void Sidebar::animateShow()
+{
+    MainWindow *mw = MainWindow::instance();
+    width = 0;
+    targetWidth = 250;
+    
+    mw->horizontalSplitter()->setSizes({0, mw->width()});
+    animateTimer.start(50);
+    show();
+}
+
+void Sidebar::animateHide()
+{
+    hide();
+}
+
+void Sidebar::onAnimate()
+{
+    MainWindow *mw = MainWindow::instance();
+    float d = targetWidth - width;
+    width += (d * 0.6);
+    if (d < 4) {
+        width = targetWidth;
+        animateTimer.stop();
+    }
+    
+    MainWindow::instance()->horizontalSplitter()->setSizes({width, mw->width()});
 }

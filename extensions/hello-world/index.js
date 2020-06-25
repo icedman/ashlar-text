@@ -20,14 +20,14 @@ const hello_commands = [
   {
     name: "say_hello",
     action: () => {
-      console.log('status widget: hello world');
+      console.log("status widget: hello world");
     }
   }
 ];
 
-const StatusHello = (props) => {
-    return <Text>status::widget Hello World</Text>
-}
+const StatusHello = props => {
+  return <Text>status::widget Hello World</Text>;
+};
 
 const hello = {
   activate: () => {

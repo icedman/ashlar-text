@@ -59,7 +59,7 @@ public:
     std::vector<span_info_t> spans;
     std::vector<bracket_info_t> brackets;
     std::map<size_t, scope::scope_t> scopes;
-    
+
     QPixmap buffer;
 };
 

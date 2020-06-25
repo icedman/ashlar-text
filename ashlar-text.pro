@@ -3,34 +3,36 @@ TARGET = ashlar
 QT += widgets svg webkitwidgets network
 requires(qtConfig(filedialog))
 
-HEADERS         = commands.h \
-                  editor.h \
-                  extension.h \
-                  gutter.h \
-                  highlighter.h \
-                  icons.h \
-                  js.h \
-                  mainwindow.h \
-                  minimap.h \
-                  sidebar.h \
-                  settings.h \
-                  tabs.h \
+HEADERS         = src/commands.h \
+                  src/editor.h \
+                  src/extension.h \
+                  src/gutter.h \
+                  src/highlighter.h \
+                  src/icons.h \
+                  src/js.h \
+                  src/mainwindow.h \
+                  src/minimap.h \
+                  src/sidebar.h \
+                  src/settings.h \
+                  src/select.h \
+                  src/tabs.h \
                   ./js-qt/qt/core.h \
                   ./js-qt/qt/engine.h
 
-SOURCES         = commands.cpp \
-                  editor.cpp \
-                  extension.cpp \
-                  gutter.cpp \
-                  highlighter.cpp \
-                  icons.cpp \
-                  js.cpp \
-                  mainwindow.cpp \
-                  minimap.cpp \
-                  sidebar.cpp \
-                  settings.cpp \
-                  tabs.cpp \
-                  main.cpp \
+SOURCES         = src/commands.cpp \
+                  src/editor.cpp \
+                  src/extension.cpp \
+                  src/gutter.cpp \
+                  src/highlighter.cpp \
+                  src/icons.cpp \
+                  src/js.cpp \
+                  src/mainwindow.cpp \
+                  src/minimap.cpp \
+                  src/sidebar.cpp \
+                  src/select.cpp \
+                  src/settings.cpp \
+                  src/tabs.cpp \
+                  src/main.cpp \
                   ./js-qt/qt/core.cpp \
                   ./js-qt/qt/engine.cpp \
                   ./tm-parser/textmate/parser/grammar.cpp \
@@ -47,6 +49,7 @@ SOURCES         = commands.cpp \
 QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
 
+INCPATH +=  ./src
 INCPATH +=  ./js-qt
 INCPATH +=  ./tm-parser/textmate/parser/
 INCPATH +=  ./tm-parser/textmate/scopes/

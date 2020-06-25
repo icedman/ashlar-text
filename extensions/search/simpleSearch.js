@@ -72,12 +72,12 @@ const SearchPanel = props => {
     console.log(state.find);
     simpleSearch(state.find, state);
   };
-  
+
   setSelectedText = onFindChanged;
-  
+
   /* prettier-ignore */
   return <View id={SearchPanelId} style={styles.panel}>
-        <View id='panel::search::view'  style={{flexDirection: 'row'}}>
+        <View id='panel::search::view'  style={{'flex-direction': 'row'}}>
           <Button text='.*' style={styles.button} checkable onClick={(evt)=>{  setState({...state, regex: evt.target.value}); }}/>
           <Button text='Aa' style={styles.button} checkable onClick={(evt)=>{  setState({...state, cased: evt.target.value}); }}/>
           <Button text='""' style={styles.button} checkable onClick={(evt)=>{  setState({...state, word:  evt.target.value}); }}/>
@@ -94,23 +94,23 @@ const SearchPanel = props => {
 const show_search = args => {
   ashlar.events.emit("requestPanel", { panel: SearchPanelId });
 
-    ashlar.qt
-      .widget(SearchPanelId + "::input")
-      .then(widget => {
-        if (widget) {
-          widget.focus();
-          widget.select();
-        }
-      })
-      .catch(err => {
-        console.log(err);
-      });
-      
-      setSelectedText({
-          target: {
-              value: app.selectedText()
-          }
-      })
+  ashlar.qt
+    .widget(SearchPanelId + "::input")
+    .then(widget => {
+      if (widget) {
+        widget.focus();
+        widget.select();
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+
+  setSelectedText({
+    target: {
+      value: app.selectedText()
+    }
+  });
 };
 
 const search_commands = [
@@ -123,8 +123,4 @@ const search_commands = [
   }
 ];
 
-export {
-    search_commands,
-    SearchPanel,
-    SearchPanelId
-}
+export { search_commands, SearchPanel, SearchPanelId };

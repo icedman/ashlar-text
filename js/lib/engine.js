@@ -7,10 +7,10 @@ const formatJson = json => {
   delete processed.children;
   delete processed.data;
   Object.keys(json).forEach(k => {
-    if (typeof(json[k]) === 'function') {
+    if (typeof json[k] === "function") {
       delete processed[k];
     }
-  })
+  });
   return JSON.stringify(processed);
 };
 
@@ -20,16 +20,22 @@ const mount = json => {
   } catch (err) {}
 };
 
-const _events = ["onChangeText", "onClick", "onPress", "onRelease", "onSubmitEditing"];
+const _events = [
+  "onChangeText",
+  "onClick",
+  "onPress",
+  "onRelease",
+  "onSubmitEditing"
+];
 const update = json => {
   try {
     $qt.update(formatJson(json));
 
     // events map events
     registry[json.id] = registry[json.id] || {};
-    
+
     _events.forEach(e => {
-      registry[json.id][e] = json[e] || ((evt) => {});
+      registry[json.id][e] = json[e] || (evt => {});
     });
   } catch (err) {}
 };
@@ -41,10 +47,10 @@ const unmount = json => {
   } catch (err) {}
 };
 
-const widget = (id) => {
+const widget = id => {
   return new Promise((resolve, reject) => {
     $qt.widget(id);
-    let cid = id.replace(/:/g, '_');
+    let cid = id.replace(/:/g, "_");
     let wid = `$widgets_${cid}`;
     setTimeout(() => {
       let widget = window[wid];
@@ -52,7 +58,7 @@ const widget = (id) => {
       resolve(widget);
     }, 0);
   });
-}
+};
 
 const qt = {
   mount,
