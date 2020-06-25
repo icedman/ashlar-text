@@ -2,6 +2,7 @@
 #define SELECT_H
 
 #include <QtWidgets>
+#include <QTimer>
 
 class QLineEdit;
 class Select : public QWidget {
@@ -23,6 +24,10 @@ private:
 
     QLineEdit* input;
     QWidget* items;
+    QTimer updateTimer;
+    
+private Q_SLOTS:
+    void updateSize();
 };
 
 #endif // SELECT_H

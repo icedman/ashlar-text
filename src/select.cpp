@@ -10,10 +10,14 @@
 
 Select::Select(QWidget* parent)
     : QWidget(parent)
+    , updateTimer(this)
 {
     setProperty("id", "select");
     setWindowFlag(Qt::Popup);
     hide();
+    
+    setMinimumSize(0,0);
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateSize()));
 }
 
 void Select::setup()
@@ -31,6 +35,9 @@ void Select::setup()
 
     layout->addWidget(input, 1);
     layout->addWidget(items, 1);
+    layout->addStretch(0);
+    
+    items->hide();
 
     setLayout(layout);
 }
@@ -40,33 +47,29 @@ void Select::showEvent(QShowEvent* event)
     MainWindow* mw = MainWindow::instance();
     QRect parentRect = ((QWidget*)parent())->rect();
     int w = parentRect.width() * .4;
-    int h = parentRect.height() * .6;
     if (w < 400) {
         w = 400;
     }
     if (w > 600) {
         w = 600;
     }
-    if (h < 400) {
-        h = 400;
-    }
-    if (h > 400) {
-        h = 400;
-    }
-
+    
+    int h = 40;
+    
     int y = 32; // titlebar height
     if (mw->menuBar()->isVisible()) {
         y += mw->menuBar()->height() + 2;
     }
 
     setGeometry(mw->x() + parentRect.width() / 2 - w / 2, mw->y() + y, w, h);
-    setMouseTracking(true);
-
     input->setFocus(Qt::ActiveWindowFocusReason);
+    
+    updateTimer.start(150);
 }
 
 void Select::hideEvent(QHideEvent* event)
 {
+    updateTimer.stop();
     releaseKeyboard();
 }
 
@@ -112,10 +115,19 @@ void Select::keyPressEvent(QKeyEvent* e)
             focusPreviousChild();
             releaseKeyboard();
         }
+        
+        QScrollArea *area = items->findChild<QScrollArea*>();
+        area->ensureWidgetVisible(app->focusWidget());
         return true;
     }
     case Qt::Key_Down:
         focusNextChild();
+        if (qobject_cast<QLineEdit*>(app->focusWidget())) {
+            releaseKeyboard();
+        }
+        
+        QScrollArea *area = items->findChild<QScrollArea*>();
+        area->ensureWidgetVisible(app->focusWidget());
         return true;
     }
     
@@ -144,6 +156,9 @@ bool Select::eventFilter(QObject* obj, QEvent* event)
             if (qobject_cast<QScrollArea*>(app->focusWidget())) {
                 focusNextChild();
             }
+            
+            QScrollArea *area = items->findChild<QScrollArea*>();
+            area->ensureWidgetVisible(app->focusWidget());
             grabKeyboard();
             return true;
         }
@@ -161,4 +176,22 @@ void Select::trigger()
     emit widget->pressed();
     hide();
 }
+
+void Select::updateSize()
+{
+    QScrollArea *area = items->findChild<QScrollArea*>();
+    QList<TouchableWidget*> allItems = area->findChildren<TouchableWidget*>();
+    
+    int h = input->rect().height() + 4;
+    items->setVisible(allItems.size() > 1);
+    if (!items->isVisible()) {
+        resize(width(), h);
+    } else {
+        h += (allItems[1]->rect().height() + 2) * (allItems.size()-1);
+        if (h > 400) {
+            h = 400;
+        }
+        resize(width(), h);
+    }
+ }
 
