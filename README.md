@@ -15,21 +15,23 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * ui: statusbar
 * smooth-scroll
 
+# extras
+* animated sidebar
+
 # needs improvement
 * auto-close
 * auto-indent
 * extension support
+* ui: command palette (somewhat working)
+* ui: menu (somewhat working)
 
 # todo
-* ui: command palette
 * file search, fuzzy search
 * file system watch (on rename)
 * bracket pairing
 * git gutter
 * ui: dialog
-* ui: menu
 * package management
-* animate sidebar
 * terminal
 * qprocess extension
 

@@ -430,6 +430,8 @@ void Editor::highlightBlocks()
     }
 
     editor->paintToBuffer();
+    mini->buffer = QPixmap();
+    mini->update();
 }
 
 static QTextBlock findBracketMatch(QTextBlock& block)
@@ -582,14 +584,16 @@ void Overlay::paintEvent(QPaintEvent*)
 
     QPainter p(this);
     p.drawPixmap(rect(), buffer, buffer.rect());
-
+    
     if (!cursorOn) {
         return;
     }
 
     TextmateEdit* editor = (TextmateEdit*)parent();
     Editor* e = (Editor*)editor->parent();
-
+    
+    p.translate(0, editor->offset().y());
+    
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
     cursors << editor->textCursor();
