@@ -171,6 +171,8 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
     QFileInfo info(path);
     std::string suffix = ".";
     suffix += info.suffix().toStdString();
+    
+    std::string fileName = info.fileName().toStdString();
 
     auto it = cache.find(suffix);
     if (it != cache.end()) {
@@ -192,23 +194,41 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
         Json::Value langs = contribs["languages"];
         for (int i = 0; i < langs.size(); i++) {
             Json::Value lang = langs[i];
-            if (!lang.isMember("extensions") || !lang.isMember("id")) {
+            if (!lang.isMember("id")) {
                 continue;
             }
-
-            Json::Value exts = lang["extensions"];
-            for (int j = 0; j < exts.size(); j++) {
-                Json::Value ex = exts[j];
-                // if (ex.asString().compare(suffix) == 0) {
-                if (ex.asString() == suffix) {
-                    resolvedExtension = ext;
-                    resolvedLanguage = lang["id"].asString();
-                    resolvedGrammars = contribs["grammars"];
-
-                    qDebug() << resolvedLanguage.c_str();
-
-                    break;
+            
+            if (!lang.isMember("file")) {
+            }
+            
+            bool found = false;
+            if (lang.isMember("filenames")) {
+                Json::Value fns = lang["filenames"];
+                for (int j = 0; j < fns.size(); j++) {
+                    Json::Value fn = fns[j];
+                    if (fn.asString() == fileName) {
+                        resolvedLanguage = lang["id"].asString();
+                        resolvedGrammars = contribs["grammars"];
+                        found = true;
+                    }
                 }
+            }
+            
+            if (!found) {
+                Json::Value exts = lang["extensions"];
+                for (int j = 0; j < exts.size(); j++) {
+                    Json::Value ex = exts[j];
+                    // if (ex.asString().compare(suffix) == 0) {
+                    if (ex.asString() == suffix) {
+                        resolvedExtension = ext;
+                        resolvedLanguage = lang["id"].asString();
+                        resolvedGrammars = contribs["grammars"];
+    
+                        qDebug() << resolvedLanguage.c_str();
+    
+                        break;
+                    }
+                }            
             }
 
             if (!resolvedLanguage.empty()) {
