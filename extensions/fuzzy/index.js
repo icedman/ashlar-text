@@ -6,7 +6,7 @@ const fuzzy = {
       let command_name = "fuzzy." + cmd.name;
       ashlar.commands.registerCommand(command_name, cmd.action, cmd.keys);
     });
-    
+
     ashlar.ui.registerPanel(FuzzyListId, FuzzyList);
   },
 

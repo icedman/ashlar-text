@@ -218,7 +218,7 @@ void MainWindow::applySettings()
     } else {
         statusBar()->hide();
     }
-    
+
     if (settings.isMember("menubar") == true) {
         menuBar()->show();
     } else {
@@ -231,9 +231,9 @@ void MainWindow::setupLayout()
     splitterv = new QSplitter(Qt::Vertical);
     splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
-    
+
     sidebar = new Sidebar(this);
-    
+
     tabs = new Tabs(this);
     tabs->setDrawBase(false);
     tabs->setExpanding(false);
@@ -259,7 +259,7 @@ void MainWindow::setupLayout()
     splitter->setStretchFactor(1, 4);
 
     setCentralWidget(splitterv);
-    
+
     select = new Select(this);
 }
 
@@ -483,7 +483,8 @@ void MainWindow::setupMenu()
     fileMenu = new QMenu(tr("&File"), this);
     menuBar()->addMenu(fileMenu);
 
-    fileMenu->addAction(tr("&New"),
+    fileMenu->addAction(
+        tr("&New"),
         this, [this]() { newFile(); }, QKeySequence::New);
     fileMenu->addAction(
         tr("&Open..."),
@@ -507,11 +508,11 @@ void MainWindow::setupMenu()
         this, [this]() { editor_settings->mini_map = !editor_settings->mini_map; currentEditor()->hide(); currentEditor()->show(); });
     viewMenu->addAction(
         tr("Toggle Statusbar"),
-        this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });    
+        this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });
     viewMenu->addAction(
         tr("Show Command Palette"),
         this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
-        
+
     menuBar()->addMenu(viewMenu);
 
     // Help
@@ -524,20 +525,6 @@ void MainWindow::setupMenu()
 
 void MainWindow::readSavedGeometry()
 {
-    QSettings settings("ashlar", "ashlar");
-    restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("windowState").toByteArray());
-
-    qDebug() << "restore";
-    qDebug() << settings.value("geometry").toByteArray();
-}
-
-void MainWindow::closeEvent(QCloseEvent* event)
-{
-    QSettings settings("ashlar", "ashlar");
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("windowState", saveState());
-    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::warmConfigure()
@@ -550,7 +537,7 @@ void MainWindow::warmConfigure()
     setStatusBar(statusbar);
 
     select->setup();
-    
+
     splitterv->addWidget(panels);
 
     if (!hostPath.isEmpty()) {
@@ -633,4 +620,10 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
     if (!Commands::keyPressEvent(e)) {
         QMainWindow::keyPressEvent(e);
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    js()->hideInspector();
+    QMainWindow::closeEvent(event);
 }

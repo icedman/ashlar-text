@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "Cubic.h"
 #include "mainwindow.h"
 #include "sidebar.h"
 
@@ -24,7 +25,7 @@ void FileSystemModel::onDirectoryLoaded(const QString& path)
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 {
     if (role == Qt::DecorationRole) {
-        MainWindow *mw = MainWindow::instance();
+        MainWindow* mw = MainWindow::instance();
         QFileInfo info = fileInfo(index);
         QString fileName = info.fileName();
         if (info.isFile()) {
@@ -53,7 +54,7 @@ Sidebar::Sidebar(QWidget* parent)
     setMinimumSize(0, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     updateTimer.setSingleShot(true);
-    
+
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
 }
 
@@ -132,7 +133,7 @@ void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 void Sidebar::mousePressEvent(QMouseEvent* event)
 {
     QTreeView::mousePressEvent(event);
-    
+
     if (updateTimer.isActive()) {
         return;
     }
@@ -141,7 +142,7 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
 
     QModelIndex index = currentIndex();
     if (index.isValid()) {
-        MainWindow *mw = MainWindow::instance();
+        MainWindow* mw = MainWindow::instance();
         QString fileName = fileModel->filePath(index);
 
         QString btn = event->button() == Qt::RightButton ? "right" : "left";
@@ -149,7 +150,7 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
         if (btn == "right") {
             return;
         }
-        
+
         if (QFileInfo(fileName).isDir()) {
             isExpanded(index) ? collapse(index) : expand(index);
         } else {
@@ -168,13 +169,17 @@ void Sidebar::_setRootPath()
 
 void Sidebar::animateShow()
 {
-    MainWindow *mw = MainWindow::instance();
+    if (isVisible()) {
+        return;
+    }
+
+    MainWindow* mw = MainWindow::instance();
+    animTime = -250;
     width = 0;
     targetWidth = 250;
-    
-    mw->horizontalSplitter()->setSizes({0, mw->width()});
-    animateTimer.start(50);
-    show();
+
+    mw->horizontalSplitter()->setSizes({ 0, mw->width() });
+    animateTimer.start(25);
 }
 
 void Sidebar::animateHide()
@@ -184,13 +189,19 @@ void Sidebar::animateHide()
 
 void Sidebar::onAnimate()
 {
-    MainWindow *mw = MainWindow::instance();
-    float d = targetWidth - width;
-    width += (d * 0.6);
-    if (d < 4) {
+    MainWindow* mw = MainWindow::instance();
+
+    const int duration = 250;
+    animTime += animateTimer.interval();
+    if (animTime < 0) {
+        return;
+    }
+    width = Cubic::easeOut(animTime, 0, targetWidth, duration);
+    if (animTime >= duration) {
         width = targetWidth;
         animateTimer.stop();
     }
-    
-    MainWindow::instance()->horizontalSplitter()->setSizes({width, mw->width()});
+
+    setVisible(width > 0);
+    mw->horizontalSplitter()->setSizes({ width, mw->width() });
 }

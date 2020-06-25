@@ -40,7 +40,10 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
 
 private:
-    QTimer updateTimer;
+    QTimer animateTimer;
+    float animTime;
+    float val;
+    float targetValue;
 };
 
 #endif // MINIMAP_H

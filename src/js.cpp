@@ -1,9 +1,9 @@
 #include <QBoxLayout>
 #include <QDebug>
+#include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QFileInfo>
 
 #include "commands.h"
 #include "editor.h"
@@ -28,6 +28,11 @@ QString JSFs::readFile(QString path)
         return file.readAll();
     }
     return "";
+}
+
+QString JSFs::readFileSync(QString path, QString options)
+{
+    return readFile(path);
 }
 
 bool JSFs::appendFile(QString content, QString path)
@@ -196,12 +201,14 @@ QList<int> JSApp::cursor()
 
 void JSApp::zoomIn()
 {
-    return editor()->editor->zoomIn();
+    editor()->editor->zoomIn();
+    // editor()->invalidateBuffers();
 }
 
 void JSApp::zoomOut()
 {
-    return editor()->editor->zoomOut();
+    editor()->editor->zoomOut();
+    // editor()->invalidateBuffers();
 }
 
 void JSApp::addExtraCursor()
@@ -239,6 +246,12 @@ void JSApp::showInspector(bool showHtml)
 {
     MainWindow* mw = MainWindow::instance();
     mw->js()->showInspector(showHtml);
+}
+
+void JSApp::hideInspector()
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->js()->hideInspector();
 }
 
 QStringList JSApp::scopesAtCursor()

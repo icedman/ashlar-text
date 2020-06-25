@@ -16,6 +16,7 @@ public:
     FileSystemModel(QObject* parent = 0);
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+
 private:
 private Q_SLOTS:
     void onDirectoryLoaded(const QString& path);
@@ -31,7 +32,7 @@ public:
     void setRootPath(QString path, bool deferred);
     void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
-    
+
     FileSystemModel* fileModel;
 
 protected:
@@ -39,11 +40,11 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event);
 
 private:
-    
     QTimer animateTimer;
     QTimer updateTimer;
     QString rootPath;
-    
+
+    float animTime;
     float width;
     float targetWidth;
 

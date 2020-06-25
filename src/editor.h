@@ -114,6 +114,8 @@ public:
     void newFile(const QString& path = QString());
     void toggleFold(size_t line);
 
+    void invalidateBuffers();
+
     QString fullPath() { return fileName; }
 
     QStringList scopesAtCursor(QTextCursor cursor);

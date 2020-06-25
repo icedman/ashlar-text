@@ -24,5 +24,10 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "debounce": "^1.2.0",
+    "fuse": "^0.4.0",
+    "fuse.js": "^6.3.1"
   }
 }

@@ -1,5 +1,6 @@
 
 #include <QDebug>
+#include <QStatusBar>
 
 #include "commands.h"
 #include "mainwindow.h"
@@ -430,6 +431,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
             editor->editor->setTextCursor(cs);
             if (!editor->editor->find(string, flags)) {
                 editor->editor->setTextCursor(cursor);
+                MainWindow::instance()->statusBar()->showMessage("Unable to find string");
                 return false;
             }
         }
@@ -446,6 +448,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         editor->editor->setTextCursor(cs);
         if (!editor->editor->find(regx, flags)) {
             editor->editor->setTextCursor(cursor);
+            MainWindow::instance()->statusBar()->showMessage("Unable to find string");
             return false;
         }
     }

@@ -117,6 +117,12 @@ QStatusBar {
   padding: 4px;
 }
 
+QStatusBar QLabel {
+  background: transparent;
+  color: @statusFg;
+  font-size: 10pt;
+}
+
 QSizeGrip { background: transparent }
 
 /* menubar */
@@ -213,7 +219,24 @@ QWebView {
   background: #fff;
 }
 
-Select {
-  background: @treeBg;
-  padding: 2px;
+QWidget[className='qt View selectItem'] {
+  background: @treeItemBg;
+}
+
+QWidget[className='qt View selectItem']:focus {
+  background: @treeItemHoverBg;
+}
+
+QWidget[className='qt View selectItem'] QLabel {
+  background: transparent;
+  color: @treemItemFg;
+}
+
+QWidget[className='qt View selectItem hover'] {
+  background: @treeItemHoverBg
+}
+
+QWidget[className='qt View selectItem hover'] QLabel {
+  background: transparent;
+  color: @treeItemHoverFg;
 }

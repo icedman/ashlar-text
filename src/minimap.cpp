@@ -5,14 +5,15 @@
 
 #include <iostream>
 
+#include "Cubic.h"
 #include "editor.h"
 #include "minimap.h"
 
 MiniMap::MiniMap(QWidget* parent)
     : QScrollBar(parent)
-    , updateTimer(this)
+    , animateTimer(this)
 {
-    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateScroll()));
+    connect(&animateTimer, SIGNAL(timeout()), this, SLOT(updateScroll()));
 }
 
 static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float advanceY)
@@ -149,7 +150,7 @@ void MiniMap::mouseMoveEvent(QMouseEvent* event)
     QScrollBar::mouseMoveEvent(event);
     QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
-    updateTimer.stop();
+    animateTimer.stop();
     setValue(scrollToY);
 }
 
@@ -158,7 +159,11 @@ void MiniMap::mousePressEvent(QMouseEvent* event)
     // QScrollBar::mousePressEvent(event);
     QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
-    updateTimer.start(50);
+
+    animTime = 0;
+    val = (float)editor->editor->verticalScrollBar()->value();
+    targetValue = scrollToY - val;
+    animateTimer.start(25);
 }
 
 void MiniMap::scrollByMouseY(float y)
@@ -175,13 +180,13 @@ void MiniMap::scrollByMouseY(float y)
 
 void MiniMap::updateScroll()
 {
-    // float val = (float)QScrollBar::value();
-    float val = (float)editor->editor->verticalScrollBar()->value();
-    float d = (scrollToY - val) * 0.2;
-    float newVal = val + d;
-    if (sqrt(d * d) < 2) {
-        newVal = scrollToY;
-        updateTimer.stop();
+    const float duration = 750;
+    animTime += animateTimer.interval();
+    float newValue = Cubic::easeOut(animTime, 0, targetValue, duration);
+    if (animTime >= duration) {
+        newValue = targetValue;
+        animateTimer.stop();
     }
-    setValue(newVal);
+
+    setValue(val + newValue);
 }

@@ -11,10 +11,15 @@ const SectionList_ = props => {
     renderSectionHeader: props.renderSectionHeader
   });
 
-  const data = props.data || [];
+  let data = props.data || [];
   const Item = state.renderItem;
   const Header = state.renderSectionHeader;
   const keyExtractor = props.keyExtractor || ((item, index) => item + index);
+  
+  if (!data.map) {
+      data = [];
+  }
+  
   const renderedItems = data.map((section, sectionIndex) => {
     const sectionItems = section.data.map((item, index) => {
       return (

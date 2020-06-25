@@ -90,6 +90,18 @@ bool Editor::openFile(const QString& path)
     return false;
 }
 
+void Editor::invalidateBuffers()
+{
+    QTextBlock block = editor->document()->begin();
+    while (block.isValid()) {
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (blockData) {
+            blockData->buffer = QPixmap();
+        }
+        block = block.next();
+    }
+}
+
 void Editor::fileChanged(const QString& path)
 {
     if (savingTimer.isActive()) {
@@ -788,7 +800,7 @@ void TextmateEdit::paintToBuffer()
             // render the block
             //-----------------
             if (e->settings->smooth_scroll) {
-                if (!blockData->buffer.width()) {
+                if (blockData->buffer.width() != r.width() || blockData->buffer.height() != r.height()) {
                     blockData->buffer = QPixmap(r.width(), r.height());
                     blockData->buffer.fill(Qt::transparent);
                     QPainter pp(&blockData->buffer);

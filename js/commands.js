@@ -20,6 +20,10 @@ const commands = {
     if (registry[name]) {
       registry[name](args);
     }
+  },
+  
+  commands: () => {
+      return registry
   }
 };
 

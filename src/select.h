@@ -4,25 +4,25 @@
 #include <QtWidgets>
 
 class QLineEdit;
-class Select : public QWidget
-{
+class Select : public QWidget {
     Q_OBJECT
 public:
-    
-    Select(QWidget *parent = 0);
+    Select(QWidget* parent = 0);
     void setup();
-    
+    void trigger();
+
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
-    
+    bool eventFilter(QObject* obj, QEvent* event);
+
 private:
     void paintEvent(QPaintEvent*) override;
-    void showEvent(QShowEvent *event) override;
-    void hideEvent(QHideEvent *event) override;
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
-     
-    QLineEdit *input;
-    QWidget *items;
+    void keyPressEvent(QKeyEvent* e) override;
+
+    QLineEdit* input;
+    QWidget* items;
 };
 
 #endif // SELECT_H

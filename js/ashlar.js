@@ -47,5 +47,10 @@ baseCommands.forEach(cmd => {
   commands.registerCommand(cmd.name, cmd.action);
 });
 
-app.reloadExtensions();
+// defer
+setTimeout(() => {
+    console.log(fs);
+    app.reloadExtensions();
+}, 500);
+
 export default ashlar;

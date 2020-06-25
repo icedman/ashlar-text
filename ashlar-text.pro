@@ -17,7 +17,8 @@ HEADERS         = src/commands.h \
                   src/select.h \
                   src/tabs.h \
                   ./js-qt/qt/core.h \
-                  ./js-qt/qt/engine.h
+                  ./js-qt/qt/engine.h \
+                  ./easing/PennerEasing/Cubic.h
 
 SOURCES         = src/commands.cpp \
                   src/editor.cpp \
@@ -35,6 +36,7 @@ SOURCES         = src/commands.cpp \
                   src/main.cpp \
                   ./js-qt/qt/core.cpp \
                   ./js-qt/qt/engine.cpp \
+                  ./easing/PennerEasing/Cubic.cpp \
                   ./tm-parser/textmate/parser/grammar.cpp \
                   ./tm-parser/textmate/parser/reader.cpp \
                   ./tm-parser/textmate/parser/pattern.cpp \
@@ -50,10 +52,11 @@ QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
 
 INCPATH +=  ./src
+INCPATH +=  ./easing/PennerEasing
 INCPATH +=  ./js-qt
-INCPATH +=  ./tm-parser/textmate/parser/
-INCPATH +=  ./tm-parser/textmate/scopes/
-INCPATH +=  ./tm-parser/textmate/theme/
+INCPATH +=  ./tm-parser/textmate/parser
+INCPATH +=  ./tm-parser/textmate/scopes
+INCPATH +=  ./tm-parser/textmate/theme
 
 INCPATH += ./tm-parser/subprojects/jsoncpp-1.8.4/include 
 LIBS+= ./tm-parser/build/subprojects/jsoncpp-1.8.4/libjsoncpp.a

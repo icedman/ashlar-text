@@ -35,3 +35,5 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 
 # issues
 * problem with very long lines
+* re-render editor on find highlighted
+* invalidate buffers on zoom

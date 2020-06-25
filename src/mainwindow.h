@@ -47,7 +47,6 @@ public:
     Editor* openTab(const QString& path = QString());
     int currentTab();
 
-    void closeEvent(QCloseEvent* event);
     void readSavedGeometry();
 
     void emitEvent(QString event, QString payload);
@@ -61,9 +60,9 @@ public:
     bool loadExtension(QString name);
 
     static MainWindow* instance();
-    
-    QSplitter *horizontalSplitter() { return splitter; }
-    QSplitter *verticalSplitter() { return splitterv; }
+
+    QSplitter* horizontalSplitter() { return splitter; }
+    QSplitter* verticalSplitter() { return splitterv; }
 
 public:
     std::vector<Extension> extensions;
@@ -75,8 +74,9 @@ public:
 
     QString projectPath;
 
-public:
+protected:
     void keyPressEvent(QKeyEvent* e) override;
+    void closeEvent(QCloseEvent* e) override;
 
 public slots:
     void warmConfigure();
@@ -99,7 +99,7 @@ private:
     Tabs* tabs;
     Sidebar* sidebar;
     Select* select;
-    
+
     QTimer updateTimer;
 
     JSFs jsFs;

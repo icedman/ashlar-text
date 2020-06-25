@@ -9,6 +9,7 @@ class JSFs : public QObject {
 public:
 public slots:
     QString readFile(QString path);
+    QString readFileSync(QString path, QString options);
     bool appendFile(QString content, QString path);
     bool writeFile(QString content, QString path);
 };
@@ -65,6 +66,7 @@ public slots:
     void runScriptFile(QString path);
 
     void showInspector(bool showHtml);
+    void hideInspector();
 
 private:
     Editor* editor();
