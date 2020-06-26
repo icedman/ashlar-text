@@ -25,6 +25,8 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * ui: command palette (somewhat working)
 * ui: menu (somewhat working)
 * auto complete (QCompleter doesn't work as expected)
+* ui in general (stabilize js-qt)
+* ui improve flatlist (currently limited to 20 items)
 
 # todo
 * file search, fuzzy search

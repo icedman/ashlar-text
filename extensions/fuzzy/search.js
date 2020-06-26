@@ -26,6 +26,12 @@ const styles = StyleSheet.create({
   item: {
     padding: 4
   },
+  title: {
+    fontSize: '12pt'
+  },
+  description: {
+    fontSize: '10pt'
+  },
   input: {
     margin: 4
   }
@@ -40,8 +46,11 @@ const FuzzyListItem = ({ item, onItemSelect, index }) => {
           }
       })
   }
+  
+  let desc = item.description || item.path;
   return <View hoverable touchable style={styles.item} className='selectItem' onPress={onPress}>
-      <Text>{item.title}</Text>
+      <Text style={styles.title}>{item.title}</Text>
+      {desc ? <Text style={styles.description}>{desc}</Text> : '' }
       </View>
 };
 
@@ -49,7 +58,7 @@ const options = {
   includeScore: true,
   minMatchCharLength: 1,
   limit: 20,
-  keys: ["command", "title", "description" ]
+  keys: ["command", "title", "description", "path" ]
 };
 
 let data = [];
@@ -74,7 +83,8 @@ const FuzzyList = ({ item }) => {
       find: evt.target.value,
       data: d
     });
-  }, 100);
+    
+  }, 150);
 
   const onSearch = evt => {
     console.log("execute search!");
@@ -104,7 +114,7 @@ const FuzzyList = ({ item }) => {
     <React.Fragment>
       <TextInput
         id="select::input"
-        text={state.find}
+        // text={state.find}
         onChangeText={onFindChanged}
         onSubmitEditing={onSearch}
         style={styles.input}
@@ -140,7 +150,7 @@ const show_file_search = args => {
       let leafname= f.split('\\').pop().split('/').pop();
       return { title: leafname, path: f }
   })
-  fuse = new Fuse(data, options);
+  fuse = new Fuse(data, { ...options, minMatchCharLength: 1 });
   TouchState([]);
   setTimeout(() => { app.showCommandPalette() }, 50);
 };

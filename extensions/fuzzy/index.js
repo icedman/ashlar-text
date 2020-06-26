@@ -1,4 +1,4 @@
-import { fuzzy_commands, FuzzyListId, FuzzyList } from "./commandSearch";
+import { fuzzy_commands, FuzzyListId, FuzzyList } from "./search";
 
 const fuzzy = {
   activate: () => {

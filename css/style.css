@@ -220,17 +220,22 @@ QWebView {
   background: #fff;
 }
 
+/* command palette */
 QWidget[className='qt View selectItem'] {
   background: @treeItemBg;
 }
 
-QWidget[className='qt View selectItem']:focus {
+QWidget[className='qt View selectItem'] QLabel{
+  background: transparent;
+}
+
+QWidget[className='qt View selectItem']::focus {
   background: @treeItemHoverBg;
 }
 
-QWidget[className='qt View selectItem'] QLabel {
+QWidget[className='qt View selectItem']::focus QLabel {
   background: transparent;
-  color: @treemItemFg;
+  color: @treeItemHoverFg;
 }
 
 QWidget[className='qt View selectItem hover'] {

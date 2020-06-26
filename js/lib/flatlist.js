@@ -18,6 +18,8 @@ const FlatList_ = props => {
       data = [];
   }
   
+  data = data.slice(0, 20);
+  
   const renderedItems = data.map((item, index) => {
     return (
       <Item
@@ -28,7 +30,7 @@ const FlatList_ = props => {
       />
     );
   });
-
+  
   return (
     <ScrollView {...props}>
       <View style={{ 'flex-direction': 'column', 'align-items': 'flex-start' }}>

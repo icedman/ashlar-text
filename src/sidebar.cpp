@@ -46,8 +46,6 @@ Sidebar::Sidebar(QWidget* parent)
     , fileModel(0)
     , animateTimer(this)
     , clickTimer(this)
-    , updateTimer(this)
-    , dirIterator(0)
 {
     setHeaderHidden(true);
     setAnimated(true);
@@ -56,10 +54,8 @@ Sidebar::Sidebar(QWidget* parent)
     setMinimumSize(0, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     clickTimer.setSingleShot(true);
-    updateTimer.setSingleShot(true);
 
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
-    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(_preload()));
 }
 
 void Sidebar::setRootPath(QString path, bool deferred)
@@ -184,8 +180,6 @@ void Sidebar::_setRootPath()
 
     QModelIndex idx = fileModel->index(fileModel->rootPath());
     setRootIndex(idx);
-    
-    updateTimer.start(1500);
 }
 
 void Sidebar::animateShow()
@@ -227,54 +221,36 @@ void Sidebar::onAnimate()
     mw->horizontalSplitter()->setSizes({ width, mw->width() });
 }
 
-void Sidebar::_preload()
-{
-    // todo move to thread
-    if (!dirIterator) {
-        dirIterator = new QDirIterator(rootPath, {"*"}, QDir::Dirs, QDirIterator::Subdirectories);
-    }
-    
-    QFileSystemModel *fs = (QFileSystemModel*)model();
-    
-    int idx = 0;
-    while (dirIterator->hasNext()) {
-        idx++;
-        if (idx > 10) {
-            updateTimer.start(250);
-            return;
-        }
-        
-        QString entry = dirIterator->next();
-        QModelIndex index = fs->index(entry);
-        if (fs->canFetchMore(index)) {
-            bool skip = false;
-            for(auto pat : excludeFolders) {
-                if (entry.contains(pat)) {
-                    skip = true;
-                    idx--;
-                    break;
-                }
-            }
-            if (!skip) {
-                // qDebug() << entry;
-                fs->fetchMore(index);
-            }
-        }
-    }
-    
-    qDebug() << "stop!";
-    delete dirIterator;
-    dirIterator = NULL;
-    // qDebug() << allFiles();
-}
-
-static void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res) {
+void Sidebar::fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res) {
     for(int i=0; i<m->rowCount(index); i++) {
         QModelIndex childIndex = m->index(i, 0, index);
+        
+        if (m->canFetchMore(childIndex)) {
+            m->fetchMore(childIndex);
+        }
+
         if (m->isDir(childIndex)) {
             fetchFiles(m, childIndex, res);
         } else {
-            res << m->filePath(childIndex);
+            
+            bool skip = false;
+            
+            QString fileName = m->filePath(childIndex);
+            QFileInfo info(fileName);
+
+            // todo convert to QRegExp
+            QString _suffix = "*." + info.suffix();
+            
+            for(auto pat : excludeFiles) {
+                if (_suffix == pat) {
+                    skip = true;
+                    break;
+                }
+            }
+            
+            if (!skip) {
+                res << fileName;
+            }
         }
     }
 }
@@ -282,7 +258,7 @@ static void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res)
 QStringList Sidebar::allFiles()
 {
     QStringList files;
-    QFileSystemModel *fs = (QFileSystemModel*)model();
+    FileSystemModel *fs = fileModel;
     fetchFiles(fs, fs->index(rootPath), files);
     return files;
 }

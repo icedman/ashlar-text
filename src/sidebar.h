@@ -4,11 +4,14 @@
 #include <QFileSystemModel>
 #include <QModelIndex>
 #include <QTimer>
+#include <QThread>
 #include <QTreeView>
 
 #include "icons.h"
 
 class MainWindow;
+class Sidebar;
+class FileSystemModel;
 
 class FileSystemModel : public QFileSystemModel {
     Q_OBJECT
@@ -41,24 +44,22 @@ protected:
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void mousePressEvent(QMouseEvent* event);
 
-private:
     QTimer animateTimer;
     QTimer clickTimer;
-    QTimer updateTimer;
     QString rootPath;
     QStringList excludeFiles;
     QStringList excludeFolders;
     
-    QDirIterator *dirIterator;
-
     float animTime;
     float width;
     float targetWidth;
 
-private Q_SLOTS:
-    void onAnimate();
+    void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res);
+    
+private Q_SLOTS:    
     void _setRootPath();
-    void _preload();
+   
+    void onAnimate();;
 };
 
 #endif // SIDEBAR_H

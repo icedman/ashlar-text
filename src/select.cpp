@@ -47,6 +47,8 @@ void Select::setup()
 
 void Select::showEvent(QShowEvent* event)
 {
+    input->setText("");
+    
     MainWindow* mw = MainWindow::instance();
     QRect parentRect = ((QWidget*)parent())->rect();
     int w = parentRect.width() * .4;
@@ -123,6 +125,7 @@ void Select::keyPressEvent(QKeyEvent* e)
         
         QScrollArea *area = items->findChild<QScrollArea*>();
         area->ensureWidgetVisible(app->focusWidget());
+        area->horizontalScrollBar()->setValue(0);
         return true;
     }
     case Qt::Key_Down:
@@ -133,6 +136,7 @@ void Select::keyPressEvent(QKeyEvent* e)
         
         QScrollArea *area = items->findChild<QScrollArea*>();
         area->ensureWidgetVisible(app->focusWidget());
+        area->horizontalScrollBar()->setValue(0);
         return true;
     }
     
@@ -164,6 +168,7 @@ bool Select::eventFilter(QObject* obj, QEvent* event)
             
             QScrollArea *area = items->findChild<QScrollArea*>();
             area->ensureWidgetVisible(app->focusWidget());
+            area->horizontalScrollBar()->setValue(0);
             grabKeyboard();
             return true;
         }
