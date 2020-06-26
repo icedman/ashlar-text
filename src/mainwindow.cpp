@@ -260,7 +260,7 @@ void MainWindow::setupLayout()
     closeButton->setMaximumSize(28, 28);
     connect(closeButton, SIGNAL(clicked()), this, SLOT(closeCurrentTab()));
     
-    QHBoxLayout *thbox = new QHBoxLayout(this);
+    QHBoxLayout *thbox = new QHBoxLayout();
     thbox->addWidget(tabs);
     thbox->addWidget(closeButton);
     

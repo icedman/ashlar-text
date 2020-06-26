@@ -37,8 +37,13 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * package management
 * terminal
 * qprocess extension
+* icon fonts (fontawesome?)
 
 # issues
 * problem with very long lines
 * re-render editor on find highlighted
 * invalidate buffers on zoom
+
+# wish list
+* atom or vscode extensions compatibility - possible at all?
+
