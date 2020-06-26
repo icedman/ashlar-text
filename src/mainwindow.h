@@ -84,6 +84,7 @@ public slots:
     void warmConfigure();
     void tabSelected(int index);
     void tabClose(int index);
+    void closeCurrentTab();
     void loadAllExtensions();
 
 private Q_SLOTS:

@@ -254,7 +254,17 @@ void MainWindow::setupLayout()
     QVBoxLayout* vbox = new QVBoxLayout();
 
     mainPane->setLayout(vbox);
-    vbox->addWidget(tabs);
+    
+    QPushButton *closeButton = new QPushButton(this);
+    closeButton->setProperty("className", "closeButton");
+    closeButton->setMaximumSize(28, 28);
+    connect(closeButton, SIGNAL(clicked()), this, SLOT(closeCurrentTab()));
+    
+    QHBoxLayout *thbox = new QHBoxLayout(this);
+    thbox->addWidget(tabs);
+    thbox->addWidget(closeButton);
+    
+    vbox->addLayout(thbox);
     vbox->addWidget(editors);
     vbox->setMargin(0);
     vbox->setSpacing(0);
@@ -409,6 +419,11 @@ void MainWindow::tabSelected(int index)
             emitEvent("tabSelected", _editor->fileName);
         }
     }
+}
+
+void MainWindow::closeCurrentTab()
+{
+    tabClose(currentTab());
 }
 
 void MainWindow::tabClose(int index)

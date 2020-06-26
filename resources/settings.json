@@ -5,17 +5,19 @@
    ],
    
    "extensions": {
+       "hello-world": {},
        "search": {},
-       "hello-world": {}
+       "fuzzy": {}
    },
    
-   "debug_scopes": true,
+   "debug_scopes": false,
+   "smooth_scroll": true,
    
    "_theme": "Monokai",
    "_theme": "Bluloco Light",
    "_theme": "Bluloco Dark",
-   "theme": "Dracula",
-   "_theme": "Shades of Purple",
+   "_theme": "Dracula",
+   "theme": "Shades of Purple",
    
    "_icon_theme": "vs-seti",
    "icon_theme": "material-icon-theme",
@@ -33,9 +35,10 @@
    
    "sidebar": true,
    "statusbar": true,
+   "menubar": true,
 
    /* copied from sublime */
-   "folder_exclude_patterns": [".svn", ".git", ".hg", "CVS"],
+   "folder_exclude_patterns": [".svn", ".git", ".hg", "CVS", "node_modules"],
    "file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", "*.class", "*.psd", "*.db"],
    "binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip"]
 }

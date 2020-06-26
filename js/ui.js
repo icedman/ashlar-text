@@ -27,6 +27,7 @@ let TouchState = () => {};
 let RequestPanel = id => {};
 
 const panelRegistry = {};
+const menuRegistry = {};
 const statusRegistry = {};
 
 const ShowStatus = (msg, timeout) => {
