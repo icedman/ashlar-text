@@ -7,10 +7,12 @@
 #include "qt/core.h"
 #include "select.h"
 #include "settings.h"
+#include "Cubic.h"
 
 Select::Select(QWidget* parent)
     : QWidget(parent)
     , updateTimer(this)
+    , animateTimer(this)
 {
     setProperty("id", "select");
     setWindowFlag(Qt::Popup);
@@ -18,6 +20,7 @@ Select::Select(QWidget* parent)
     
     setMinimumSize(0,0);
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateSize()));
+    connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
 }
 
 void Select::setup()
@@ -34,7 +37,7 @@ void Select::setup()
     items = qobject_cast<QWidget*>(mw->js()->create("select::items", "View", true)->widget());
 
     layout->addWidget(input, 1);
-    layout->addWidget(items, 1);
+    layout->addWidget(items, 2);
     layout->addStretch(0);
     
     items->hide();
@@ -69,6 +72,7 @@ void Select::showEvent(QShowEvent* event)
 
 void Select::hideEvent(QHideEvent* event)
 {
+    items->hide();
     updateTimer.stop();
     releaseKeyboard();
 }
@@ -100,7 +104,8 @@ void Select::mousePressEvent(QMouseEvent* event)
 
 void Select::keyPressEvent(QKeyEvent* e)
 {
-    QApplication *app = qobject_cast<QApplication*>(QApplication::instance()); 
+    QApplication *app = qobject_cast<QApplication*>(QApplication::instance());
+    animateTimer.stop();
     
     switch (e->key()) {
     case Qt::Key_Escape:
@@ -182,16 +187,50 @@ void Select::updateSize()
     QScrollArea *area = items->findChild<QScrollArea*>();
     QList<TouchableWidget*> allItems = area->findChildren<TouchableWidget*>();
     
-    int h = input->rect().height() + 4;
-    items->setVisible(allItems.size() > 1);
-    if (!items->isVisible()) {
-        resize(width(), h);
+    bool shouldShow = allItems.size() > 1;
+    int ih = input->rect().height() + 4;
+    int h = ih;
+    
+    items->setVisible(shouldShow);
+    
+    if (!shouldShow) {
+        targetHeight = h;
+        items->hide();
+        resize(width(), ih);
     } else {
-        h += (allItems[1]->rect().height() + 2) * (allItems.size()-1);
+        h += (allItems[1]->rect().height() - 2) * (allItems.size()-1);
         if (h > 400) {
             h = 400;
         }
-        resize(width(), h);
+        targetHeight = h;
+    }
+    
+    if (shouldShow && !animateTimer.isActive() && QWidget::height() != targetHeight) {
+        animTime = -150;
+        height = QWidget::height();
+        animateTimer.start(25);
+        // resize(width(), targetHeight);
     }
  }
+ 
+void Select::onAnimate()
+{
+    const int duration = 250;
+    animTime += animateTimer.interval();
+    if (animTime < 0) {
+        return;
+    }
+    
+    float h = Cubic::easeOut(animTime, 0, targetHeight - height, duration);
+    if (animTime >= duration) {
+        h = targetHeight - height;
+        animateTimer.stop();
+        items->show();
+    }
+    
+    // qDebug() << targetHeight;
+    resize(width(), h + height);
+    update();
+}
+
 

@@ -176,7 +176,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
 
     auto it = cache.find(suffix);
     if (it != cache.end()) {
-        qDebug() << "langauge matched from cache";
+        qDebug() << "langauge matched from cache" << it->second->id.c_str();
         return it->second;
     }
 
@@ -280,7 +280,9 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
         lang->grammar = parse::parse_grammar(empty);
     }
 
-    cache.emplace(suffix, lang);
+    if (suffix != ".") {
+        cache.emplace(suffix, lang);
+    }
     return lang;
 }
 

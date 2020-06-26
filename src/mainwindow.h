@@ -48,6 +48,7 @@ public:
     int currentTab();
 
     void readSavedGeometry();
+    void showCommandPalette();
 
     void emitEvent(QString event, QString payload);
     Engine* js() { return engine; }
@@ -56,6 +57,7 @@ public:
     Editor* currentEditor();
     Editor* findEditor(QString path);
     QStringList editorsPath();
+    QStringList allFiles();
 
     bool loadExtension(QString name);
 

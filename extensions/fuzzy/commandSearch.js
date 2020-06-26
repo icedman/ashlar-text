@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const FuzzyListItem = ({ item, onItemSelect }) => {
+const FuzzyListItem = ({ item, onItemSelect, index }) => {
   const onPress = (evt) => {
       onItemSelect({
           target: {
@@ -41,7 +41,7 @@ const FuzzyListItem = ({ item, onItemSelect }) => {
       })
   }
   return <View hoverable touchable style={styles.item} className='selectItem' onPress={onPress}>
-      <Text>{JSON.stringify(item)}</Text>
+      <Text>{item.title}</Text>
       </View>
 };
 
@@ -56,16 +56,6 @@ let data = [];
 let fuse = new Fuse(data, options);
 let TouchState;
 
-setTimeout(() => {
-  data = Object.keys(ashlar.commands.commands()).map(c => {
-      return {
-          command: c
-      }
-  });
-  fuse = new Fuse(data, options);
-  TouchState(data);
-}, 1000);
-
 const FuzzyList = ({ item }) => {
   const [state, setState] = React.useState({
     find: "",
@@ -74,7 +64,7 @@ const FuzzyList = ({ item }) => {
   });
 
   const onFindChanged = debounce(evt => {
-    let d = data;
+    let d = [];
     if (evt.target.value !== '') {
       d = fuse.search(evt.target.value).map(r => r.item);
     }
@@ -93,7 +83,7 @@ const FuzzyList = ({ item }) => {
 
   const touchState = (data) => {
     setState({
-        ...state,
+        find: '',
         data: data,
         update: uuid()
     })
@@ -104,6 +94,9 @@ const FuzzyList = ({ item }) => {
       let val = evt.target.value;
       if (val && val.command) {
           ashlar.commands.executeCommand(val.command);
+      }
+      if (val && val.path) {
+          app.openFile(val.path);
       }
   }
   
@@ -130,7 +123,26 @@ const FuzzyList = ({ item }) => {
 
 /* commands */
 const show_command_search = args => {
-  console.log("here!");
+  data = Object.keys(ashlar.commands.commands()).map(c => {
+      return {
+          title: c,
+          command: c
+      }
+  });  
+  fuse = new Fuse(data, options);
+  TouchState(data);
+  setTimeout(() => { app.showCommandPalette() }, 50);
+};
+
+const show_file_search = args => {
+  let files = app.allFiles();
+  data = files.map(f => {
+      let leafname= f.split('\\').pop().split('/').pop();
+      return { title: leafname, path: f }
+  })
+  fuse = new Fuse(data, options);
+  TouchState([]);
+  setTimeout(() => { app.showCommandPalette() }, 50);
 };
 
 const fuzzy_commands = [
@@ -139,7 +151,14 @@ const fuzzy_commands = [
     action: () => {
       show_command_search();
     },
-    keys: "ctrl+m"
+    keys: "ctrl+p"
+  },
+  {
+    name: "show_file_search",
+    action: () => {
+      show_file_search();
+    },
+    keys: "ctrl+shift+p"
   }
 ];
 

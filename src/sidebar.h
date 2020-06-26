@@ -33,6 +33,8 @@ public:
     void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
+    QStringList allFiles();
+    
     FileSystemModel* fileModel;
 
 protected:
@@ -41,8 +43,13 @@ protected:
 
 private:
     QTimer animateTimer;
+    QTimer clickTimer;
     QTimer updateTimer;
     QString rootPath;
+    QStringList excludeFiles;
+    QStringList excludeFolders;
+    
+    QDirIterator *dirIterator;
 
     float animTime;
     float width;
@@ -51,6 +58,7 @@ private:
 private Q_SLOTS:
     void onAnimate();
     void _setRootPath();
+    void _preload();
 };
 
 #endif // SIDEBAR_H

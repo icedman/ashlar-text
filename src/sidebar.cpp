@@ -45,7 +45,9 @@ Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent)
     , fileModel(0)
     , animateTimer(this)
+    , clickTimer(this)
     , updateTimer(this)
+    , dirIterator(0)
 {
     setHeaderHidden(true);
     setAnimated(true);
@@ -53,9 +55,11 @@ Sidebar::Sidebar(QWidget* parent)
 
     setMinimumSize(0, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    clickTimer.setSingleShot(true);
     updateTimer.setSingleShot(true);
 
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(_preload()));
 }
 
 void Sidebar::setRootPath(QString path, bool deferred)
@@ -99,8 +103,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
     if (!mw->settings.isObject()) {
         return;
     }
-
-    Json::Value file_exclude_patterns = mw->settings["file_exclude_patterns"];
+   
     int rows = fileModel->rowCount(topLeft);
     for (int i = 0; i < rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);
@@ -111,18 +114,17 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
         // todo convert to QRegExp
         QString _suffix = "*." + info.suffix();
 
-        if (file_exclude_patterns.isArray()) {
-            for (int j = 0; j < file_exclude_patterns.size(); j++) {
-                QString pat = file_exclude_patterns[j].asString().c_str();
-                if (_suffix == pat) {
-                    setRowHidden(i, topLeft, true);
-                    break;
-                }
+        for(auto pat : excludeFiles) {
+            if (_suffix == pat) {
+                setRowHidden(i, topLeft, true);
+                break;
             }
         }
     }
 
-    animateShow();
+    if (!isVisible()) {
+        animateShow();
+    }
 }
 
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
@@ -134,11 +136,10 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
 {
     QTreeView::mousePressEvent(event);
 
-    if (updateTimer.isActive()) {
+    if (clickTimer.isActive()) {
         return;
     }
-
-    updateTimer.start(150);
+    clickTimer.start(150);
 
     QModelIndex index = currentIndex();
     if (index.isValid()) {
@@ -160,11 +161,31 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
 }
 void Sidebar::_setRootPath()
 {
+    MainWindow* mw = MainWindow::instance();
+    
+    Json::Value file_exclude_patterns = mw->settings["file_exclude_patterns"];
+    if (!excludeFiles.length() && file_exclude_patterns.isArray() && file_exclude_patterns.size()) {
+        for (int j = 0; j < file_exclude_patterns.size(); j++) {
+            QString pat = file_exclude_patterns[j].asString().c_str();
+            excludeFiles << pat;
+        }
+    }
+    
+    Json::Value folder_exclude_patterns = mw->settings["folder_exclude_patterns"];
+    if (!excludeFolders.length() && folder_exclude_patterns.isArray() && folder_exclude_patterns.size()) {
+        for (int j = 0; j < folder_exclude_patterns.size(); j++) {
+            QString pat = folder_exclude_patterns[j].asString().c_str();
+            excludeFolders << pat;
+        }
+    }
+    
     // qDebug() << "root:" << rootPath;
     fileModel->setRootPath(rootPath);
 
     QModelIndex idx = fileModel->index(fileModel->rootPath());
     setRootIndex(idx);
+    
+    updateTimer.start(1500);
 }
 
 void Sidebar::animateShow()
@@ -204,4 +225,64 @@ void Sidebar::onAnimate()
 
     setVisible(width > 0);
     mw->horizontalSplitter()->setSizes({ width, mw->width() });
+}
+
+void Sidebar::_preload()
+{
+    // todo move to thread
+    if (!dirIterator) {
+        dirIterator = new QDirIterator(rootPath, {"*"}, QDir::Dirs, QDirIterator::Subdirectories);
+    }
+    
+    QFileSystemModel *fs = (QFileSystemModel*)model();
+    
+    int idx = 0;
+    while (dirIterator->hasNext()) {
+        idx++;
+        if (idx > 10) {
+            updateTimer.start(250);
+            return;
+        }
+        
+        QString entry = dirIterator->next();
+        QModelIndex index = fs->index(entry);
+        if (fs->canFetchMore(index)) {
+            bool skip = false;
+            for(auto pat : excludeFolders) {
+                if (entry.contains(pat)) {
+                    skip = true;
+                    idx--;
+                    break;
+                }
+            }
+            if (!skip) {
+                // qDebug() << entry;
+                fs->fetchMore(index);
+            }
+        }
+    }
+    
+    qDebug() << "stop!";
+    delete dirIterator;
+    dirIterator = NULL;
+    // qDebug() << allFiles();
+}
+
+static void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res) {
+    for(int i=0; i<m->rowCount(index); i++) {
+        QModelIndex childIndex = m->index(i, 0, index);
+        if (m->isDir(childIndex)) {
+            fetchFiles(m, childIndex, res);
+        } else {
+            res << m->filePath(childIndex);
+        }
+    }
+}
+
+QStringList Sidebar::allFiles()
+{
+    QStringList files;
+    QFileSystemModel *fs = (QFileSystemModel*)model();
+    fetchFiles(fs, fs->index(rootPath), files);
+    return files;
 }

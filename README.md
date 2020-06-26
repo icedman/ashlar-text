@@ -24,6 +24,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * extension support
 * ui: command palette (somewhat working)
 * ui: menu (somewhat working)
+* auto complete (QCompleter doesn't work as expected)
 
 # todo
 * file search, fuzzy search

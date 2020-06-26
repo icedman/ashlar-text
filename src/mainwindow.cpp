@@ -70,6 +70,14 @@ QStringList MainWindow::editorsPath()
     return res;
 }
 
+QStringList MainWindow::allFiles()
+{
+    if (sidebar) {
+        return sidebar->allFiles();
+    }
+    return QStringList();
+}
+
 Editor* MainWindow::findEditor(QString path)
 {
     for (int i = 0; i < editors->count(); i++) {
@@ -509,9 +517,9 @@ void MainWindow::setupMenu()
     viewMenu->addAction(
         tr("Toggle Statusbar"),
         this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });
-    viewMenu->addAction(
-        tr("Show Command Palette"),
-        this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
+    // viewMenu->addAction(
+        // tr("Show Command Palette"),
+        // this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
 
     menuBar()->addMenu(viewMenu);
 
@@ -525,6 +533,13 @@ void MainWindow::setupMenu()
 
 void MainWindow::readSavedGeometry()
 {
+}
+
+void MainWindow::showCommandPalette()
+{
+    if (select) {
+        select->show();
+    }
 }
 
 void MainWindow::warmConfigure()

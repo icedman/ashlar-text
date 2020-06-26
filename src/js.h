@@ -56,6 +56,9 @@ public slots:
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();
     QList<int> cursor();
+    
+    QStringList allFiles();
+    void openFile(QString path);
 
     // debug
     QStringList scopesAtCursor();
@@ -65,6 +68,7 @@ public slots:
     // void loadExtension(QString name);
     void runScriptFile(QString path);
 
+    void showCommandPalette();
     void showInspector(bool showHtml);
     void hideInspector();
 

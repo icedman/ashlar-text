@@ -13,9 +13,15 @@
 
 static QString sanitizePath(QString path)
 {
+    QString projectPath = MainWindow::instance()->projectPath;
     path = path.replace("~", "");
     path = path.replace("..", "");
-    return QFileInfo(MainWindow::instance()->projectPath + "/" + path).absoluteFilePath();
+    if ((path + "/").contains(QFileInfo(projectPath).absolutePath())) {
+        projectPath = "";
+    }
+    qDebug() << path;
+    qDebug() << projectPath;
+    return QFileInfo(projectPath + "/" + path).absoluteFilePath();
 }
 
 //-----------------
@@ -242,6 +248,11 @@ bool JSApp::findAndCreateCursor(QString string, QString options)
     return res;
 }
 
+void JSApp::showCommandPalette()
+{
+    MainWindow::instance()->showCommandPalette();
+}
+
 void JSApp::showInspector(bool showHtml)
 {
     MainWindow* mw = MainWindow::instance();
@@ -275,4 +286,16 @@ void JSApp::runScriptFile(QString path)
 void JSApp::reloadExtensions()
 {
     MainWindow::instance()->loadAllExtensions();
+}
+
+QStringList JSApp::allFiles()
+{
+    return MainWindow::instance()->allFiles();
+}
+
+void JSApp::openFile(QString path)
+{
+    QString sanitized = sanitizePath(path);
+    qDebug() << sanitized;
+    MainWindow::instance()->openFile(sanitized);
 }

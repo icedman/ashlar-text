@@ -629,28 +629,6 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
-static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix, QTextBlock currentBlock)
-{
-    QTextCursor cursor;
-    QStringList res;
-    // qDebug() << prefix;
-    while (!(cursor = doc->find(prefix, cursor)).isNull()) {
-        if (cursor.block() == currentBlock) {
-            continue;
-        }
-        cursor.select(QTextCursor::WordUnderCursor);
-        QString w = cursor.selectedText();
-        // if (w != prefix && !res.contains(w)) {
-        if (!res.contains(w)) {
-            res << w;
-        }
-        if (res.length() > 20) {
-            break;
-        }
-    }
-    ((QStringListModel*)c->model())->setStringList(res);
-}
-
 //---------------------
 // custom QPlainTextEdit
 //---------------------
@@ -667,7 +645,7 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     completer->setCompletionMode(QCompleter::PopupCompletion);
     completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     completer->setCaseSensitivity(Qt::CaseInsensitive);
-    completer->setWrapAround(false);
+    completer->setWrapAround(true);
     completer->setWidget(this);
 
     QObject::connect(completer, QOverload<const QString&>::of(&QCompleter::activated),
@@ -843,6 +821,27 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
     overlay->mousePressEvent(e);
 }
 
+
+static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix)
+{
+    QTextCursor cursor;
+    QStringList res;
+    while (!(cursor = doc->find(prefix, cursor)).isNull()) {
+        cursor.select(QTextCursor::WordUnderCursor);
+        QString w = cursor.selectedText();
+        if (w.length() <= prefix.length()) {
+            continue;
+        }
+        if (!res.contains(w)) {
+            res << w;
+        }
+        if (res.length() > 20) {
+            break;
+        }
+    }
+    ((QStringListModel*)c->model())->setStringList(res);
+}
+
 bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
 {
     QCompleter* c = completer;
@@ -865,7 +864,6 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     bool isShortcut = false;
     const bool ctrlOrShift = e->modifiers().testFlag(Qt::ControlModifier) || e->modifiers().testFlag(Qt::ShiftModifier);
     if (!c || (ctrlOrShift && e->text().isEmpty())) {
-
         return false;
     }
 
@@ -882,7 +880,7 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     }
 
     if (completionPrefix != c->completionPrefix()) {
-        updateCompleter(document(), completer, completionPrefix, tc.block());
+        updateCompleter(document(), completer, completionPrefix);
         c->setCompletionPrefix(completionPrefix);
         c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }

@@ -26,7 +26,13 @@ private:
     QWidget* items;
     QTimer updateTimer;
     
+    QTimer animateTimer;
+    float animTime;
+    float height;
+    float targetHeight;
+    
 private Q_SLOTS:
+    void onAnimate();
     void updateSize();
 };
 

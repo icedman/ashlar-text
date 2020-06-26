@@ -22,6 +22,7 @@ const FlatList_ = props => {
     return (
       <Item
         item={item}
+        index={index}
         {...(props.extraData || {})}
         key={keyExtractor(item, index)}
       />
