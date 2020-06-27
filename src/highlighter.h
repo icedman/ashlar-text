@@ -54,9 +54,11 @@ public:
 
     bool dirty;
     bool folded;
+    bool foldable;
     size_t lastPrevBlockRule;
 
     std::vector<span_info_t> spans;
+    std::vector<bracket_info_t> foldingBrackets;
     std::vector<bracket_info_t> brackets;
     std::map<size_t, scope::scope_t> scopes;
 

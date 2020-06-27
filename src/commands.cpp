@@ -1,6 +1,7 @@
 
 #include <QDebug>
 #include <QStatusBar>
+#include <QScrollBar>
 
 #include "commands.h"
 #include "mainwindow.h"
@@ -414,6 +415,8 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         return false;
     }
 
+    TextmateEdit *e = editor->editor;
+    int scroll = e->verticalScrollBar()->value();
     bool regex = options.indexOf("regular_") != -1;
     int flags = 0;
     if (options.indexOf("case_") != -1) {
@@ -424,36 +427,38 @@ static bool Commands::find(Editor const* editor, QString string, QString options
     }
 
     if (!regex) {
-        if (!editor->editor->find(string, flags)) {
-            QTextCursor cursor = editor->editor->textCursor();
+        if (!e->find(string, flags)) {
+            QTextCursor cursor = e->textCursor();
             QTextCursor cs(cursor);
             cs.movePosition(QTextCursor::Start);
-            editor->editor->setTextCursor(cs);
-            if (!editor->editor->find(string, flags)) {
-                editor->editor->setTextCursor(cursor);
-                MainWindow::instance()->statusBar()->showMessage("Unable to find string");
+            e->setTextCursor(cs);
+            if (!e->find(string, flags)) {
+                e->setTextCursor(cursor);
+                e->verticalScrollBar()->setValue(scroll);
+                MainWindow::instance()->statusBar()->showMessage("Unable to find string", 2000);
                 return false;
             }
         }
 
-        // editor->editor->centerCursor();
+        // e->centerCursor();
         return true;
     }
 
     QRegExp regx(string);
-    if (!editor->editor->find(regx, flags)) {
-        QTextCursor cursor = editor->editor->textCursor();
+    if (!e->find(regx, flags)) {
+        QTextCursor cursor = e->textCursor();
         QTextCursor cs(cursor);
         cs.movePosition(QTextCursor::Start);
-        editor->editor->setTextCursor(cs);
-        if (!editor->editor->find(regx, flags)) {
-            editor->editor->setTextCursor(cursor);
-            MainWindow::instance()->statusBar()->showMessage("Unable to find string");
+        e->setTextCursor(cs);
+        if (!e->find(regx, flags)) {
+            e->setTextCursor(cursor);
+            e->verticalScrollBar()->setValue(scroll);
+            MainWindow::instance()->statusBar()->showMessage("Unable to find string", 2000);
             return false;
         }
     }
 
-    // editor->editor->centerCursor();
+    // e->centerCursor();
     return true;
 }
 

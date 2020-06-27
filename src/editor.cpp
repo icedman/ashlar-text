@@ -167,13 +167,11 @@ void Editor::setTheme(theme_ptr _theme)
     }
 
     if (theme_color(theme, "editor.selectionBackground", selectionBgColor)) {
-        QPalette p = editor->palette();
         if (isDark) {
-            p.setColor(QPalette::Highlight, selectionBgColor.lighter(200));
+            selectionBgColor = selectionBgColor.lighter(110);
         } else {
-            p.setColor(QPalette::Highlight, selectionBgColor.darker(200));
+            selectionBgColor = selectionBgColor.darker(110);
         }
-        editor->setPalette(p);
     }
 
     backgroundColor = bgColor;
@@ -344,10 +342,7 @@ static bool isFoldable(QTextBlock& block)
 {
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (blockData) {
-        if (blockData->brackets.size()) {
-            auto l = blockData->brackets.back();
-            return l.open;
-        }
+        return blockData->foldable;
     }
     return false;
 }
@@ -434,82 +429,166 @@ void Editor::highlightBlocks()
     mini->update();
 }
 
-static QTextBlock findBracketMatch(QTextBlock& block)
+bracket_info_t Editor::bracketAtCursor(QTextCursor cursor)
+{
+    bracket_info_t b;
+    b.line = -1;
+    b.position = -1;
+    
+    QTextBlock block = cursor.block();
+    if (!block.isValid()) {
+        return b;
+    }
+    
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    if (!blockData) {
+        return b;
+    }
+    
+    size_t p = cursor.position() - block.position();
+    for(auto bracket : blockData->brackets) {
+        if (bracket.position == p) {
+            return bracket;
+        }
+    }
+        
+    return b;
+}
+
+QTextCursor Editor::cursorAtBracket(bracket_info_t bracket)
+{
+    QTextCursor cursor;
+    
+    QTextBlock block = editor->textCursor().block();
+    while(block.isValid()) {
+        if (block.firstLineNumber() == bracket.line) {
+            cursor = editor->textCursor();
+            cursor.setPosition(block.position() + bracket.position);
+            break;
+        }
+        if (block.firstLineNumber() > bracket.line) {
+            block = block.next();
+        } else {
+            block = block.previous();
+        }
+    }    
+    return cursor;
+}
+
+QTextCursor Editor::findLastOpenBracketCursor(QTextBlock block)
 {
     if (!block.isValid()) {
-        return QTextBlock();
+        return QTextCursor();
     }
-
+    
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-    std::vector<bracket_info_t> brackets = blockData->brackets;
-
-    if (!brackets.size()) {
-        return QTextBlock();
+    if (!blockData) {
+        return QTextCursor();
     }
-
-    QTextBlock res = block.next();
-    while (res.isValid()) {
-        HighlightBlockData* resData = reinterpret_cast<HighlightBlockData*>(res.userData());
-        if (!resData) {
-            continue;
+    
+    QTextCursor res;    
+    for(auto b : blockData->foldingBrackets) {
+        if (b.open) {
+            if (res.isNull()) {
+                res = editor->textCursor();
+            }
+            res.setPosition(block.position() + b.position);
         }
-        std::vector<bracket_info_t> resBrackets = resData->brackets;
-        for (auto b : resBrackets) {
+    }
+    
+    return res;
+}
+
+QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor cursor)
+{
+    QTextCursor cs(cursor);
+    
+    if (!bracket.open) {
+        return cs;
+    }
+    
+    std::vector<bracket_info_t> brackets;
+    
+    QTextBlock block = cursor.block();
+    while(block.isValid()) {
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (!blockData) {
+            break;
+        }
+        
+        for(auto b : blockData->brackets) {
+            if (b.line == bracket.line && b.position <bracket.position) {
+                continue;
+            }
+            
             if (!b.open) {
                 auto l = brackets.back();
                 if (l.open && l.bracket == b.bracket) {
                     brackets.pop_back();
                 } else {
-                    return QTextBlock();
+                    // error .. unpaired?
+                    return QTextCursor();
                 }
 
                 if (!brackets.size()) {
                     // std::cout << "found end!" << std::endl;
-                    return res;
+                    cursor.setPosition(block.position() + b.position);
+                    return cursor;
                 }
                 continue;
             }
             brackets.push_back(b);
         }
-        res = res.next();
+        
+        block = block.next();
     }
-
-    return res;
+    
+    return QTextCursor();
 }
 
 void Editor::toggleFold(size_t line)
 {
     QTextDocument* doc = editor->document();
     QTextBlock folder = doc->findBlockByNumber(line - 1);
-    QTextBlock end = findBracketMatch(folder);
-    QTextBlock block = doc->findBlockByNumber(line);
-
-    if (!end.isValid() || !folder.isValid() || !block.isValid()) {
+    
+    QTextCursor openBracket = findLastOpenBracketCursor(folder);
+    if (openBracket.isNull()) {
         return;
     }
-
-    // todo.. can't handle ))
-    HighlightBlockData* folderBlockData = reinterpret_cast<HighlightBlockData*>(folder.userData());
+    
+    bracket_info_t bracket = bracketAtCursor(openBracket);
+    if (bracket.line == -1 || bracket.position == -1) {
+        return;
+    }
+    QTextCursor endBracket = findBracketMatchCursor(bracket, openBracket);
+    if (endBracket.isNull()) {
+        return;
+    }
+    
+    QTextBlock block = openBracket.block();
+    QTextBlock endBlock = endBracket.block();
+    
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-
-    if (folderBlockData && blockData) {
-        folderBlockData->folded = !folderBlockData->folded;
-        while (block.isValid()) {
-            blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-            blockData->folded = folderBlockData->folded;
-            if (folderBlockData->folded) {
-                block.setVisible(false);
-                block.setLineCount(0);
-            } else {
-                block.setVisible(true);
-                block.setLineCount(1);
-            }
-
-            if (block == end) {
-                break;
-            }
-            block = block.next();
+    if (!blockData) {
+        return;
+    }
+    
+    blockData->folded = !blockData->folded;
+    block = block.next();
+    while(block.isValid()) {
+        HighlightBlockData* targetData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        targetData->folded = blockData->folded;
+        if (blockData->folded) {
+            block.setVisible(false);
+            block.setLineCount(0);
+        } else {
+            block.setVisible(true);
+            block.setLineCount(1);
         }
+        if (block == endBlock) {
+            break;
+        }
+        block = block.next();
     }
 
     editor->update();
@@ -597,7 +676,7 @@ void Overlay::paintEvent(QPaintEvent*)
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
     cursors << editor->textCursor();
-
+        
     QTextBlock block = editor->_firstVisibleBlock();
     while (block.isValid()) {
         QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
@@ -625,7 +704,7 @@ void Overlay::paintEvent(QPaintEvent*)
 
 void Overlay::mousePressEvent(QMouseEvent* event)
 {
-    // std::cout << "still got ot me" << std::endl;
+    // std::cout << "still got to me" << std::endl;
     // listening to click events
 }
 
@@ -706,6 +785,22 @@ void TextmateEdit::paintToBuffer()
         overlay->cursorOn = false;
     }
 
+    QList<QTextCursor> pairs;
+    
+    // bracket pairing
+    bracket_info_t bracket = e->bracketAtCursor(editor->textCursor());
+    if (bracket.line != -1 && bracket.position != -1) {
+        QTextCursor start = editor->textCursor();
+        start.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+        pairs.push_back(start);
+        cursors << start;
+        
+        QTextCursor end = e->findBracketMatchCursor(bracket, editor->textCursor());
+        end.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+        pairs.push_back(end);
+        cursors << end;
+    }
+    
     //-----------------
     // selections
     //-----------------
@@ -744,9 +839,15 @@ void TextmateEdit::paintToBuffer()
                     qreal erx = line.cursorToX(&ex);
                     float w = erx - srx;
                     float h = fh;
+                    float offsetY = 0;
+                    
+                    if (pairs.contains(cursor)) {
+                        offsetY = h - 1;
+                        h = 1;
+                    }
 
                     r.setWidth(w);
-                    p.fillRect(QRect(r.left() + srx, r.top() + (i * fh), w, h), e->selectionBgColor);
+                    p.fillRect(QRect(r.left() + srx, r.top() + (i * fh) + offsetY, w, h), e->selectionBgColor);
                 }
             }
 

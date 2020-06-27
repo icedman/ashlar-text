@@ -32,7 +32,7 @@ public:
 
     void animateShow();
     void animateHide();
-    void setRootPath(QString path, bool deferred);
+    void setRootPath(QString path, bool deferred, bool show = false);
     void setActiveFile(QString path);
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
@@ -53,6 +53,8 @@ protected:
     float animTime;
     float width;
     float targetWidth;
+    
+    bool showOnLoad;
 
     void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res);
     

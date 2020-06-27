@@ -134,6 +134,11 @@ public:
     theme_ptr theme;
     language_info_ptr lang;
     parse::grammar_ptr grammar;
+    
+    bracket_info_t bracketAtCursor(QTextCursor cursor);
+    QTextCursor cursorAtBracket(bracket_info_t bracket);
+    QTextCursor findLastOpenBracketCursor(QTextBlock block);
+    QTextCursor findBracketMatchCursor(bracket_info_t bracket, QTextCursor cursor);
 
 private:
     QTimer savingTimer;

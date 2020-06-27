@@ -346,7 +346,7 @@ void MainWindow::openFile(const QString& path)
         if (tabs->count() == 0) {
             if (!editors->count()) {
                 projectPath = fileName;
-                sidebar->setRootPath(projectPath, false);
+                sidebar->setRootPath(projectPath, false, true);
             }
             newFile();
         }

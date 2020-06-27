@@ -58,12 +58,13 @@ Sidebar::Sidebar(QWidget* parent)
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
 }
 
-void Sidebar::setRootPath(QString path, bool deferred)
+void Sidebar::setRootPath(QString path, bool deferred, bool show)
 {
     if (fileModel || path.isEmpty()) {
         return;
     }
 
+    showOnLoad = show;
     MainWindow* main = MainWindow::instance();
 
     fileModel = new FileSystemModel(this);
@@ -118,7 +119,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
         }
     }
 
-    if (!isVisible()) {
+    if (!isVisible() && showOnLoad) {
         animateShow();
     }
 }

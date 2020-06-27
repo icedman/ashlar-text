@@ -222,6 +222,8 @@ void Highlighter::highlightBlock(const QString& text)
     // gather brackets
     //----------------------
     blockData->brackets.clear();
+    blockData->foldable = false;
+    blockData->foldingBrackets.clear();
     if (lang->brackets) {
         std::vector<bracket_info_t> brackets;
         for (char* c = (char*)first; c < last;) {
@@ -237,10 +239,12 @@ void Highlighter::highlightBlock(const QString& text)
             // opening
             int i = 0;
             for (auto b : lang->bracketOpen) {
-                if (strstr(c, b.c_str()) == c) { // << strstr .. fails because it is lazy
+                if (strstr(c, b.c_str()) == c) {
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({ .position = l,
+                    brackets.push_back({ 
+                        .line = currentBlock().firstLineNumber(),
+                        .position = l,
                         .bracket = i,
                         .open = true });
                     c += b.length();
@@ -258,7 +262,9 @@ void Highlighter::highlightBlock(const QString& text)
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({ .position = l,
+                    brackets.push_back({
+                        .line = currentBlock().firstLineNumber(),
+                        .position = l,
                         .bracket = i,
                         .open = false });
                     c += b.length();
@@ -273,24 +279,27 @@ void Highlighter::highlightBlock(const QString& text)
             c++;
         }
 
+        blockData->brackets = brackets;
+        
         // bracket pairing
         for (auto b : brackets) {
-            if (!b.open && blockData->brackets.size()) {
-                auto l = blockData->brackets.back();
+            if (!b.open && blockData->foldingBrackets.size()) {
+                auto l = blockData->foldingBrackets.back();
                 if (l.open && l.bracket == b.bracket) {
-                    blockData->brackets.pop_back();
+                    blockData->foldingBrackets.pop_back();
                 } else {
                     // std::cout << "error brackets" << std::endl;
                 }
                 continue;
             }
-            blockData->brackets.push_back(b);
+            blockData->foldingBrackets.push_back(b);
         }
 
         // hack for if-else-
-        if (blockData->brackets.size() == 2) {
-            if (blockData->brackets[0].open != blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
-                blockData->brackets.clear();
+        if (blockData->foldingBrackets.size() == 2) {
+            if (blockData->foldingBrackets[0].open != blockData->foldingBrackets[1].open && 
+                blockData->foldingBrackets[0].bracket == blockData->foldingBrackets[1].bracket) {
+                blockData->foldingBrackets.clear();
             }
         }
 
@@ -299,6 +308,11 @@ void Highlighter::highlightBlock(const QString& text)
         // for (auto b : blockData->brackets) {
         // setFormatFromStyle(b.position, 1, s, first, blockData, "bracket");
         // }
+        
+        if (blockData->foldingBrackets.size()) {
+            auto l = blockData->foldingBrackets.back();
+            blockData->foldable = l.open;
+        }
     }
 
     blockData->parser_state = parser_state;

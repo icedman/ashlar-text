@@ -79,6 +79,11 @@ const activate = () => {
   ashlar.events.on("tabSelected", tabSelected);
   ashlar.events.on("tabClosed", tabClosed);
   ashlar.events.on("cursorPositionChanged", cursorPositionChanged);
+  
+    // this will fetch the second level files
+    setTimeout(() => {
+        app.allFiles();
+    }, 3000);
 };
 
 const deactivate = () => {};
