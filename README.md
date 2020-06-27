@@ -3,6 +3,10 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 
 ![screenshot](https://raw.githubusercontent.com/icedman/ashlar-text/master/screenshots/Screenshot%20from%202020-06-26%2019-37-10.png)
 
+# native
+This is not electron based like atom, vscode, brackets. It uses native qt/c++. At its bare state, it is lightning fast compared to these editors.
+It does however uses webkit as its scripting engine - with the aim to easily for atom/vscode plugins to ashlar.
+
 # features
 * syntax highlighting
 * keybindings
