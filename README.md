@@ -15,6 +15,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * ui: statusbar
 * smooth-scroll
 * auto-close
+* auto-indent
 * bracket matching
 * bracket folding
 
@@ -22,9 +23,9 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * animated sidebar
 
 # needs improvement
-* auto-indent
 * extension support
-* ui: command palette (somewhat working)
+* ui: fuzzy command palette (somewhat working)
+* ui: fuzzy file search (somewhat working)
 * ui: menu (somewhat working)
 * auto complete (QCompleter doesn't always work as expected)
 * ui in general (stabilize js-qt - too many.. create destroy.. add cached widgets)
@@ -43,8 +44,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 
 # issues
 * problem with very long lines
-* re-render editor on find highlighted
-* invalidate buffers on zoom
+* re-render minimap on resize window
 
 # wish list
 * atom or vscode extensions compatibility - possible at all?

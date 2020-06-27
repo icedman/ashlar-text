@@ -33,7 +33,7 @@ static QList<QTextCursor> build_cursors(TextmateEdit* editor)
 
     return cursors;
 }
-
+        
 size_t count_indent_size(QString s)
 {
     for (int i = 0; i < s.length(); i++) {
@@ -46,10 +46,19 @@ size_t count_indent_size(QString s)
 
 static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
 {
-    // todo
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     if (settings->tab_to_spaces) {
-        for (int i = 0; i < settings->tab_size; i++) {
+        int ts = settings->tab_size;
+        QTextCursor cs(cursor);
+        cs.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+        size_t ws = count_indent_size(cs.selectedText() + "?");
+        
+        if (ws != 0 && ws == cursor.position() - cursor.block().position()) {
+            // magic! (align to tab)
+            ts = (((ws/ts) + 1) * ts) - ws;
+        }
+        
+        for (int i = 0; i < ts; i++) {
             cursor.insertText(" ");
         }
     } else {
@@ -60,7 +69,6 @@ static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
 static void Commands::insertTab(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
-
     for (auto cursor : cursors) {
         insertTabForCursor(editor, cursor);
     }
@@ -181,7 +189,7 @@ static void Commands::toggleBlockComment(Editor const* editor)
     }
 }
 
-static void toggleIndentForCursor(Editor const* editor, QTextCursor cursor)
+static void indentForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!cursor.hasSelection()) {
         cursor.beginEditBlock();
@@ -208,11 +216,11 @@ static void Commands::indent(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
     for (auto cursor : cursors) {
-        toggleIndentForCursor(editor, cursor);
+        indentForCursor(editor, cursor);
     }
 }
 
-static void toggleUnindentForCursor(Editor const* editor, QTextCursor cursor)
+static void unindentForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!cursor.hasSelection()) {
         cursor.beginEditBlock();
@@ -242,20 +250,68 @@ static void Commands::unindent(Editor const* editor)
     QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for (auto cursor : cursors) {
-        toggleUnindentForCursor(editor, cursor);
+        unindentForCursor(editor, cursor);
     }
 }
 
+    
+static void reindentForCursor(Editor const* editor, QTextCursor cursor, int add)
+{
+    if (cursor.hasSelection()) {
+        return;
+    } else {
+        editor_settings_ptr settings = MainWindow::instance()->editor_settings;
+        size_t start = cursor.selectionStart();
+        QTextCursor cs(cursor);
+        size_t ws = count_indent_size(cs.block().text() + "?");
+        
+        if (add == -1) {
+            unindentForCursor(editor, cursor);
+        }
+        
+        if (settings->tab_to_spaces) {
+            if (ws < settings->tab_size) {
+                return;
+            }
+        } else {
+            if (ws < 1) {
+                return;
+            }
+        }
+        
+        unindentForCursor(editor, cursor);
+        indentForCursor(editor, cursor);
+    }
+}
+    
+static void Commands::reindent(Editor const* editor, int add)
+{
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
+    for (auto cursor : cursors) {
+        reindentForCursor(editor, cursor, add);
+    }
+}
+    
+// autoIndent
 static void Commands::autoIndent(Editor const* editor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     size_t white_spaces = 0;
     
     HighlightBlockData* blockData;
+    bool beginsWithCloseBracket = false;
     
     QTextCursor cursor = editor->editor->textCursor();
     QTextCursor cs(cursor);
     QTextBlock block = cursor.block();
+
+    if (block.isValid()) {   
+        blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (blockData->brackets.size()) {
+            beginsWithCloseBracket = !blockData->brackets[0].open;
+        }
+    }
+        
     while(block.isValid()) {
         cs.setPosition(block.position());
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
@@ -284,6 +340,14 @@ static void Commands::autoIndent(Editor const* editor)
             } else {
                 white_spaces ++;
             }
+        }
+    }
+    
+    if (beginsWithCloseBracket) {
+        if (settings->tab_to_spaces) {
+            white_spaces -= settings->tab_size;
+        } else {
+            white_spaces --;
         }
     }
      

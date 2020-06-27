@@ -387,6 +387,8 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     bool noModifierExceptShift = (e->modifiers() == Qt::NoModifier || e->modifiers() & Qt::ShiftModifier);
     bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
     bool isDelete = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace));
+
+    // completer        
     if (!isDelete) {
         if (completerKeyPressEvent(e)) {
             return;
@@ -396,6 +398,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         completer->popup()->hide();
     }
 
+    // keybinding
     bool handled = Commands::keyPressEvent(e);
     Editor* _editor = MainWindow::instance()->currentEditor();
 
@@ -415,6 +418,12 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         QPlainTextEdit::keyPressEvent(e);
         updateExtraCursors(e);
 
+        if (isDelete) {
+            // align to tab
+            Commands::reindent(_editor, -1);
+        }   
+                
+        // autos
         if (isNewline) {
             Commands::autoIndent(_editor);
         }

@@ -15,6 +15,7 @@ public:
     static void toggleBlockComment(Editor const* editor);
     static void autoIndent(Editor const* editor);
     static void autoClose(Editor const* editor, QString lastKey);
+    static void reindent(Editor const* editor, int add = 0);
     static void indent(Editor const* editor);
     static void unindent(Editor const* editor);
     static void duplicateLine(Editor const* editor);
