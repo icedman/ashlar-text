@@ -282,7 +282,7 @@ static void Commands::autoIndent(Editor const* editor)
 
 static void Commands::autoClose(Editor const* editor, QString lastKey)
 {
-    if (!editor->lang || !editor->lang->pairs) {
+    if (!editor->lang || !editor->lang->pairs || lastKey.length() != 1) {
         return;
     }
 
@@ -291,9 +291,13 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
     }
 
     QTextCursor cursor = editor->editor->textCursor();
+    if (cursor.isNull()) {
+        return;
+    }
+    
     QTextCursor cs(cursor);
     cs.movePosition(QTextCursor::EndOfLine);
-
+    
     // prevent duplicated bracket because of auto-close
     if (lastKey.length() == 1 && cs.position() - 1 == cursor.position()) {
         QString line = cursor.block().text();
@@ -301,10 +305,6 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
             if (b.find(lastKey.toStdString()) == std::string::npos) {
                 continue;
             }
-
-            // qDebug() << "?" << b.c_str();
-            // qDebug() << lastKey;
-
             int pos = line.lastIndexOf(b.c_str());
             if (pos == line.length() - b.length()) {
                 cursor.deleteChar();
@@ -317,35 +317,30 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
     if (cs.position() != cursor.position()) {
         return;
     }
-
-    size_t pos = cursor.position();
-    QString line = cursor.block().text();
-    if (!lastKey.length()) {
-        return;
-    }
-
+   
     int idx = 0;
     for (auto b : editor->lang->pairOpen) {
-        if (b.find(lastKey.toStdString()) == std::string::npos) {
+        QString bk = b.c_str();
+        
+        int len = b.length();
+        QTextCursor kc(cursor);
+        if (!kc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, len)) {
             idx++;
             continue;
         }
-
-        // qDebug() << "?" << b.c_str();
-        // qDebug() << lastKey;
-
-        int pos = line.lastIndexOf(b.c_str());
-        if (pos == line.length() - b.length()) {
-            QString close = editor->lang->pairClose.at(idx).c_str();
-            cursor.beginEditBlock();
-            cursor.insertText(close);
-            cursor.endEditBlock();
-            cursor.setPosition(cursor.position() - close.length(), QTextCursor::MoveAnchor);
-            editor->editor->setTextCursor(cursor);
-            return;
+        QString key = kc.selectedText();
+        if (key != bk) {
+            idx++;
+            continue;
         }
-
-        idx++;
+        
+        QString close = editor->lang->pairClose.at(idx).c_str();
+        // cursor.beginEditBlock();
+        cursor.insertText(close);
+        // cursor.endEditBlock();
+        cursor.setPosition(cursor.position() - close.length(), QTextCursor::MoveAnchor);
+        editor->editor->setTextCursor(cursor);
+        return;
     }
 }
 

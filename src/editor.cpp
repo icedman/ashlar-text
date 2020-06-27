@@ -503,44 +503,82 @@ QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor c
 {
     QTextCursor cs(cursor);
     
-    if (!bracket.open) {
-        return cs;
-    }
-    
-    std::vector<bracket_info_t> brackets;
-    
+    std::vector<bracket_info_t> brackets;        
     QTextBlock block = cursor.block();
-    while(block.isValid()) {
-        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-        if (!blockData) {
-            break;
-        }
         
-        for(auto b : blockData->brackets) {
-            if (b.line == bracket.line && b.position <bracket.position) {
-                continue;
+    if (bracket.open) {
+            
+        while(block.isValid()) {
+            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+            if (!blockData) {
+                break;
             }
             
-            if (!b.open) {
-                auto l = brackets.back();
-                if (l.open && l.bracket == b.bracket) {
-                    brackets.pop_back();
-                } else {
-                    // error .. unpaired?
-                    return QTextCursor();
+            for(auto b : blockData->brackets) {
+                if (b.line == bracket.line && b.position < bracket.position) {
+                    continue;
                 }
-
-                if (!brackets.size()) {
-                    // std::cout << "found end!" << std::endl;
-                    cursor.setPosition(block.position() + b.position);
-                    return cursor;
+                
+                if (!b.open) {
+                    auto l = brackets.back();
+                    if (l.open && l.bracket == b.bracket) {
+                        brackets.pop_back();
+                    } else {
+                        // error .. unpaired?
+                        return QTextCursor();
+                    }
+    
+                    if (!brackets.size()) {
+                        // std::cout << "found end!" << std::endl;
+                        cursor.setPosition(block.position() + b.position);
+                        return cursor;
+                    }
+                    continue;
                 }
-                continue;
+                brackets.push_back(b);
             }
-            brackets.push_back(b);
+            
+            block = block.next();
+        }
+    
+    } else {
+    
+        // reverse
+        while(block.isValid()) {
+            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+            if (!blockData) {
+                break;
+            }
+            
+            // for(auto b : blockData->brackets) {
+            for (auto it =  blockData->brackets.rbegin(); it != blockData->brackets.rend(); ++it) {
+                bracket_info_t b = *it;
+                if (b.line == bracket.line && b.position > bracket.position) {
+                    continue;
+                }
+                
+                if (b.open) {
+                    auto l = brackets.back();
+                    if (!l.open && l.bracket == b.bracket) {
+                        brackets.pop_back();
+                    } else {
+                        // error .. unpaired?
+                        return QTextCursor();
+                    }
+    
+                    if (!brackets.size()) {
+                        // std::cout << "found begin!" << std::endl;
+                        cursor.setPosition(block.position() + b.position);
+                        return cursor;
+                    }
+                    continue;
+                }
+                brackets.push_back(b);
+            }
+            
+            block = block.previous();
         }
         
-        block = block.next();
     }
     
     return QTextCursor();

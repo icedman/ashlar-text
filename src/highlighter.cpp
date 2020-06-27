@@ -139,7 +139,6 @@ void Highlighter::highlightBlock(const QString& text)
     // parse the line
     //----------------------
     std::string str = text.toStdString();
-    // str.assign(text.toUtf8().constData(), text.length());
     str += "\n";
 
     const char* first = str.c_str();
