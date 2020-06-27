@@ -16,6 +16,7 @@ HEADERS         = src/commands.h \
                   src/settings.h \
                   src/select.h \
                   src/tabs.h \
+                  src/tmedit.h \
                   ./js-qt/qt/core.h \
                   ./js-qt/qt/engine.h \
                   ./easing/PennerEasing/Cubic.h
@@ -33,6 +34,7 @@ SOURCES         = src/commands.cpp \
                   src/select.cpp \
                   src/settings.cpp \
                   src/tabs.cpp \
+                  src/tmedit.cpp \
                   src/main.cpp \
                   ./js-qt/qt/core.cpp \
                   ./js-qt/qt/engine.cpp \

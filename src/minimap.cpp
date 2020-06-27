@@ -7,6 +7,7 @@
 
 #include "Cubic.h"
 #include "editor.h"
+#include "tmedit.h"
 #include "minimap.h"
 
 MiniMap::MiniMap(QWidget* parent)

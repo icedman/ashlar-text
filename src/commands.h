@@ -5,6 +5,7 @@
 #include <QTextCursor>
 
 #include "editor.h"
+#include "tmedit.h"
 
 class Commands {
 public:

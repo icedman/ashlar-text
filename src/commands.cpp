@@ -46,6 +46,7 @@ size_t count_indent_size(QString s)
 
 static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
 {
+    // todo
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     if (settings->tab_to_spaces) {
         for (int i = 0; i < settings->tab_size; i++) {
@@ -206,7 +207,6 @@ static void toggleIndentForCursor(Editor const* editor, QTextCursor cursor)
 static void Commands::indent(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
-
     for (auto cursor : cursors) {
         toggleIndentForCursor(editor, cursor);
     }
@@ -249,25 +249,44 @@ static void Commands::unindent(Editor const* editor)
 static void Commands::autoIndent(Editor const* editor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
-
+    size_t white_spaces = 0;
+    
+    HighlightBlockData* blockData;
+    
     QTextCursor cursor = editor->editor->textCursor();
-    size_t white_spaces = count_indent_size(cursor.block().text());
-
     QTextCursor cs(cursor);
-    if (cs.movePosition(QTextCursor::Up)) {
-        size_t s = count_indent_size(cs.block().text());
-        if (s > white_spaces) {
-            white_spaces = s;
+    QTextBlock block = cursor.block();
+    while(block.isValid()) {
+        cs.setPosition(block.position());
+        cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
+        size_t ws = count_indent_size(block.text());
+        if (white_spaces < ws) {
+            white_spaces = ws;
+        }
+        // is line whitespace
+        if (ws == 0 || ws == cs.position()) {
+            block = block.previous();
+            continue;
+        }
+        break;
+    }
+    
+    if (!block.isValid()) {
+        return;
+    }
+   
+    blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    if (blockData && blockData->brackets.size()) {
+        auto b = blockData->brackets.back();
+        if (b.open) {
+            if (settings->tab_to_spaces) {
+                white_spaces += settings->tab_size;
+            } else {
+                white_spaces ++;
+            }
         }
     }
-    cs = cursor;
-    if (cs.movePosition(QTextCursor::Down)) {
-        size_t s = count_indent_size(cs.block().text());
-        if (s > white_spaces) {
-            white_spaces = s;
-        }
-    }
-
+     
     cursor.beginEditBlock();
     cursor.movePosition(QTextCursor::StartOfLine);
     for (int i = 0; i < white_spaces; i++) {

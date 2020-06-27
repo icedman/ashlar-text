@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "editor.h"
+#include "tmedit.h"
 #include "gutter.h"
 
 Gutter::Gutter(QWidget* parent)

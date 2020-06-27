@@ -14,18 +14,20 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * ui: panel (search dialog)
 * ui: statusbar
 * smooth-scroll
+* auto-close
+* bracket matching
+* bracket folding
 
 # extras
 * animated sidebar
 
 # needs improvement
-* auto-close
 * auto-indent
 * extension support
 * ui: command palette (somewhat working)
 * ui: menu (somewhat working)
-* auto complete (QCompleter doesn't work as expected)
-* ui in general (stabilize js-qt)
+* auto complete (QCompleter doesn't always work as expected)
+* ui in general (stabilize js-qt - too many.. create destroy.. add cached widgets)
 * ui improve flatlist (currently limited to 20 items)
 
 # todo
