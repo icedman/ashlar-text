@@ -1,6 +1,8 @@
 This app is a simple SublimeText replacement.
 It uses the textmate parser. And reuses some visual studio code extensions.
 
+![screenshot](https://raw.githubusercontent.com/icedman/ashlar-text/master/screenshots/Screenshot%20from%202020-06-26%2019-37-10.png)
+
 # features
 * syntax highlighting
 * keybindings
@@ -50,3 +52,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 # wish list
 * atom or vscode extensions compatibility - possible at all?
 
+# progress screenshots
+
+![early shots](https://raw.githubusercontent.com/icedman/ashlar-text/master/screenshots/Screenshot%20from%202020-05-28%2022-55-06.png)
+![early shots](https://github.com/icedman/ashlar-text/blob/master/screenshots/Screenshot%20from%202020-06-05%2023-10-30.png)
