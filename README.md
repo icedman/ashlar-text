@@ -41,6 +41,7 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * terminal
 * qprocess extension
 * icon fonts (fontawesome?)
+* handle paste of large files
 
 # issues
 * problem with very long lines

@@ -264,6 +264,9 @@ static void reindentForCursor(Editor const* editor, QTextCursor cursor, int add)
         size_t start = cursor.selectionStart();
         QTextCursor cs(cursor);
         size_t ws = count_indent_size(cs.block().text() + "?");
+        if (ws != cursor.position() - cursor.block().position()) {
+            return;
+        }
         
         if (add == -1) {
             unindentForCursor(editor, cursor);

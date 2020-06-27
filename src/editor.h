@@ -90,10 +90,12 @@ private Q_SLOTS:
     void updateGutter(bool force = false);
     void updateMiniMap(bool force = false);
     void updateRequested(const QRect& rect, int d);
-    void highlightBlocks();
 
     void fileChanged(const QString& path);
     void cursorPositionChanged();
+    
+public slots:    
+    void highlightBlocks();
 };
 
 #endif // EDITOR_WINDOW_H

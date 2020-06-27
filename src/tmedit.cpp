@@ -387,6 +387,8 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     bool noModifierExceptShift = (e->modifiers() == Qt::NoModifier || e->modifiers() & Qt::ShiftModifier);
     bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
     bool isDelete = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace));
+    bool isPaste = ((e->modifiers() & Qt::ControlModifier && e->key() == Qt::Key_V) ||
+        (e->modifiers() & Qt::ShiftModifier && e->key() == Qt::Key_Insert)) && canPaste();
 
     // completer        
     if (!isDelete) {
@@ -415,8 +417,19 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
 
     if (!handled) {
         QTextCursor cursor = textCursor();
+        
+        // todo.. defer only with large clipboard texts
+        if (isPaste) {
+            editor->highlighter->setDeferRendering(true);
+            // qDebug() << "check clipboard text size here";    
+        }
+        
         QPlainTextEdit::keyPressEvent(e);
         updateExtraCursors(e);
+        
+         if (isPaste) {
+             editor->highlightBlocks();
+         }
 
         if (isDelete) {
             // align to tab
