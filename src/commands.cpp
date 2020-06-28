@@ -272,28 +272,13 @@ static void Commands::unindent(Editor const* editor)
 }
     
 // autoIndent
-static void Commands::autoIndent(Editor const* editor)
+static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     int white_spaces = 0;
     
     HighlightBlockData* blockData;
     bool beginsWithCloseBracket = false;
-    
-    QTextCursor cursor = editor->editor->textCursor();
-    
-    // is whitespace after cursor
-    // QTextCursor ws(cursor);
-    // QTextCursor we(cursor);
-    // we.movePosition(QTextCursor::EndOfLine);
-    // if (ws.position() != we.position()) {
-        // if (ws.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor)) {
-            // QString st = ws.selectedText();
-            // if (st[0] == ' ' || st[0] == '\t') {
-                // return;
-            // }
-        // }
-    // }
     
     QTextCursor cs(cursor);
     QTextBlock block = cursor.block();
@@ -305,10 +290,9 @@ static void Commands::autoIndent(Editor const* editor)
         }
     }
     
-
     while(block.isValid()) {
         
-        // qDebug() << block.text();
+        qDebug() << block.text();
     
         cs.setPosition(block.position());
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
@@ -352,6 +336,8 @@ static void Commands::autoIndent(Editor const* editor)
             white_spaces --;
         }
     }
+    
+    qDebug() << white_spaces;
      
     cursor.beginEditBlock();
     cursor.movePosition(QTextCursor::StartOfLine);
@@ -363,6 +349,15 @@ static void Commands::autoIndent(Editor const* editor)
         }
     }
     cursor.endEditBlock();
+}
+
+
+static void Commands::autoIndent(Editor const* editor)
+{
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
+    for (auto cursor : cursors) {
+        autoIndentForCursor(editor, cursor);
+    }
 }
 
 static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCursor& cursor)

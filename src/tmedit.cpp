@@ -434,6 +434,20 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
             }
         }
     }
+    
+    if (isNewline) {
+        QTextCursor cursor = textCursor();
+        size_t ws = count_indent_size(cursor.block().text() + "?");
+        if (ws >= cursor.position() - cursor.block().position()) {
+            cursor.beginEditBlock();
+            cursor.movePosition(QTextCursor::Up);
+            cursor.movePosition(QTextCursor::EndOfLine);
+            cursor.insertText("\n");
+            cursor.endEditBlock();
+            updateExtraCursors(e);
+            handled = true;
+        }
+    }
         
     if (!handled) {
         QTextCursor cursor = textCursor();
@@ -598,10 +612,27 @@ void TextmateEdit::insertCompletion(const QString& completion)
 
 void TextmateEdit::updateExtraCursors(QKeyEvent* e)
 {
+    bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
+    
     Editor *editor = (Editor*)parent();
     QTextCursor cursor = textCursor();
     bool redraw = false;
     for (auto& c : extraCursors) {
+        
+        if (isNewline) {
+            QTextCursor cursor = c;
+            size_t ws = count_indent_size(cursor.block().text() + "?");
+            if (ws >= cursor.position() - cursor.block().position()) {
+                cursor.beginEditBlock();
+                cursor.movePosition(QTextCursor::Up);
+                cursor.movePosition(QTextCursor::EndOfLine);
+                cursor.insertText("\n");
+                cursor.endEditBlock();
+                redraw = true;
+                continue;
+            }
+        }
+        
         QTextCursor::MoveMode mode = e->modifiers() & Qt::ShiftModifier ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor;
         switch (e->key()) {
         case Qt::Key_Left:

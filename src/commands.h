@@ -7,6 +7,9 @@
 #include "editor.h"
 #include "tmedit.h"
 
+size_t count_indent_size(QString s);
+QTextCursor move_to_non_whitespace(QTextCursor cursor);
+
 class Commands {
 public:
     static void removeTab(Editor const* editor, QTextCursor cursor);
