@@ -301,7 +301,7 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
         if (white_spaces < ws) {
             white_spaces = ws;
         }
-        if (blockText.length()) {
+        if (blockText.length() && ws != 0) {
             break;
         }
         // is line whitespace
