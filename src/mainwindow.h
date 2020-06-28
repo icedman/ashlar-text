@@ -70,6 +70,7 @@ public:
     std::vector<Extension> extensions;
     theme_ptr theme;
     icon_theme_ptr icons;
+    icon_theme_ptr icons_fallback;
 
     editor_settings_ptr editor_settings;
     Json::Value settings;

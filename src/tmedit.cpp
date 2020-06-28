@@ -178,13 +178,20 @@ void TextmateEdit::paintToBuffer()
     if (bracket.line != -1 && bracket.position != -1) {
         QTextCursor start = editor->textCursor();
         start.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
-        pairs.push_back(start);
-        cursors << start;
         
         QTextCursor end = e->findBracketMatchCursor(bracket, editor->textCursor());
         end.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
-        pairs.push_back(end);
-        cursors << end;
+        
+        if (!start.isNull() && !end.isNull()) {
+            pairs.push_back(start);
+            pairs.push_back(end);
+            cursors << start;
+            cursors << end;
+        } else {
+            if (!start.isNull()) {
+                qDebug() << "unpaired";
+            }
+        }
     }
     
     //-----------------
@@ -210,6 +217,7 @@ void TextmateEdit::paintToBuffer()
 
                 for (int i = 0; i < layout->lineCount(); i++) {
                     QTextLine line = layout->lineAt(i);
+                    QColor selectionColor = e->selectionBgColor;
 
                     int sx = line.textStart();
                     if (sx + block.position() < cursor.selectionStart()) {
@@ -229,11 +237,11 @@ void TextmateEdit::paintToBuffer()
                     
                     if (pairs.contains(cursor)) {
                         offsetY = h - 1;
-                        h = 1;
+                        h = 2;
                     }
 
                     r.setWidth(w);
-                    p.fillRect(QRect(r.left() + srx, r.top() + (i * fh) + offsetY, w, h), e->selectionBgColor);
+                    p.fillRect(QRect(r.left() + srx, r.top() + (i * fh) + offsetY, w, h), selectionColor);
                 }
             }
 
@@ -384,6 +392,7 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
+    bool handledForMainCursor = false;
     bool noModifierExceptShift = (e->modifiers() == Qt::NoModifier || e->modifiers() & Qt::ShiftModifier);
     bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
     bool isDelete = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace));
@@ -415,6 +424,17 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         removeExtraCursors();
     }
 
+    if ((!(e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_Backspace)) {
+        QTextCursor cursor = textCursor();
+        if (cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+            QString st = cursor.selectedText();
+            if (st[0] == ' ' || st[0] == '\t') {
+                Commands::removeTab(_editor, textCursor());
+                handledForMainCursor = true;
+            }
+        }
+    }
+        
     if (!handled) {
         QTextCursor cursor = textCursor();
         
@@ -423,18 +443,15 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
             editor->highlighter->setDeferRendering(true);
             // qDebug() << "check clipboard text size here";    
         }
-        
-        QPlainTextEdit::keyPressEvent(e);
+
+        if (!handledForMainCursor) {
+            QPlainTextEdit::keyPressEvent(e);
+        }
         updateExtraCursors(e);
         
          if (isPaste) {
              editor->highlightBlocks();
          }
-
-        if (isDelete) {
-            // align to tab
-            Commands::reindent(_editor, -1);
-        }   
                 
         // autos
         if (isNewline) {
@@ -581,6 +598,7 @@ void TextmateEdit::insertCompletion(const QString& completion)
 
 void TextmateEdit::updateExtraCursors(QKeyEvent* e)
 {
+    Editor *editor = (Editor*)parent();
     QTextCursor cursor = textCursor();
     bool redraw = false;
     for (auto& c : extraCursors) {
@@ -610,13 +628,28 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
             c.movePosition(QTextCursor::Down, mode);
             redraw = true;
             break;
-        case Qt::Key_Backspace:
-            c.deletePreviousChar();
-            redraw = true;
-            break;
         case Qt::Key_Delete:
             c.deleteChar();
             redraw = true;
+            break;
+        case Qt::Key_Backspace:
+            {
+            bool handled = false;
+            
+            QTextCursor prev(c);
+            if (prev.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+                QString st = prev.selectedText();
+                if (st[0] == ' ' || st[0] == '\t') {
+                    Commands::removeTab(editor, c);
+                    handled = true;
+                }
+            }
+            if (!handled) {
+                c.deletePreviousChar();
+            }
+        
+            redraw = true;
+            }
             break;
         case Qt::Key_V:
             if (e->modifiers() & Qt::ControlModifier) {

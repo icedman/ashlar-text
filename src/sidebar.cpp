@@ -28,14 +28,23 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
         MainWindow* mw = MainWindow::instance();
         QFileInfo info = fileInfo(index);
         QString fileName = info.fileName();
+        QPixmap image;
+
         if (info.isFile()) {
             QString suffix = info.suffix();
-            return icon_for_file(mw->icons, fileName, suffix, mw->extensions);
+            image = icon_for_file(mw->icons, fileName, suffix, mw->extensions);
+            if (!image.width()) {
+                image = icon_for_file(mw->icons_fallback, fileName, suffix, mw->extensions);
+            }
         } else {
             bool expanded = ((QTreeView*)parent())->isExpanded(index);
-            ;
-            return icon_for_folder(mw->icons, fileName, expanded, mw->extensions);
+            image = icon_for_folder(mw->icons, fileName, expanded, mw->extensions);
+            if (!image.width()) {
+                image = icon_for_folder(mw->icons_fallback, fileName, expanded, mw->extensions);
+            }
         }
+        
+        return image;
     }
 
     return QFileSystemModel::data(index, role);
@@ -223,6 +232,21 @@ void Sidebar::onAnimate()
 }
 
 void Sidebar::fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res) {
+    // fusejs will slow us down if you add more
+    if (res.length() > 500) {
+        return;
+    }
+    
+    QString folderPath = m->filePath(index);
+    for(auto f : excludeFolders) {
+        QString ff = "/" + f;
+        if (folderPath.contains(ff)) {
+            return;
+        }
+    }
+    
+    // qDebug() << folderPath << "indexed";
+    
     for(int i=0; i<m->rowCount(index); i++) {
         QModelIndex childIndex = m->index(i, 0, index);
         
@@ -260,6 +284,12 @@ QStringList Sidebar::allFiles()
 {
     QStringList files;
     FileSystemModel *fs = fileModel;
-    fetchFiles(fs, fs->index(rootPath), files);
+    if (!fs) {
+        return files;
+    }
+    QModelIndex index = fs->index(rootPath);
+    if (index.isValid()) {
+        fetchFiles(fs, fs->index(rootPath), files);
+    }
     return files;
 }

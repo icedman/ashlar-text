@@ -112,9 +112,8 @@ QTabBar::tab::selected {
 
 QPushButton[className='closeButton'] {
     border: none;
-    margin-top: 4px;
-    background: @tabItemBg;
-    color: @tabItemFg;
+    background: @tabBg;
+    color: @tabFg;
 }
 
 /* statusbar */

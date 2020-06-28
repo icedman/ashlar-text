@@ -132,6 +132,10 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }
+    
+    if (!iconName.length()) {
+        return QPixmap();
+    }
 
     icon_type_t icon_type = icon_none;
 
@@ -174,11 +178,12 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
         int fh = QFontMetrics(icons->font).height();
         int fw = QFontMetrics(icons->font).width('w');
         p.drawText(2, -2, w, h, Qt::AlignRight, fontCharacter.c_str());
-    }
-
-    if (icon_type = icon_svg) {
+    } else if (icon_type = icon_svg) {
         p.drawPixmap(px->img.rect(), svg, svg.rect());
+    } else {
+        return QPixmap();
     }
+    
     cache.emplace(_suffix, px);
     return px->img;
 }
@@ -211,7 +216,8 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
     }
 
     if (!iconName.length()) {
-        iconName = icons->definition["file"].asString();
+        // iconName = icons->definition["file"].asString();
+        return QPixmap();
     }
 
     static std::map<std::string, pixmap_wrapper_ptr> cache;
@@ -263,9 +269,7 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
         int fh = QFontMetrics(icons->font).height();
         int fw = QFontMetrics(icons->font).width('w');
         p.drawText(2, -2, w, h, Qt::AlignRight, fontCharacter.c_str());
-    }
-
-    if (icon_type = icon_svg) {
+    } else if (icon_type = icon_svg) {
         p.drawPixmap(px->img.rect(), svg, svg.rect());
     }
 

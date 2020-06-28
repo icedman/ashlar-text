@@ -128,6 +128,9 @@ void MainWindow::configure()
     if (settings["icon_theme"].isString()) {
         icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
     }
+    if (settings["icon_fallback_theme"].isString()) {
+        icons_fallback = icon_theme_from_name(settings["icon_fallback_theme"].asString().c_str(), extensions);
+    }
 
     // editor settings
     editor_settings->mini_map = settings.isMember("mini_map") && settings["mini_map"] == true;

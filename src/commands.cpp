@@ -44,6 +44,20 @@ size_t count_indent_size(QString s)
     return 0;
 }
 
+QTextCursor move_to_non_whitespace(QTextCursor cursor) {
+    QTextCursor cs(cursor);
+    cs.movePosition(QTextCursor::StartOfLine);
+    QString s = cs.block().text();
+    int i = 0;
+    for (; i < s.length(); i++) {
+        if (s[i] != ' ' && s[i] != " ") {
+            break;
+        }
+    }
+    cs.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, i);
+    return cs;
+}
+
 static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
@@ -87,7 +101,12 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
             }
         }
         if (s[i] == ' ' || s[i] == '\t') {
+            cursor.movePosition(QTextCursor::Left);
             cursor.deleteChar();
+            if (settings->tab_to_spaces && settings->tab_size > 0 &&
+                (cursor.position()-block.position()) % settings->tab_size == 0) {
+                break;
+            }
         } else {
             break;
         }
@@ -104,8 +123,7 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
     singleLineComment += " ";
 
     // QTextCursor cursor = editor->editor->textCursor();
-    if (!cursor.hasSelection()) {
-
+    if (!cursor.hasSelection()) {        
         QTextBlock block = cursor.block();
         QString s = block.text();
         int commentPosition = s.indexOf(singleLineComment);
@@ -224,8 +242,8 @@ static void unindentForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!cursor.hasSelection()) {
         cursor.beginEditBlock();
-        cursor.movePosition(QTextCursor::StartOfLine);
-        Commands::removeTab(editor, cursor);
+        // cursor.movePosition(QTextCursor::StartOfLine);
+        Commands::removeTab(editor, move_to_non_whitespace(cursor));
         cursor.endEditBlock();
     } else {
         size_t start = cursor.selectionStart();
@@ -248,50 +266,8 @@ static void unindentForCursor(Editor const* editor, QTextCursor cursor)
 static void Commands::unindent(Editor const* editor)
 {
     QList<QTextCursor> cursors = build_cursors(editor->editor);
-
     for (auto cursor : cursors) {
         unindentForCursor(editor, cursor);
-    }
-}
-
-    
-static void reindentForCursor(Editor const* editor, QTextCursor cursor, int add)
-{
-    if (cursor.hasSelection()) {
-        return;
-    } else {
-        editor_settings_ptr settings = MainWindow::instance()->editor_settings;
-        size_t start = cursor.selectionStart();
-        QTextCursor cs(cursor);
-        size_t ws = count_indent_size(cs.block().text() + "?");
-        if (ws != cursor.position() - cursor.block().position()) {
-            return;
-        }
-        
-        if (add == -1) {
-            unindentForCursor(editor, cursor);
-        }
-        
-        if (settings->tab_to_spaces) {
-            if (ws < settings->tab_size) {
-                return;
-            }
-        } else {
-            if (ws < 1) {
-                return;
-            }
-        }
-        
-        unindentForCursor(editor, cursor);
-        indentForCursor(editor, cursor);
-    }
-}
-    
-static void Commands::reindent(Editor const* editor, int add)
-{
-    QList<QTextCursor> cursors = build_cursors(editor->editor);
-    for (auto cursor : cursors) {
-        reindentForCursor(editor, cursor, add);
     }
 }
     
@@ -299,12 +275,26 @@ static void Commands::reindent(Editor const* editor, int add)
 static void Commands::autoIndent(Editor const* editor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
-    size_t white_spaces = 0;
+    int white_spaces = 0;
     
     HighlightBlockData* blockData;
     bool beginsWithCloseBracket = false;
     
     QTextCursor cursor = editor->editor->textCursor();
+    
+    // is whitespace after cursor
+    // QTextCursor ws(cursor);
+    // QTextCursor we(cursor);
+    // we.movePosition(QTextCursor::EndOfLine);
+    // if (ws.position() != we.position()) {
+        // if (ws.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor)) {
+            // QString st = ws.selectedText();
+            // if (st[0] == ' ' || st[0] == '\t') {
+                // return;
+            // }
+        // }
+    // }
+    
     QTextCursor cs(cursor);
     QTextBlock block = cursor.block();
 
@@ -314,26 +304,35 @@ static void Commands::autoIndent(Editor const* editor)
             beginsWithCloseBracket = !blockData->brackets[0].open;
         }
     }
-        
+    
+
     while(block.isValid()) {
+        
+        // qDebug() << block.text();
+    
         cs.setPosition(block.position());
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
-        size_t ws = count_indent_size(block.text());
+        QString blockText = block.text();
+        size_t ws = count_indent_size(blockText + "?");
         if (white_spaces < ws) {
             white_spaces = ws;
         }
+        if (blockText.length()) {
+            break;
+        }
         // is line whitespace
-        if (ws == 0 || ws == cs.position()) {
+        if (ws == 0) {
             block = block.previous();
             continue;
         }
+        
         break;
     }
     
     if (!block.isValid()) {
         return;
     }
-   
+
     blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (blockData && blockData->brackets.size()) {
         auto b = blockData->brackets.back();
@@ -366,18 +365,13 @@ static void Commands::autoIndent(Editor const* editor)
     cursor.endEditBlock();
 }
 
-static void Commands::autoClose(Editor const* editor, QString lastKey)
+static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCursor& cursor)
 {
     if (!editor->lang || !editor->lang->pairs || lastKey.length() != 1) {
         return;
     }
 
-    if (editor->editor->extraCursors.size()) {
-        return;
-    }
-
-    QTextCursor cursor = editor->editor->textCursor();
-    if (cursor.isNull()) {
+    if (cursor.isNull() || cursor.hasSelection()) {
         return;
     }
     
@@ -421,13 +415,22 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
         }
         
         QString close = editor->lang->pairClose.at(idx).c_str();
-        // cursor.beginEditBlock();
         cursor.insertText(close);
-        // cursor.endEditBlock();
         cursor.setPosition(cursor.position() - close.length(), QTextCursor::MoveAnchor);
         editor->editor->setTextCursor(cursor);
         return;
     }
+}
+
+static void Commands::autoClose(Editor const* editor, QString lastKey)
+{
+    QTextCursor mainCursor = editor->editor->textCursor();
+    for (auto &cursor : editor->editor->extraCursors) {
+        autoCloseForCursor(editor, lastKey, cursor);
+    }
+    
+    // do main cursor last
+    autoCloseForCursor(editor, lastKey, mainCursor);
 }
 
 static void duplicateLineForCursor(Editor const* editor, QTextCursor cursor)
