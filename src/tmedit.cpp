@@ -1,11 +1,11 @@
 #include <QtWidgets>
 
-#include "tmedit.h"
+#include "commands.h"
 #include "editor.h"
 #include "gutter.h"
-#include "minimap.h"
-#include "commands.h"
 #include "mainwindow.h"
+#include "minimap.h"
+#include "tmedit.h"
 
 #define SMOOTH_SCROLL_THRESHOLD_X 400
 #define SMOOTH_SCROLL_THRESHOLD_Y 400
@@ -49,20 +49,20 @@ void Overlay::paintEvent(QPaintEvent*)
 
     QPainter p(this);
     p.drawPixmap(rect(), buffer, buffer.rect());
-    
+
     if (!cursorOn) {
         return;
     }
 
     TextmateEdit* editor = (TextmateEdit*)parent();
     Editor* e = (Editor*)editor->parent();
-    
+
     p.translate(0, editor->offset().y());
-    
+
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
     cursors << editor->textCursor();
-        
+
     QTextBlock block = editor->_firstVisibleBlock();
     while (block.isValid()) {
         QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
@@ -172,16 +172,16 @@ void TextmateEdit::paintToBuffer()
     }
 
     QList<QTextCursor> pairs;
-    
+
     // bracket pairing
     bracket_info_t bracket = e->bracketAtCursor(editor->textCursor());
     if (bracket.line != -1 && bracket.position != -1) {
         QTextCursor start = editor->textCursor();
         start.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
-        
+
         QTextCursor end = e->findBracketMatchCursor(bracket, editor->textCursor());
         end.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
-        
+
         if (!start.isNull() && !end.isNull()) {
             pairs.push_back(start);
             pairs.push_back(end);
@@ -193,7 +193,7 @@ void TextmateEdit::paintToBuffer()
             }
         }
     }
-    
+
     //-----------------
     // selections
     //-----------------
@@ -234,7 +234,7 @@ void TextmateEdit::paintToBuffer()
                     float w = erx - srx;
                     float h = fh;
                     float offsetY = 0;
-                    
+
                     if (pairs.contains(cursor)) {
                         offsetY = h - 1;
                         h = 2;
@@ -315,7 +315,6 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
     QPlainTextEdit::mousePressEvent(e);
     overlay->mousePressEvent(e);
 }
-
 
 static void updateCompleter(QTextDocument* doc, QCompleter* c, QString prefix)
 {
@@ -398,10 +397,9 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     bool noModifierExceptShift = (e->modifiers() == Qt::NoModifier || e->modifiers() & Qt::ShiftModifier);
     bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
     bool isDelete = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace));
-    bool isPaste = ((e->modifiers() & Qt::ControlModifier && e->key() == Qt::Key_V) ||
-        (e->modifiers() & Qt::ShiftModifier && e->key() == Qt::Key_Insert)) && canPaste();
+    bool isPaste = ((e->modifiers() & Qt::ControlModifier && e->key() == Qt::Key_V) || (e->modifiers() & Qt::ShiftModifier && e->key() == Qt::Key_Insert)) && canPaste();
 
-    // completer        
+    // completer
     if (!isDelete) {
         if (completerKeyPressEvent(e)) {
             return;
@@ -436,7 +434,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
             }
         }
     }
-    
+
     if (isNewline) {
         QTextCursor cursor = textCursor();
         size_t ws = count_indent_size(cursor.block().text() + "?");
@@ -450,25 +448,25 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
             handled = true;
         }
     }
-        
+
     if (!handled) {
         QTextCursor cursor = textCursor();
-        
+
         // todo.. defer only with large clipboard texts
         if (isPaste) {
             editor->highlighter->setDeferRendering(true);
-            // qDebug() << "check clipboard text size here";    
+            // qDebug() << "check clipboard text size here";
         }
 
         if (!handledForMainCursor) {
             QPlainTextEdit::keyPressEvent(e);
         }
         updateExtraCursors(e);
-        
-         if (isPaste) {
-             editor->highlightBlocks();
-         }
-                
+
+        if (isPaste) {
+            editor->highlightBlocks();
+        }
+
         // autos
         if (isNewline) {
             Commands::autoIndent(_editor);
@@ -615,12 +613,12 @@ void TextmateEdit::insertCompletion(const QString& completion)
 void TextmateEdit::updateExtraCursors(QKeyEvent* e)
 {
     bool isNewline = (!(e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1));
-    
-    Editor *editor = (Editor*)parent();
+
+    Editor* editor = (Editor*)parent();
     QTextCursor cursor = textCursor();
     bool redraw = false;
     for (auto& c : extraCursors) {
-        
+
         if (isNewline) {
             QTextCursor cursor = c;
             size_t ws = count_indent_size(cursor.block().text() + "?");
@@ -634,7 +632,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
                 continue;
             }
         }
-        
+
         QTextCursor::MoveMode mode = e->modifiers() & Qt::ShiftModifier ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor;
         switch (e->key()) {
         case Qt::Key_Left:
@@ -665,10 +663,9 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
             c.deleteChar();
             redraw = true;
             break;
-        case Qt::Key_Backspace:
-            {
+        case Qt::Key_Backspace: {
             bool handled = false;
-            
+
             QTextCursor prev(c);
             if (prev.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
                 QString st = prev.selectedText();
@@ -680,10 +677,9 @@ void TextmateEdit::updateExtraCursors(QKeyEvent* e)
             if (!handled) {
                 c.deletePreviousChar();
             }
-        
+
             redraw = true;
-            }
-            break;
+        } break;
         case Qt::Key_V:
             if (e->modifiers() & Qt::ControlModifier) {
                 setTextCursor(c);

@@ -43,7 +43,7 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
                 image = icon_for_folder(mw->icons_fallback, fileName, expanded, mw->extensions);
             }
         }
-        
+
         return image;
     }
 
@@ -109,7 +109,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
     if (!mw->settings.isObject()) {
         return;
     }
-   
+
     int rows = fileModel->rowCount(topLeft);
     for (int i = 0; i < rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);
@@ -120,7 +120,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
         // todo convert to QRegExp
         QString _suffix = "*." + info.suffix();
 
-        for(auto pat : excludeFiles) {
+        for (auto pat : excludeFiles) {
             if (_suffix == pat) {
                 setRowHidden(i, topLeft, true);
                 break;
@@ -168,7 +168,7 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
 void Sidebar::_setRootPath()
 {
     MainWindow* mw = MainWindow::instance();
-    
+
     Json::Value file_exclude_patterns = mw->settings["file_exclude_patterns"];
     if (!excludeFiles.length() && file_exclude_patterns.isArray() && file_exclude_patterns.size()) {
         for (int j = 0; j < file_exclude_patterns.size(); j++) {
@@ -176,7 +176,7 @@ void Sidebar::_setRootPath()
             excludeFiles << pat;
         }
     }
-    
+
     Json::Value folder_exclude_patterns = mw->settings["folder_exclude_patterns"];
     if (!excludeFolders.length() && folder_exclude_patterns.isArray() && folder_exclude_patterns.size()) {
         for (int j = 0; j < folder_exclude_patterns.size(); j++) {
@@ -184,7 +184,7 @@ void Sidebar::_setRootPath()
             excludeFolders << pat;
         }
     }
-    
+
     // qDebug() << "root:" << rootPath;
     fileModel->setRootPath(rootPath);
 
@@ -231,25 +231,25 @@ void Sidebar::onAnimate()
     mw->horizontalSplitter()->setSizes({ width, mw->width() });
 }
 
-void Sidebar::fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res) {
+void Sidebar::fetchFiles(QFileSystemModel* m, QModelIndex index, QStringList& res)
+{
     // fusejs will slow us down if you add more
     if (res.length() > 500) {
         return;
     }
-    
+
     QString folderPath = m->filePath(index);
-    for(auto f : excludeFolders) {
+    for (auto f : excludeFolders) {
         QString ff = "/" + f;
         if (folderPath.contains(ff)) {
             return;
         }
     }
-    
+
     // qDebug() << folderPath << "indexed";
-    
-    for(int i=0; i<m->rowCount(index); i++) {
+    for (int i = 0; i < m->rowCount(index); i++) {
         QModelIndex childIndex = m->index(i, 0, index);
-        
+
         if (m->canFetchMore(childIndex)) {
             m->fetchMore(childIndex);
         }
@@ -257,22 +257,22 @@ void Sidebar::fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &re
         if (m->isDir(childIndex)) {
             fetchFiles(m, childIndex, res);
         } else {
-            
+
             bool skip = false;
-            
+
             QString fileName = m->filePath(childIndex);
             QFileInfo info(fileName);
 
             // todo convert to QRegExp
             QString _suffix = "*." + info.suffix();
-            
-            for(auto pat : excludeFiles) {
+
+            for (auto pat : excludeFiles) {
                 if (_suffix == pat) {
                     skip = true;
                     break;
                 }
             }
-            
+
             if (!skip) {
                 res << fileName;
             }
@@ -283,7 +283,7 @@ void Sidebar::fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &re
 QStringList Sidebar::allFiles()
 {
     QStringList files;
-    FileSystemModel *fs = fileModel;
+    FileSystemModel* fs = fileModel;
     if (!fs) {
         return files;
     }

@@ -72,7 +72,7 @@ public:
     theme_ptr theme;
     language_info_ptr lang;
     parse::grammar_ptr grammar;
-    
+
     bracket_info_t bracketAtCursor(QTextCursor cursor);
     QTextCursor cursorAtBracket(bracket_info_t bracket);
     QTextCursor findLastOpenBracketCursor(QTextBlock block);
@@ -97,8 +97,8 @@ private Q_SLOTS:
 
     void fileChanged(const QString& path);
     void cursorPositionChanged();
-    
-public slots:    
+
+public slots:
     void highlightBlocks();
 };
 

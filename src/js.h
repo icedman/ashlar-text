@@ -56,7 +56,7 @@ public slots:
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();
     QList<int> cursor();
-    
+
     QStringList allFiles();
     void openFile(QString path);
 

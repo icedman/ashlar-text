@@ -124,7 +124,8 @@ void Editor::cursorPositionChanged()
     MainWindow::instance()->emitEvent("cursorPositionChanged", "");
 }
 
-bool Editor::hasUnsavedChanges() {
+bool Editor::hasUnsavedChanges()
+{
     return dirty;
 }
 
@@ -441,33 +442,33 @@ bracket_info_t Editor::bracketAtCursor(QTextCursor cursor)
     bracket_info_t b;
     b.line = -1;
     b.position = -1;
-    
+
     QTextBlock block = cursor.block();
     if (!block.isValid()) {
         return b;
     }
-    
+
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (!blockData) {
         return b;
     }
-    
+
     size_t p = cursor.position() - block.position();
-    for(auto bracket : blockData->brackets) {
+    for (auto bracket : blockData->brackets) {
         if (bracket.position == p) {
             return bracket;
         }
     }
-        
+
     return b;
 }
 
 QTextCursor Editor::cursorAtBracket(bracket_info_t bracket)
 {
     QTextCursor cursor;
-    
+
     QTextBlock block = editor->textCursor().block();
-    while(block.isValid()) {
+    while (block.isValid()) {
         if (block.firstLineNumber() == bracket.line) {
             cursor = editor->textCursor();
             cursor.setPosition(block.position() + bracket.position);
@@ -478,7 +479,7 @@ QTextCursor Editor::cursorAtBracket(bracket_info_t bracket)
         } else {
             block = block.previous();
         }
-    }    
+    }
     return cursor;
 }
 
@@ -487,14 +488,14 @@ QTextCursor Editor::findLastOpenBracketCursor(QTextBlock block)
     if (!block.isValid()) {
         return QTextCursor();
     }
-    
+
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (!blockData) {
         return QTextCursor();
     }
-    
-    QTextCursor res;    
-    for(auto b : blockData->foldingBrackets) {
+
+    QTextCursor res;
+    for (auto b : blockData->foldingBrackets) {
         if (b.open) {
             if (res.isNull()) {
                 res = editor->textCursor();
@@ -502,30 +503,30 @@ QTextCursor Editor::findLastOpenBracketCursor(QTextBlock block)
             res.setPosition(block.position() + b.position);
         }
     }
-    
+
     return res;
 }
 
 QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor cursor)
 {
     QTextCursor cs(cursor);
-    
-    std::vector<bracket_info_t> brackets;        
+
+    std::vector<bracket_info_t> brackets;
     QTextBlock block = cursor.block();
-        
+
     if (bracket.open) {
-            
-        while(block.isValid()) {
+
+        while (block.isValid()) {
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             if (!blockData) {
                 break;
             }
-            
-            for(auto b : blockData->brackets) {
+
+            for (auto b : blockData->brackets) {
                 if (b.line == bracket.line && b.position < bracket.position) {
                     continue;
                 }
-                
+
                 if (!b.open) {
                     auto l = brackets.back();
                     if (l.open && l.bracket == b.bracket) {
@@ -534,7 +535,7 @@ QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor c
                         // error .. unpaired?
                         return QTextCursor();
                     }
-    
+
                     if (!brackets.size()) {
                         // std::cout << "found end!" << std::endl;
                         cursor.setPosition(block.position() + b.position);
@@ -544,26 +545,26 @@ QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor c
                 }
                 brackets.push_back(b);
             }
-            
+
             block = block.next();
         }
-    
+
     } else {
-    
+
         // reverse
-        while(block.isValid()) {
+        while (block.isValid()) {
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             if (!blockData) {
                 break;
             }
-            
+
             // for(auto b : blockData->brackets) {
-            for (auto it =  blockData->brackets.rbegin(); it != blockData->brackets.rend(); ++it) {
+            for (auto it = blockData->brackets.rbegin(); it != blockData->brackets.rend(); ++it) {
                 bracket_info_t b = *it;
                 if (b.line == bracket.line && b.position > bracket.position) {
                     continue;
                 }
-                
+
                 if (b.open) {
                     auto l = brackets.back();
                     if (!l.open && l.bracket == b.bracket) {
@@ -572,7 +573,7 @@ QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor c
                         // error .. unpaired?
                         return QTextCursor();
                     }
-    
+
                     if (!brackets.size()) {
                         // std::cout << "found begin!" << std::endl;
                         cursor.setPosition(block.position() + b.position);
@@ -582,12 +583,11 @@ QTextCursor Editor::findBracketMatchCursor(bracket_info_t bracket, QTextCursor c
                 }
                 brackets.push_back(b);
             }
-            
+
             block = block.previous();
         }
-        
     }
-    
+
     return QTextCursor();
 }
 
@@ -595,12 +595,12 @@ void Editor::toggleFold(size_t line)
 {
     QTextDocument* doc = editor->document();
     QTextBlock folder = doc->findBlockByNumber(line - 1);
-    
+
     QTextCursor openBracket = findLastOpenBracketCursor(folder);
     if (openBracket.isNull()) {
         return;
     }
-    
+
     bracket_info_t bracket = bracketAtCursor(openBracket);
     if (bracket.line == -1 || bracket.position == -1) {
         return;
@@ -609,18 +609,18 @@ void Editor::toggleFold(size_t line)
     if (endBracket.isNull()) {
         return;
     }
-    
+
     QTextBlock block = openBracket.block();
     QTextBlock endBlock = endBracket.block();
-    
+
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (!blockData) {
         return;
     }
-    
+
     blockData->folded = !blockData->folded;
     block = block.next();
-    while(block.isValid()) {
+    while (block.isValid()) {
         HighlightBlockData* targetData = reinterpret_cast<HighlightBlockData*>(block.userData());
         targetData->folded = blockData->folded;
         if (blockData->folded) {

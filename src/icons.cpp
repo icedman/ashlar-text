@@ -132,7 +132,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }
-    
+
     if (!iconName.length()) {
         return QPixmap();
     }
@@ -183,7 +183,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     } else {
         return QPixmap();
     }
-    
+
     cache.emplace(_suffix, px);
     return px->img;
 }

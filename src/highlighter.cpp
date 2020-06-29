@@ -241,8 +241,7 @@ void Highlighter::highlightBlock(const QString& text)
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({ 
-                        .line = currentBlock().firstLineNumber(),
+                    brackets.push_back({ .line = currentBlock().firstLineNumber(),
                         .position = l,
                         .bracket = i,
                         .open = true });
@@ -261,8 +260,7 @@ void Highlighter::highlightBlock(const QString& text)
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
                     size_t l = (c - first);
-                    brackets.push_back({
-                        .line = currentBlock().firstLineNumber(),
+                    brackets.push_back({ .line = currentBlock().firstLineNumber(),
                         .position = l,
                         .bracket = i,
                         .open = false });
@@ -279,7 +277,7 @@ void Highlighter::highlightBlock(const QString& text)
         }
 
         blockData->brackets = brackets;
-        
+
         // bracket pairing
         for (auto b : brackets) {
             if (!b.open && blockData->foldingBrackets.size()) {
@@ -296,8 +294,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         // hack for if-else-
         if (blockData->foldingBrackets.size() == 2) {
-            if (blockData->foldingBrackets[0].open != blockData->foldingBrackets[1].open && 
-                blockData->foldingBrackets[0].bracket == blockData->foldingBrackets[1].bracket) {
+            if (blockData->foldingBrackets[0].open != blockData->foldingBrackets[1].open && blockData->foldingBrackets[0].bracket == blockData->foldingBrackets[1].bracket) {
                 blockData->foldingBrackets.clear();
             }
         }
@@ -307,7 +304,7 @@ void Highlighter::highlightBlock(const QString& text)
         // for (auto b : blockData->brackets) {
         // setFormatFromStyle(b.position, 1, s, first, blockData, "bracket");
         // }
-        
+
         if (blockData->foldingBrackets.size()) {
             auto l = blockData->foldingBrackets.back();
             blockData->foldable = l.open;

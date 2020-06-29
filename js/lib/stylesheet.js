@@ -40,6 +40,7 @@ const distillStyle = style => {
 };
 
 const StyleSheet = {
+  distillStyle,
   create: styles => {
     let res = {};
     Object.keys(styles).forEach(k => {

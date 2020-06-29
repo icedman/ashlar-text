@@ -1,7 +1,7 @@
 
 #include <QDebug>
-#include <QStatusBar>
 #include <QScrollBar>
+#include <QStatusBar>
 
 #include "commands.h"
 #include "mainwindow.h"
@@ -33,7 +33,7 @@ static QList<QTextCursor> build_cursors(TextmateEdit* editor)
 
     return cursors;
 }
-        
+
 size_t count_indent_size(QString s)
 {
     for (int i = 0; i < s.length(); i++) {
@@ -44,13 +44,14 @@ size_t count_indent_size(QString s)
     return 0;
 }
 
-QTextCursor move_to_non_whitespace(QTextCursor cursor) {
+QTextCursor move_to_non_whitespace(QTextCursor cursor)
+{
     QTextCursor cs(cursor);
     cs.movePosition(QTextCursor::StartOfLine);
     QString s = cs.block().text();
     int i = 0;
     for (; i < s.length(); i++) {
-        if (s[i] != ' ' && s[i] != " ") {
+        if (s[i] != ' ' && s[i] != '\t') {
             break;
         }
     }
@@ -61,21 +62,22 @@ QTextCursor move_to_non_whitespace(QTextCursor cursor) {
 static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
-    if (settings->tab_to_spaces) {
-        int ts = settings->tab_size;
-        QTextCursor cs(cursor);
-        cs.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
-        size_t ws = count_indent_size(cs.selectedText() + "?");        
-        if (ws != 0 && ws == cursor.position() - cursor.block().position()) {
-            // magic! (align to tab)
-            ts = (((ws/ts) + 1) * ts) - ws;
-        }
-        
-        for (int i = 0; i < ts; i++) {
-            cursor.insertText(" ");
-        }
-    } else {
+    if (!settings->tab_to_spaces) {
         cursor.insertText("\t");
+        return;
+    }
+
+    int ts = settings->tab_size;
+    QTextCursor cs(cursor);
+    cs.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+    size_t ws = count_indent_size(cs.selectedText() + "?");
+    if (ws != 0 && ws == cursor.position() - cursor.block().position()) {
+        // magic! (align to tab)
+        ts = (((ws / ts) + 1) * ts) - ws;
+    }
+
+    for (int i = 0; i < ts; i++) {
+        cursor.insertText(" ");
     }
 }
 
@@ -89,25 +91,38 @@ static void Commands::insertTab(Editor const* editor)
 
 static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 {
-    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     QTextBlock block = cursor.block();
-    QString s = block.text();
-    for (int i = 0; i < settings->tab_size && i < s.length(); i++) {
-        if (settings->tab_to_spaces) {
-            if (s[i] == '\t') {
-                cursor.deleteChar();
-                break;
-            }
-        }
-        if (s[i] == ' ' || s[i] == '\t') {
-            cursor.movePosition(QTextCursor::Left);
-            cursor.deleteChar();
-            if (settings->tab_to_spaces && settings->tab_size > 0 &&
-                (cursor.position()-block.position()) % settings->tab_size == 0) {
-                break;
-            }
-        } else {
+    if (cursor.position() - block.position() == 0) {
+        return;
+    }
+
+    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
+    if (cursor.hasSelection() || !settings->tab_to_spaces) {
+        cursor.deletePreviousChar();
+        return;
+    }
+
+    bool isWhiteSpace = false;
+    QTextCursor cs(cursor);
+    if (cs.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+        isWhiteSpace = (cs.selectedText().trimmed().length() == 0);
+    }
+
+    if (!isWhiteSpace) {
+        cursor.deletePreviousChar();
+        return;
+    }
+
+    for (int i = 0; i < settings->tab_size; i++) {
+        cursor.deletePreviousChar();
+        if ((cursor.position() - block.position()) % settings->tab_size == 0) {
             break;
+        }
+        QTextCursor cs(cursor);
+        if (cs.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+            if (cs.selectedText().trimmed().length()) {
+                break;
+            }
         }
     }
 }
@@ -122,7 +137,7 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
     singleLineComment += " ";
 
     // QTextCursor cursor = editor->editor->textCursor();
-    if (!cursor.hasSelection()) {        
+    if (!cursor.hasSelection()) {
         QTextBlock block = cursor.block();
         QString s = block.text();
         int commentPosition = s.indexOf(singleLineComment);
@@ -155,7 +170,7 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
         while (cs.position() <= cursor.selectionEnd()) {
             cs.movePosition(QTextCursor::StartOfLine);
             block = cs.block();
-            s = block.text();
+            s = block.text().trimmed();
             if (!s.isEmpty()) {
                 if (!hasComments) {
                     size_t skip = count_indent_size(s);
@@ -214,12 +229,21 @@ static void indentForCursor(Editor const* editor, QTextCursor cursor)
         insertTabForCursor(editor, cursor);
         cursor.endEditBlock();
     } else {
+        editor_settings_ptr settings = MainWindow::instance()->editor_settings;
+
         size_t start = cursor.selectionStart();
+
         QTextCursor cs(cursor);
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
+        if (!settings->tab_to_spaces) {
+            cs.insertText("\t");
+            return;
+        }
+
         cs.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
+            cs.movePosition(QTextCursor::StartOfLine);
             insertTabForCursor(editor, cs);
             if (!cs.movePosition(QTextCursor::Down)) {
                 break;
@@ -239,9 +263,10 @@ static void Commands::indent(Editor const* editor)
 
 static void unindentForCursor(Editor const* editor, QTextCursor cursor)
 {
+    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     if (!cursor.hasSelection()) {
         cursor.beginEditBlock();
-        // cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::StartOfLine);
         Commands::removeTab(editor, move_to_non_whitespace(cursor));
         cursor.endEditBlock();
     } else {
@@ -252,9 +277,10 @@ static void unindentForCursor(Editor const* editor, QTextCursor cursor)
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
         cs = move_to_non_whitespace(cs);
+
         cs.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
-            Commands::removeTab(editor, cs);
+            Commands::removeTab(editor, move_to_non_whitespace(cs));
             if (!cs.movePosition(QTextCursor::Down)) {
                 break;
             }
@@ -270,30 +296,30 @@ static void Commands::unindent(Editor const* editor)
         unindentForCursor(editor, cursor);
     }
 }
-    
+
 // autoIndent
 static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     int white_spaces = 0;
-    
+
     HighlightBlockData* blockData;
     bool beginsWithCloseBracket = false;
-    
+
     QTextCursor cs(cursor);
     QTextBlock block = cursor.block();
 
-    if (block.isValid()) {   
+    if (block.isValid()) {
         blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
         if (blockData->brackets.size()) {
             beginsWithCloseBracket = !blockData->brackets[0].open;
         }
     }
-    
-    while(block.isValid()) {
-        
+
+    while (block.isValid()) {
+
         // qDebug() << block.text();
-    
+
         cs.setPosition(block.position());
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
         QString blockText = block.text();
@@ -309,10 +335,10 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
             block = block.previous();
             continue;
         }
-        
+
         break;
     }
-    
+
     if (!block.isValid()) {
         return;
     }
@@ -324,21 +350,21 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
             if (settings->tab_to_spaces) {
                 white_spaces += settings->tab_size;
             } else {
-                white_spaces ++;
+                white_spaces++;
             }
         }
     }
-    
+
     if (beginsWithCloseBracket) {
         if (settings->tab_to_spaces) {
             white_spaces -= settings->tab_size;
         } else {
-            white_spaces --;
+            white_spaces--;
         }
     }
-    
+
     // qDebug() << white_spaces;
-     
+
     cursor.beginEditBlock();
     cursor.movePosition(QTextCursor::StartOfLine);
     for (int i = 0; i < white_spaces; i++) {
@@ -346,11 +372,11 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
             cursor.insertText(" ");
         } else {
             cursor.insertText("\t");
+            i += (settings->tab_size - 1);
         }
     }
     cursor.endEditBlock();
 }
-
 
 static void Commands::autoIndent(Editor const* editor)
 {
@@ -369,10 +395,10 @@ static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCurso
     if (cursor.isNull() || cursor.hasSelection()) {
         return;
     }
-    
+
     QTextCursor cs(cursor);
     cs.movePosition(QTextCursor::EndOfLine);
-    
+
     // prevent duplicated bracket because of auto-close
     if (lastKey.length() == 1 && cs.position() - 1 == cursor.position()) {
         QString line = cursor.block().text();
@@ -392,11 +418,11 @@ static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCurso
     if (cs.position() != cursor.position()) {
         return;
     }
-   
+
     int idx = 0;
     for (auto b : editor->lang->pairOpen) {
         QString bk = b.c_str();
-        
+
         int len = b.length();
         QTextCursor kc(cursor);
         if (!kc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, len)) {
@@ -408,7 +434,7 @@ static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCurso
             idx++;
             continue;
         }
-        
+
         QString close = editor->lang->pairClose.at(idx).c_str();
         cursor.insertText(close);
         cursor.setPosition(cursor.position() - close.length(), QTextCursor::MoveAnchor);
@@ -420,10 +446,10 @@ static void autoCloseForCursor(Editor const* editor, QString lastKey, QTextCurso
 static void Commands::autoClose(Editor const* editor, QString lastKey)
 {
     QTextCursor mainCursor = editor->editor->textCursor();
-    for (auto &cursor : editor->editor->extraCursors) {
+    for (auto& cursor : editor->editor->extraCursors) {
         autoCloseForCursor(editor, lastKey, cursor);
     }
-    
+
     // do main cursor last
     autoCloseForCursor(editor, lastKey, mainCursor);
 }
@@ -494,7 +520,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         return false;
     }
 
-    TextmateEdit *e = editor->editor;
+    TextmateEdit* e = editor->editor;
     int scroll = e->verticalScrollBar()->value();
     bool regex = options.indexOf("regular_") != -1;
     int flags = 0;

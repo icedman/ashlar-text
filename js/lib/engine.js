@@ -1,4 +1,5 @@
 import { v4 as uuid } from "uuid";
+import StyleSheet from './stylesheet';
 
 const registry = {};
 
@@ -9,6 +10,9 @@ const formatJson = json => {
   Object.keys(json).forEach(k => {
     if (typeof json[k] === "function") {
       delete processed[k];
+    }
+    if (k === 'style') {
+        processed[k] = StyleSheet.distillStyle(processed[k]);
     }
   });
   return JSON.stringify(processed);
@@ -60,7 +64,7 @@ const widget = id => {
   });
 };
 
-const qt = {
+const engine = {
   mount,
   unmount,
   update,
@@ -69,4 +73,4 @@ const qt = {
 
 window.$widgets = registry;
 
-export default qt;
+export default engine;

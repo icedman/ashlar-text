@@ -171,7 +171,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
     QFileInfo info(path);
     std::string suffix = ".";
     suffix += info.suffix().toStdString();
-    
+
     std::string fileName = info.fileName().toStdString();
 
     auto it = cache.find(suffix);
@@ -197,10 +197,10 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
             if (!lang.isMember("id")) {
                 continue;
             }
-            
+
             if (!lang.isMember("file")) {
             }
-            
+
             bool found = false;
             if (lang.isMember("filenames")) {
                 Json::Value fns = lang["filenames"];
@@ -213,7 +213,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                     }
                 }
             }
-            
+
             if (!found) {
                 Json::Value exts = lang["extensions"];
                 for (int j = 0; j < exts.size(); j++) {
@@ -223,12 +223,12 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                         resolvedExtension = ext;
                         resolvedLanguage = lang["id"].asString();
                         resolvedGrammars = contribs["grammars"];
-    
+
                         qDebug() << resolvedLanguage.c_str();
-    
+
                         break;
                     }
-                }            
+                }
             }
 
             if (!resolvedLanguage.empty()) {

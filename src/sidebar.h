@@ -3,8 +3,8 @@
 
 #include <QFileSystemModel>
 #include <QModelIndex>
-#include <QTimer>
 #include <QThread>
+#include <QTimer>
 #include <QTreeView>
 
 #include "icons.h"
@@ -37,7 +37,7 @@ public:
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
     QStringList allFiles();
-    
+
     FileSystemModel* fileModel;
 
 protected:
@@ -49,19 +49,20 @@ protected:
     QString rootPath;
     QStringList excludeFiles;
     QStringList excludeFolders;
-    
+
     float animTime;
     float width;
     float targetWidth;
-    
+
     bool showOnLoad;
 
-    void fetchFiles(QFileSystemModel *m, QModelIndex index, QStringList &res);
-    
-private Q_SLOTS:    
+    void fetchFiles(QFileSystemModel* m, QModelIndex index, QStringList& res);
+
+private Q_SLOTS:
     void _setRootPath();
-   
-    void onAnimate();;
+
+    void onAnimate();
+    ;
 };
 
 #endif // SIDEBAR_H

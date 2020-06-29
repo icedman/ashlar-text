@@ -1,8 +1,8 @@
 #ifndef SELECT_H
 #define SELECT_H
 
-#include <QtWidgets>
 #include <QTimer>
+#include <QtWidgets>
 
 class QLineEdit;
 class Select : public QWidget {
@@ -25,12 +25,12 @@ private:
     QLineEdit* input;
     QWidget* items;
     QTimer updateTimer;
-    
+
     QTimer animateTimer;
     float animTime;
     float height;
     float targetHeight;
-    
+
 private Q_SLOTS:
     void onAnimate();
     void updateSize();

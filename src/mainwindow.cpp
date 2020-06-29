@@ -257,16 +257,16 @@ void MainWindow::setupLayout()
     QVBoxLayout* vbox = new QVBoxLayout();
 
     mainPane->setLayout(vbox);
-    
-    QPushButton *closeButton = new QPushButton(this);
+
+    QPushButton* closeButton = new QPushButton(this);
     closeButton->setProperty("className", "closeButton");
     closeButton->setMaximumSize(28, 28);
     connect(closeButton, SIGNAL(clicked()), this, SLOT(closeCurrentTab()));
-    
-    QHBoxLayout *thbox = new QHBoxLayout();
+
+    QHBoxLayout* thbox = new QHBoxLayout();
     thbox->addWidget(tabs);
     thbox->addWidget(closeButton);
-    
+
     vbox->addLayout(thbox);
     vbox->addWidget(editors);
     vbox->setMargin(0);
@@ -431,7 +431,7 @@ void MainWindow::closeCurrentTab()
 
 void MainWindow::closeAllTabs()
 {
-    for(auto path : editorsPath()) {
+    for (auto path : editorsPath()) {
         int idx = tabs->findTabByPath(path);
         tabClose(idx);
         if (tabs->findTabByPath(path) != -1) {
@@ -444,9 +444,9 @@ void MainWindow::closeAllTabs()
 void MainWindow::tabClose(int index)
 {
     bool untitledTab = false;
-    
+
     // std::cout << "Close " << index << std::endl;
-    
+
     if (index >= 0 && index < tabs->count()) {
         tabSelected(index);
         untitledTab = (tabs->tabText(0) == UNTITLED_TEXT);
@@ -462,18 +462,18 @@ void MainWindow::tabClose(int index)
                 QDialog confirm;
                 confirm.setWindowTitle(" ");
                 confirm.setModal(true);
-                QVBoxLayout *v = new QVBoxLayout();
-                QHBoxLayout *h = new QHBoxLayout();
-                QPushButton *save = new QPushButton("Save");
-                QPushButton *cancel = new QPushButton("Cancel");
-                QPushButton *close = new QPushButton("Close without saving");
+                QVBoxLayout* v = new QVBoxLayout();
+                QHBoxLayout* h = new QHBoxLayout();
+                QPushButton* save = new QPushButton("Save");
+                QPushButton* cancel = new QPushButton("Cancel");
+                QPushButton* close = new QPushButton("Close without saving");
 
                 confirm.setLayout(v);
-                
+
                 QString msgText = "<p><br/>Save changes made to <em>" + tabs->tabText(index) + "</em> before closing?<br/></p>";
-                QLabel *msg = new QLabel(msgText);
+                QLabel* msg = new QLabel(msgText);
                 v->addWidget(msg);
-                
+
                 v->addLayout(h);
                 h->addWidget(close);
                 h->addWidget(cancel);
@@ -492,7 +492,7 @@ void MainWindow::tabClose(int index)
             if (!confirmClose) {
                 return;
             }
-            
+
             emitEvent("tabClosed", _editor->fileName);
             editors->removeWidget(_editor);
             tabs->removeTab(index);
@@ -589,8 +589,8 @@ void MainWindow::setupMenu()
         tr("Toggle Statusbar"),
         this, [this]() { statusBar()->setVisible(!statusBar()->isVisible()); });
     // viewMenu->addAction(
-        // tr("Show Command Palette"),
-        // this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
+    // tr("Show Command Palette"),
+    // this, [this]() { select->setVisible(!select->isVisible()); }, QKeySequence("ctrl+p"));
 
     menuBar()->addMenu(viewMenu);
 
@@ -717,7 +717,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
             return;
         }
     }
-    
+
     js()->hideInspector();
     QMainWindow::closeEvent(event);
 }

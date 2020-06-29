@@ -7,8 +7,8 @@
 
 #include "Cubic.h"
 #include "editor.h"
-#include "tmedit.h"
 #include "minimap.h"
+#include "tmedit.h"
 
 MiniMap::MiniMap(QWidget* parent)
     : QScrollBar(parent)
