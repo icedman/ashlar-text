@@ -52,6 +52,7 @@ public:
     void toggleFold(size_t line);
 
     void invalidateBuffers();
+    bool hasUnsavedChanges();
 
     QString fullPath() { return fileName; }
 
@@ -84,12 +85,15 @@ private:
     QTextBlock updateIterator;
     QFileSystemWatcher watcher;
 
+    bool dirty;
+
 private Q_SLOTS:
     void updateScrollBar();
     void updateScrollBar(int i);
     void updateGutter(bool force = false);
     void updateMiniMap(bool force = false);
     void updateRequested(const QRect& rect, int d);
+    void makeDirty(bool undoAvailable);
 
     void fileChanged(const QString& path);
     void cursorPositionChanged();

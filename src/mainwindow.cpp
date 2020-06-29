@@ -429,21 +429,70 @@ void MainWindow::closeCurrentTab()
     tabClose(currentTab());
 }
 
-void MainWindow::tabClose(int index)
+void MainWindow::closeAllTabs()
 {
-    if (tabs->count() == 1) {
-        if (tabs->tabText(0) == UNTITLED_TEXT) {
-            close();
-            return;
+    for(auto path : editorsPath()) {
+        int idx = tabs->findTabByPath(path);
+        tabClose(idx);
+        if (tabs->findTabByPath(path) != -1) {
+            // close cancelled
+            break;
         }
     }
+}
 
+void MainWindow::tabClose(int index)
+{
+    bool untitledTab = false;
+    
     // std::cout << "Close " << index << std::endl;
+    
     if (index >= 0 && index < tabs->count()) {
         tabSelected(index);
+        untitledTab = (tabs->tabText(0) == UNTITLED_TEXT);
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
         if (_editor) {
+
+            bool confirmClose = true;
+
+            // if (_editor->editor->document()->isUndoAvailable()) {
+            if (_editor->hasUnsavedChanges()) {
+                // confirm
+                QDialog confirm;
+                confirm.setWindowTitle(" ");
+                confirm.setModal(true);
+                QVBoxLayout *v = new QVBoxLayout();
+                QHBoxLayout *h = new QHBoxLayout();
+                QPushButton *save = new QPushButton("Save");
+                QPushButton *cancel = new QPushButton("Cancel");
+                QPushButton *close = new QPushButton("Close without saving");
+
+                confirm.setLayout(v);
+                
+                QString msgText = "<p><br/>Save changes made to <em>" + tabs->tabText(index) + "</em> before closing?<br/></p>";
+                QLabel *msg = new QLabel(msgText);
+                v->addWidget(msg);
+                
+                v->addLayout(h);
+                h->addWidget(close);
+                h->addWidget(cancel);
+                h->addWidget(save);
+
+                connect(close, SIGNAL(clicked()), &confirm, SLOT(accept()));
+                connect(cancel, SIGNAL(clicked()), &confirm, SLOT(reject()));
+                connect(save, SIGNAL(clicked()), this, SLOT(saveFile()));
+                connect(save, SIGNAL(clicked()), &confirm, SLOT(accept()));
+
+                confirm.exec();
+
+                confirmClose = confirm.result() == QDialog::Accepted;
+            }
+
+            if (!confirmClose) {
+                return;
+            }
+            
             emitEvent("tabClosed", _editor->fileName);
             editors->removeWidget(_editor);
             tabs->removeTab(index);
@@ -452,6 +501,10 @@ void MainWindow::tabClose(int index)
     }
 
     if (!tabs->count()) {
+        if (untitledTab) {
+            close();
+            return;
+        }
         newFile();
         return;
     }
@@ -657,6 +710,14 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    if (tabs->count()) {
+        closeAllTabs();
+        if (tabs->count()) {
+            event->setAccepted(false);
+            return;
+        }
+    }
+    
     js()->hideInspector();
     QMainWindow::closeEvent(event);
 }

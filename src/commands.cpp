@@ -65,8 +65,7 @@ static void insertTabForCursor(Editor const* editor, QTextCursor cursor)
         int ts = settings->tab_size;
         QTextCursor cs(cursor);
         cs.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
-        size_t ws = count_indent_size(cs.selectedText() + "?");
-        
+        size_t ws = count_indent_size(cs.selectedText() + "?");        
         if (ws != 0 && ws == cursor.position() - cursor.block().position()) {
             // magic! (align to tab)
             ts = (((ws/ts) + 1) * ts) - ws;
@@ -252,6 +251,7 @@ static void unindentForCursor(Editor const* editor, QTextCursor cursor)
         QTextCursor cs(cursor);
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
+        cs = move_to_non_whitespace(cs);
         cs.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
             Commands::removeTab(editor, cs);
@@ -292,7 +292,7 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
     
     while(block.isValid()) {
         
-        qDebug() << block.text();
+        // qDebug() << block.text();
     
         cs.setPosition(block.position());
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::MoveAnchor);
@@ -337,7 +337,7 @@ static void autoIndentForCursor(Editor const* editor, QTextCursor cursor)
         }
     }
     
-    qDebug() << white_spaces;
+    // qDebug() << white_spaces;
      
     cursor.beginEditBlock();
     cursor.movePosition(QTextCursor::StartOfLine);

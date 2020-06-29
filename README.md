@@ -33,7 +33,7 @@ It does however uses webkit as its scripting engine - with the aim to easily for
 * ui: fuzzy command palette (somewhat working)
 * ui: fuzzy file search (somewhat working)
 * ui: menu (somewhat working)
-* auto complete (QCompleter doesn't always work as expected)
+* auto complete (QCompleter doesn't always work as expected - not fuzzy)
 * ui in general (stabilize js-qt - too many.. create destroy.. add cached widgets)
 * ui improve flatlist (currently limited to 20 items)
 

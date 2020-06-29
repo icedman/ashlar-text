@@ -384,7 +384,9 @@ bool TextmateEdit::completerKeyPressEvent(QKeyEvent* e)
     if (width < 200) {
         width = 200;
     }
-    QRect cr = cursorRect();
+
+    tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 1);
+    QRect cr = cursorRect(tc);
     cr.setWidth(width + c->popup()->verticalScrollBar()->sizeHint().width());
     c->complete(cr); // popup it up!
     return false;

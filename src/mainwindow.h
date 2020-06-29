@@ -85,6 +85,7 @@ public slots:
     void warmConfigure();
     void tabSelected(int index);
     void tabClose(int index);
+    void closeAllTabs();
     void closeCurrentTab();
     void loadAllExtensions();
 

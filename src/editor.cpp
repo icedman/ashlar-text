@@ -21,6 +21,7 @@ Editor::Editor(QWidget* parent)
     , editor(0)
     , savingTimer(this)
     , updateTimer(this)
+    , dirty(false)
 {
     savingTimer.setSingleShot(true);
     connect(&watcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChanged(const QString&)));
@@ -47,6 +48,7 @@ bool Editor::saveFile(const QString& path)
         fileName = path;
         watcher.removePaths(watcher.files());
         watcher.addPath(fileName);
+        dirty = false;
         return true;
     }
     return false;
@@ -63,6 +65,7 @@ bool Editor::openFile(const QString& path)
             watcher.removePaths(watcher.files());
         }
         watcher.addPath(fileName);
+        dirty = false;
 
         if (file.size() > (1024 * 16)) {
             // todo do super load!
@@ -96,6 +99,11 @@ void Editor::invalidateBuffers()
     }
 }
 
+void Editor::makeDirty(bool undoAvailable)
+{
+    dirty = undoAvailable;
+}
+
 void Editor::fileChanged(const QString& path)
 {
     if (savingTimer.isActive()) {
@@ -114,6 +122,10 @@ void Editor::fileChanged(const QString& path)
 void Editor::cursorPositionChanged()
 {
     MainWindow::instance()->emitEvent("cursorPositionChanged", "");
+}
+
+bool Editor::hasUnsavedChanges() {
+    return dirty;
 }
 
 void Editor::setTheme(theme_ptr _theme)
@@ -213,6 +225,7 @@ void Editor::setupEditor()
     connect(editor, SIGNAL(blockCountChanged(int)), this, SLOT(updateGutter()));
     connect(editor, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateRequested(QRect, int)));
     connect(editor, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(makeDirty(bool)));
 
     gutter = new Gutter(this);
     gutter->font = font;
