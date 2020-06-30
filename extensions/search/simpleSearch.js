@@ -28,6 +28,10 @@ const styles = StyleSheet.create({
     input: {
         margin: 4
     },
+    icon: {
+        margin: 2,
+        border: 'none'
+    },
     button: {
         margin: 2
     }
@@ -46,6 +50,12 @@ const simpleSearch = (keywords, options) => {
     if (options.word) {
         searchOps.push('whole_word');
     }
+    if (options.wrap) {
+        searchOps.push('wrap_around');
+    }
+    if (options.prev) {
+        searchOps.push('search_up');
+    }
 
     console.log(JSON.stringify(searchOps));
     console.log('search for ' + keywords);
@@ -58,7 +68,8 @@ const SearchPanel = props => {
         find: '',
         regex: false,
         cased: false,
-        word: false
+        word: false,
+        wrap: true
     });
 
     const onFindChanged = evt => {
@@ -69,8 +80,12 @@ const SearchPanel = props => {
     };
 
     const onSearch = () => {
-        console.log(state.find);
+        // console.log(state.find);
         simpleSearch(state.find, state);
+    };
+    
+    const onSearchPrev = () => {
+        simpleSearch(state.find, {...state, prev: true });
     };
 
     setSelectedText = onFindChanged;
@@ -78,14 +93,16 @@ const SearchPanel = props => {
     /* prettier-ignore */
     return <View id={SearchPanelId} style={styles.panel}>
         <View id='panel::search::view'  style={{'flex-direction': 'row'}}>
-          <Button text='.*' style={styles.button} checkable onClick={(evt)=>{  setState({...state, regex: evt.target.value}); }}/>
-          <Button text='Aa' style={styles.button} checkable onClick={(evt)=>{  setState({...state, cased: evt.target.value}); }}/>
-          <Button text='""' style={styles.button} checkable onClick={(evt)=>{  setState({...state, word:  evt.target.value}); }}/>
+          <Button text='.*' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, regex: evt.target.value}); }}/>
+          <Button text='Aa' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, cased: evt.target.value}); }}/>
+          <Button text='""' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, word:  evt.target.value}); }}/>
+          <Button icon='sync' style={styles.icon} checked={state.wrap} checkable onClick={(evt)=>{ setState({...state, wrap:  evt.target.value}); }}/>
           <TextInput id='panel::search::input' text={state.find} style={styles.input}
               onChangeText={onFindChanged}
               onSubmitEditing={onSearch}
           />
           <Button text='Find' style={styles.button} onClick={onSearch}/>
+          <Button text='Find Prev' style={styles.button} onClick={onSearchPrev}/>
         </View>
       </View>
 };

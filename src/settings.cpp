@@ -34,7 +34,7 @@ bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
     return true;
 }
 
-bool theme_application(theme_ptr theme)
+bool theme_application(theme_ptr theme, default_colors_t &default_colors)
 {
     QString basePath = QCoreApplication::applicationDirPath();
     QFile file(basePath + "/css/style.css");
@@ -54,7 +54,7 @@ bool theme_application(theme_ptr theme)
     }
 
     QColor fgDisabledColor = fgColor.darker(180);
-
+    
     // widgets in general
     QColor widgetBg = bgColor.darker(105);
     QColor widgetFg = fgColor.darker(110);
@@ -152,6 +152,18 @@ bool theme_application(theme_ptr theme)
     colors["@statusFg"] = statusFg.name();
 
     // qDebug () << statusBg.name();
+    // save default colors
+    
+    default_colors.bg = bgColor;
+    default_colors.fg = fgColor;
+    default_colors.widgetBg = widgetBg;
+    default_colors.widgetFg = widgetFg;
+    default_colors.treeBg = treeBg;
+    default_colors.treeFg = treeFg;
+    default_colors.tabBg = tabBg;
+    default_colors.tabFg = tabFg;
+    default_colors.statusBg = statusBg;
+    default_colors.statusFg = statusFg;
 
     QTextStream in(&file);
     while (!in.atEnd()) {

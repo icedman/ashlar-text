@@ -1,5 +1,9 @@
 #include <QDebug>
 #include <QPainter>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QFile>
+#include <QSvgRenderer>
 
 #include <iostream>
 #include <sstream>
@@ -19,6 +23,49 @@ enum icon_type_t { icon_none,
     icon_font,
     icon_svg };
 
+static void SetAttrRecur(QDomElement elem, QString strtagname, QString strattr, QString strattrval)
+{
+    // if it has the tagname then overwritte desired attribute
+    if (elem.tagName().compare(strtagname) == 0)
+    {
+        elem.setAttribute(strattr, strattrval);
+    }
+    // loop all children
+    for (int i = 0; i < elem.childNodes().count(); i++)
+    {
+        if (!elem.childNodes().at(i).isElement())
+        {
+            continue;
+        }
+        SetAttrRecur(elem.childNodes().at(i).toElement(), strtagname, strattr, strattrval);
+    }
+}
+
+static QPixmap SVGIcon(QString path, int width, int height, QColor color)
+{
+
+    // open svg resource load contents to qbytearray
+    QFile file(path);
+    file.open(QIODevice::ReadOnly);
+    QByteArray baData = file.readAll();
+    // load svg contents to xml document and edit contents
+    QDomDocument doc;
+    doc.setContent(baData);
+    // recurivelly change color
+    SetAttrRecur(doc.documentElement(), "path", "fill", color.name());
+    // create svg renderer with edited contents
+    QSvgRenderer svgRenderer(doc.toByteArray());
+    // create pixmap target (could be a QImage)
+    QPixmap pix(width, height);
+    pix.fill(Qt::transparent);
+    // create painter to act over pixmap
+    QPainter pixPainter(&pix);
+    // use renderer to render over painter which paints on pixmap
+    svgRenderer.render(&pixPainter);
+    return pix;
+
+}
+    
 std::string to_utf8(uint32_t cp)
 {
     // https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595.
@@ -80,15 +127,17 @@ std::string wstring_convert(std::string str)
     return str;
 }
 
-QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
+QPixmap icon_for_file(icon_theme_ptr icons, QString filename, QString suffix, std::vector<Extension>& _extensions, QColor color)
 {
     if (!icons) {
         return QPixmap();
     }
 
     std::string _suffix = suffix.toStdString();
+    std::string cacheId = _suffix + color.name().toStdString();
+    
     static std::map<std::string, pixmap_wrapper_ptr> cache;
-    auto it = cache.find(_suffix);
+    auto it = cache.find(cacheId);
     if (it != cache.end()) {
         // std::cout << "cached icon.." << std::endl;
         return it->second->img;
@@ -107,7 +156,12 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     std::string fontColor;
 
     Json::Value extensions = icons->definition["fileExtensions"];
-    if (extensions.isMember(_suffix)) {
+
+    if (icons->definition.isMember(filename.toStdString())) {
+        iconName = icons->definition[filename.toStdString()].asString();
+    }
+    
+    if (!iconName.length(), extensions.isMember(_suffix)) {
         iconName = extensions[_suffix].asString();
     }
 
@@ -132,13 +186,15 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }
-
+    
     if (!iconName.length()) {
         return QPixmap();
     }
 
     icon_type_t icon_type = icon_none;
 
+    int w = ICON_WIDTH;
+    int h = ICON_HEIGHT;
     QPixmap svg;
 
     if (definitions.isMember(iconName)) {
@@ -159,13 +215,12 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
             // QString imagePath = QString(icons->icons_path.c_str()) +
             // def["iconPath"]; std::cout << imagePath << std::endl;
 
-            svg = QPixmap(imagePath.c_str());
+            // svg = QPixmap(imagePath.c_str());
+            svg = SVGIcon(imagePath.c_str(), w, h, color);
             icon_type = icon_svg;
         }
     }
 
-    int w = ICON_WIDTH;
-    int h = ICON_HEIGHT;
     px->img = QPixmap(w, h);
     px->img.fill(Qt::transparent);
 
@@ -184,11 +239,11 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, 
         return QPixmap();
     }
 
-    cache.emplace(_suffix, px);
+    cache.emplace(cacheId, px);
     return px->img;
 }
 
-QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::vector<Extension>& extensions)
+QPixmap icon_for_folder(icon_theme_ptr icons, QString folder, bool open, std::vector<Extension>& extensions, QColor color)
 {
     if (!icons) {
         return QPixmap();
@@ -221,7 +276,9 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
     }
 
     static std::map<std::string, pixmap_wrapper_ptr> cache;
-    auto it = cache.find(iconName);
+    std::string cacheId = iconName + color.name().toStdString();
+    
+    auto it = cache.find(cacheId);
     if (it != cache.end()) {
         // std::cout << "cached icon.." << std::endl;
         return it->second->img;
@@ -231,6 +288,8 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
 
     icon_type_t icon_type = icon_none;
 
+    int w = ICON_WIDTH;
+    int h = ICON_HEIGHT;
     QPixmap svg;
 
     if (definitions.isMember(iconName)) {
@@ -250,13 +309,12 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
             // QString imagePath = QString(icons->icons_path.c_str()) +
             // def["iconPath"]; std::cout << imagePath << std::endl;
 
-            svg = QPixmap(imagePath.c_str());
+            // svg = QPixmap(imagePath.c_str());
+            svg = SVGIcon(imagePath.c_str(), w, h, color);
             icon_type = icon_svg;
         }
     }
 
-    int w = ICON_WIDTH;
-    int h = ICON_HEIGHT;
     px->img = QPixmap(w, h);
     px->img.fill(Qt::transparent);
 
@@ -273,6 +331,6 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::v
         p.drawPixmap(px->img.rect(), svg, svg.rect());
     }
 
-    cache.emplace(iconName, px);
+    cache.emplace(cacheId, px);
     return px->img;
 }

@@ -1,0 +1,14 @@
+{
+  "name": "editor-icons",
+  "version": "1.0.0",
+  "license": "MIT",
+  "contributes": {
+    "iconThemes": [
+			{
+				"id": "editor-icons",
+				"label": "Editor Icons",
+				"path": "./icons/editor-icons.json"
+			}
+		]
+  }
+}

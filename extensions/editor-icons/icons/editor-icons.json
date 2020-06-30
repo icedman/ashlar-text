@@ -1,0 +1,24 @@
+{
+	"iconDefinitions": {
+        "_folder": {
+			"iconPath": "./fa/folder.svg"
+		},
+        "_folder_open": {
+			"iconPath": "./fa/folder-open.svg"
+		},
+        "_file": {
+			"iconPath": "./fa/file.svg"
+		},
+		"_close": {
+			"iconPath": "./fa/times-circle.svg"
+		},
+		"_sync": {
+			"iconPath": "./fa/sync.svg"
+		}
+	},
+	"folderExpanded": "_folder_open",
+	"folder": "_folder",
+	"file": "_file",
+	"close": "_close",
+	"sync": "_sync"
+}

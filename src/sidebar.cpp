@@ -30,17 +30,19 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
         QString fileName = info.fileName();
         QPixmap image;
 
+        QColor color = mw->colors.treeFg;
+        
         if (info.isFile()) {
             QString suffix = info.suffix();
-            image = icon_for_file(mw->icons, fileName, suffix, mw->extensions);
+            image = icon_for_file(mw->icons, fileName, suffix, mw->extensions, color);
             if (!image.width()) {
-                image = icon_for_file(mw->icons_fallback, fileName, suffix, mw->extensions);
+                image = icon_for_file(mw->icons_default, fileName, suffix, mw->extensions, color);
             }
         } else {
             bool expanded = ((QTreeView*)parent())->isExpanded(index);
-            image = icon_for_folder(mw->icons, fileName, expanded, mw->extensions);
+            image = icon_for_folder(mw->icons, fileName, expanded, mw->extensions, color);
             if (!image.width()) {
-                image = icon_for_folder(mw->icons_fallback, fileName, expanded, mw->extensions);
+                image = icon_for_folder(mw->icons_default, fileName, expanded, mw->extensions, color);
             }
         }
 
@@ -60,7 +62,8 @@ Sidebar::Sidebar(QWidget* parent)
     setAnimated(true);
     hide();
 
-    setMinimumSize(0, 0);
+    setIndentation(16);
+    setMinimumSize(250, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     clickTimer.setSingleShot(true);
 

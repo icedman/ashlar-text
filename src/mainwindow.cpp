@@ -9,6 +9,7 @@
 #include "reader.h"
 #include "settings.h"
 #include "theme.h"
+#include "icons.h"
 
 #include "select.h"
 #include "sidebar.h"
@@ -128,8 +129,8 @@ void MainWindow::configure()
     if (settings["icon_theme"].isString()) {
         icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
     }
-    if (settings["icon_fallback_theme"].isString()) {
-        icons_fallback = icon_theme_from_name(settings["icon_fallback_theme"].asString().c_str(), extensions);
+    if (settings["default_icons"].isString()) {
+        icons_default = icon_theme_from_name(settings["default_icons"].asString().c_str(), extensions);
     }
 
     // editor settings
@@ -191,13 +192,20 @@ void MainWindow::loadTheme(const QString& name)
 
 void MainWindow::applyTheme()
 {
-    theme_application(theme);
+    theme_application(theme, colors);
 
     // update all editors
     for (int i = 0; i < editors->count(); i++) {
         Editor* editor = (Editor*)editors->widget(i);
         editor->setTheme(theme);
     }
+
+    // register icons
+    engine->registerIcon("close", icon_for_file(icons_default, "close", "icon_close", extensions, colors.tabFg));
+    engine->registerIcon("sync", icon_for_file(icons_default, "sync", "icon_sync", extensions, colors.tabFg));
+
+    // reapply closeButton color
+    closeButton->setIcon(engine->icon("close"));
 }
 
 void MainWindow::setHost(QString path)
@@ -224,7 +232,6 @@ void MainWindow::applySettings()
         font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         statusBar()->setFont(font);
-
         statusBar()->show();
     } else {
         statusBar()->hide();
@@ -258,9 +265,10 @@ void MainWindow::setupLayout()
 
     mainPane->setLayout(vbox);
 
-    QPushButton* closeButton = new QPushButton(this);
+    closeButton = new QPushButton(this);
     closeButton->setProperty("className", "closeButton");
     closeButton->setMaximumSize(28, 28);
+    closeButton->setIconSize(QSize(12,12));
     connect(closeButton, SIGNAL(clicked()), this, SLOT(closeCurrentTab()));
 
     QHBoxLayout* thbox = new QHBoxLayout();
@@ -623,9 +631,8 @@ void MainWindow::warmConfigure()
     setStatusBar(statusbar);
 
     select->setup();
-
     splitterv->addWidget(panels);
-
+    
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl(hostPath));
     } else {

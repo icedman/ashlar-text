@@ -9,6 +9,7 @@
 #include "icons.h"
 #include "json/json.h"
 #include "theme.h"
+#include "settings.h"
 
 #include "js.h"
 #include "qt/engine.h"
@@ -20,6 +21,7 @@ class Sidebar;
 class Select;
 class QStackedWidget;
 class QSplitter;
+class QPushButton;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -70,8 +72,9 @@ public:
     std::vector<Extension> extensions;
     theme_ptr theme;
     icon_theme_ptr icons;
-    icon_theme_ptr icons_fallback;
-
+    icon_theme_ptr icons_default;
+    default_colors_t colors;
+    
     editor_settings_ptr editor_settings;
     Json::Value settings;
 
@@ -101,6 +104,7 @@ private:
     QStackedWidget* editors;
     QStackedWidget* panels;
     QStatusBar* statusbar;
+    QPushButton* closeButton;
     Tabs* tabs;
     Sidebar* sidebar;
     Select* select;

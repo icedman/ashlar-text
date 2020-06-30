@@ -1,6 +1,6 @@
 TARGET = ashlar
 
-QT += widgets svg webkitwidgets network
+QT += widgets svg webkitwidgets network xml
 requires(qtConfig(filedialog))
 
 HEADERS         = src/commands.h \
