@@ -89,17 +89,17 @@ static void Commands::insertTab(Editor const* editor)
     }
 }
 
-static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
+static bool Commands::removeTab(Editor const* editor, QTextCursor cursor)
 {
     QTextBlock block = cursor.block();
     if (cursor.position() - block.position() == 0) {
-        return;
+        return false;
     }
 
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     if (cursor.hasSelection() || !settings->tab_to_spaces) {
         cursor.deletePreviousChar();
-        return;
+        return true;
     }
 
     bool isWhiteSpace = false;
@@ -110,7 +110,7 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 
     if (!isWhiteSpace) {
         cursor.deletePreviousChar();
-        return;
+        return true;
     }
 
     for (int i = 0; i < settings->tab_size; i++) {
@@ -125,6 +125,8 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
             }
         }
     }
+
+    return true;
 }
 
 static void removeCommentAtCursor(QString text, QTextCursor cursor) {

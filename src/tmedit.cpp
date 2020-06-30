@@ -429,8 +429,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         if (cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
             QString st = cursor.selectedText();
             if (st[0] == ' ' || st[0] == '\t') {
-                Commands::removeTab(_editor, textCursor());
-                handledForMainCursor = true;
+                handledForMainCursor = Commands::removeTab(_editor, textCursor());
             }
         }
     }

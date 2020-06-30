@@ -83,7 +83,7 @@ const activate = () => {
     // this will fetch the second level files
     setTimeout(() => {
         app.allFiles();
-    }, 3000);
+    }, 1500);
 };
 
 const deactivate = () => {};

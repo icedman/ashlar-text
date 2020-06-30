@@ -50,16 +50,16 @@ const FuzzyListItem = ({ item, onItemSelect, index }) => {
     let desc = item.description || item.path;
     return (
         <View
-            _id={`fuzzy::item::${index}`}
-            _retained
+            id={`fuzzy::item::${index}`}
+            retained
             hoverable
             touchable
             style={styles.item}
             className="selectItem"
             onPress={onPress}
         >
-            <Text _id={`fuzzy::item::text::${index}`} _retained style={styles.title}>{item.title}</Text>
-            {desc ? <Text _id={`fuzzy::item::desc::${index}`} _retained style={styles.description}>{desc}</Text> : ''}
+            <Text id={`fuzzy::item::text::${index}`} retained style={styles.title}>{item.title}</Text>
+            {desc ? <Text id={`fuzzy::item::desc::${index}`} retained style={styles.description}>{desc}</Text> : ''}
         </View>
     );
 };
@@ -118,7 +118,7 @@ const FuzzyList = ({ item }) => {
             app.openFile(val.path);
         }
     };
-
+    
     return (
         <React.Fragment>
             <TextInput

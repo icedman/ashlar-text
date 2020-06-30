@@ -12,7 +12,7 @@ QTextCursor move_to_non_whitespace(QTextCursor cursor);
 
 class Commands {
 public:
-    static void removeTab(Editor const* editor, QTextCursor cursor);
+    static bool removeTab(Editor const* editor, QTextCursor cursor);
     static void insertTab(Editor const* editor);
     static void toggleComment(Editor const* editor);
     static void toggleBlockComment(Editor const* editor);
