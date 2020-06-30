@@ -127,6 +127,9 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
     }
 }
 
+static void removeCommentAtCursor(QString text, QTextCursor cursor) {
+}
+    
 static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!editor->lang || !editor->lang->lineComment.length()) {
@@ -161,36 +164,41 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
 
-        QTextBlock block = cs.block();
-        QString s = block.text();
-        int commentPosition = s.indexOf(singleLineComment);
-        bool hasComments = commentPosition != -1;
-
-        cs.beginEditBlock();
+        int loops = 0;
+        cursor.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
-            cs.movePosition(QTextCursor::StartOfLine);
-            block = cs.block();
-            s = block.text().trimmed();
-            if (!s.isEmpty()) {
+            // qDebug() << cs.position() << cursor.selectionEnd();
+            
+            QTextCursor cc(cs);
+            cc.movePosition(QTextCursor::StartOfLine);
+            cc = move_to_non_whitespace(cs);
+            cs.setPosition(cc.position());
+            
+            cc.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+            
+            QString s = cc.selectedText();
+            int commentPosition = s.indexOf(singleLineComment);            
+            bool hasComments = commentPosition == 0;
+
+            // qDebug() << s << commentPosition;
+
+            if (!s.trimmed().isEmpty()) {
                 if (!hasComments) {
-                    size_t skip = count_indent_size(s);
-                    cs.setPosition(cs.position() + skip);
+                    size_t skip = 1;
+                    cs.setPosition(cs.position());
                     cs.insertText(singleLineComment);
                 } else {
-                    commentPosition = s.indexOf(singleLineComment);
-                    if (commentPosition != -1) {
-                        cs.setPosition(cs.position() + commentPosition);
-                        for (int i = 0; i < singleLineComment.length(); i++) {
-                            cs.deleteChar();
-                        }
+                    for (int i = 0; i < singleLineComment.length(); i++) {
+                        cs.deleteChar();
                     }
                 }
             }
-            if (!cs.movePosition(QTextCursor::Down)) {
+        
+            if (!cs.movePosition(QTextCursor::NextBlock)) {
                 break;
-            }
+            }            
         }
-        cs.endEditBlock();
+        cursor.endEditBlock();
     }
 }
 
@@ -245,7 +253,7 @@ static void indentForCursor(Editor const* editor, QTextCursor cursor)
         while (cs.position() <= cursor.selectionEnd()) {
             cs.movePosition(QTextCursor::StartOfLine);
             insertTabForCursor(editor, cs);
-            if (!cs.movePosition(QTextCursor::Down)) {
+            if (!cs.movePosition(QTextCursor::NextBlock)) {
                 break;
             }
         }
@@ -281,7 +289,7 @@ static void unindentForCursor(Editor const* editor, QTextCursor cursor)
         cs.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
             Commands::removeTab(editor, move_to_non_whitespace(cs));
-            if (!cs.movePosition(QTextCursor::Down)) {
+            if (!cs.movePosition(QTextCursor::NextBlock)) {
                 break;
             }
         }

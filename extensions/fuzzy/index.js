@@ -1,16 +1,16 @@
-import { fuzzy_commands, FuzzyListId, FuzzyList } from "./search";
+import { fuzzy_commands, FuzzyListId, FuzzyList } from './search';
 
 const fuzzy = {
-  activate: () => {
-    fuzzy_commands.forEach(cmd => {
-      let command_name = "fuzzy." + cmd.name;
-      ashlar.commands.registerCommand(command_name, cmd.action, cmd.keys);
-    });
+    activate: () => {
+        fuzzy_commands.forEach(cmd => {
+            let command_name = 'fuzzy.' + cmd.name;
+            ashlar.commands.registerCommand(command_name, cmd.action, cmd.keys);
+        });
 
-    ashlar.ui.registerPanel(FuzzyListId, FuzzyList);
-  },
+        ashlar.ui.registerPanel(FuzzyListId, FuzzyList);
+    },
 
-  deactivate: () => {}
+    deactivate: () => {}
 };
 
-ashlar.extensions.registerExtension("fuzzy", fuzzy);
+ashlar.extensions.registerExtension('fuzzy', fuzzy);

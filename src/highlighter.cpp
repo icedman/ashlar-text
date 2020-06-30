@@ -16,7 +16,7 @@ Highlighter::Highlighter(QTextDocument* parent)
     , deferRendering(false)
 {
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
-    updateTimer.start(100);
+    updateTimer.setSingleShot(true);
 }
 
 void Highlighter::setTheme(theme_ptr _theme)
@@ -116,7 +116,7 @@ void Highlighter::highlightBlock(const QString& text)
     }
 
     blockData->buffer = QPixmap();
-
+    
     std::map<size_t, scope::scope_t> scopes;
     blockData->scopes.clear();
 
@@ -311,6 +311,7 @@ void Highlighter::highlightBlock(const QString& text)
         }
     }
 
+
     blockData->parser_state = parser_state;
     blockData->dirty = false;
     currentBlock().setUserData(blockData);
@@ -319,13 +320,15 @@ void Highlighter::highlightBlock(const QString& text)
     // mark next block for highlight
     // .. if necessary
     //----------------------
-    if (parser_state->rule) {
+    if (parser_state->rule && !updateTimer.isActive()) {
         QTextBlock next = currentBlock().next();
         if (next.isValid()) {
             HighlightBlockData* nextBlockData = reinterpret_cast<HighlightBlockData*>(next.userData());
             if (nextBlockData && parser_state->rule->rule_id != nextBlockData->lastPrevBlockRule) {
                 nextBlockData->dirty = true;
                 hasDirtyBlocks = true;
+                updateTimer.start(100);
+                // qDebug() << "dirty" << next.firstLineNumber();
             }
         }
     }
@@ -348,6 +351,7 @@ void Highlighter::onUpdate()
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
         if (blockData && blockData->dirty) {
             rendered++;
+            // qDebug() << "update" << updateIterator.firstLineNumber();
             rehighlightBlock(updateIterator);
         }
         updateIterator = updateIterator.next();
@@ -355,5 +359,8 @@ void Highlighter::onUpdate()
 
     if (rendered == 0) {
         hasDirtyBlocks = false;
+        // qDebug() << "end updates";
+    } else {
+        updateTimer.start(100);
     }
 }

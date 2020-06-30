@@ -1,22 +1,22 @@
-import React from "react";
-import events from "./events";
+import React from 'react';
+import events from './events';
 
-import commands from "./commands";
-import extensions from "./extensions";
-import keybinding from "./keybinding";
+import commands from './commands';
+import extensions from './extensions';
+import keybinding from './keybinding';
 
 // ui
-import { StoreProvider as UIProvider } from "./uiContext";
-import { ui, Panels } from "./ui";
-import qt from "./lib/engine";
+import { StoreProvider as UIProvider } from './uiContext';
+import { ui, Panels } from './ui';
+import qt from './lib/engine';
 
 const ashlar = {
-  commands,
-  extensions,
-  keybinding,
-  events,
-  ui,
-  qt
+    commands,
+    extensions,
+    keybinding,
+    events,
+    ui,
+    qt
 };
 
 window.ashlar = ashlar;
@@ -44,7 +44,7 @@ const baseCommands = [
 ]
 
 baseCommands.forEach(cmd => {
-  commands.registerCommand(cmd.name, cmd.action);
+    commands.registerCommand(cmd.name, cmd.action);
 });
 
 // defer

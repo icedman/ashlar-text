@@ -1,23 +1,23 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import View from "./view";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import View from './view';
 
 const Text = props => {
-  const [renderedText, setRenderedText] = React.useState(null);
-  let ref = React.useRef();
+    const [renderedText, setRenderedText] = React.useState(null);
+    let ref = React.useRef();
 
-  React.useEffect(() => {
-    setRenderedText(ref.current.innerHTML);
-  }, [props.children]);
+    React.useEffect(() => {
+        setRenderedText(ref.current.innerHTML);
+    }, [props.children]);
 
-  const more = {};
-  more.renderedText = renderedText;
+    const more = {};
+    more.renderedText = renderedText;
 
-  return (
-    <View {...props} {...more} type="Text">
-      <div ref={ref}>{props.children}</div>
-    </View>
-  );
+    return (
+        <View {...props} {...more} type="Text">
+            <div ref={ref}>{props.children}</div>
+        </View>
+    );
 };
 
 export default Text;

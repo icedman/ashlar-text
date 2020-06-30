@@ -192,7 +192,23 @@ void Select::updateSize()
     QScrollArea* area = items->findChild<QScrollArea*>();
     QList<TouchableWidget*> allItems = area->findChildren<TouchableWidget*>();
 
-    bool shouldShow = allItems.size() > 1;
+    int visibleItems = 1; // allItems.size();
+
+    QWidget *prev = 0;
+    for(auto item : allItems) {
+        if (item->property("mounted").toBool()) {
+            if (prev) {
+                QWidget::setTabOrder(prev, item);
+            }
+            visibleItems++;
+            prev = item;
+        }
+    }
+
+    // qDebug() << allItems.size();
+    // qDebug() << visibleItems;
+
+    bool shouldShow = visibleItems > 1;
     int ih = input->rect().height() + 4;
     int h = ih;
 
@@ -203,7 +219,7 @@ void Select::updateSize()
         items->hide();
         resize(width(), ih);
     } else {
-        h += (allItems[1]->rect().height() - 2) * (allItems.size() - 1);
+        h += (allItems[1]->rect().height() - 1) * (visibleItems - 1);
         if (h > 400) {
             h = 400;
         }
@@ -211,10 +227,10 @@ void Select::updateSize()
     }
 
     if (shouldShow && !animateTimer.isActive() && QWidget::height() != targetHeight) {
-        animTime = -150;
-        height = QWidget::height();
-        animateTimer.start(25);
-        // resize(width(), targetHeight);
+//         animTime = -150;
+//         height = QWidget::height();
+//         animateTimer.start(25);
+        resize(width(), targetHeight);
     }
 }
 

@@ -1,8 +1,8 @@
-import React from "react";
-import View from "./view";
+import React from 'react';
+import View from './view';
 
 const StackedView = props => {
-  return <View {...props} type="StackedView" />;
+    return <View {...props} type="StackedView" />;
 };
 
 export default StackedView;

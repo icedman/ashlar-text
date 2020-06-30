@@ -1,8 +1,8 @@
-import React from "react";
-import View from "./view";
+import React from 'react';
+import View from './view';
 
 const SplitterView = props => {
-  return <View {...props} type="SplitterView" />;
+    return <View {...props} type="SplitterView" />;
 };
 
 export default SplitterView;
