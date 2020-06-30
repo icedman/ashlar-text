@@ -102,14 +102,26 @@ QTabBar::tab::hover {
   background: @tabItemHoverBg;
   color: @tabItemHoverFg;
   border: none;
+  border-top: 1px solid @tabItemHoverBorderTop;
+  border-left: 1px solid @tabItemHoverBorderLeft;
+  border-right: 1px solid @tabItemHoverBorderRight;
 }
-QTabBar::tab::!selected::focus,
+QTabBar::tab::!selected::focus {
+  background: @tabItemActiveBg;
+  color: @tabItemActiveFg;
+  border: none;
+  border-top: 1px solid @tabItemBorderTop;
+  border-left: 1px solid @tabItemBorderLeft;
+  border-right: 1px solid @tabItemBorderRight;
+}
 QTabBar::tab::selected {
   background: @tabItemActiveBg;
   color: @tabItemActiveFg;
   border: none;
+  border-top: 1px solid @tabItemActiveBorderTop;
+  border-left: 1px solid @tabItemActiveBorderLeft;
+  border-right: 1px solid @tabItemActiveBorderRight;
 }
-
 QPushButton[className='closeButton'] {
     border: none;
     background: @tabBg;

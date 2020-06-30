@@ -44,6 +44,8 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
 
     QString css = "";
 
+    QColor borderColor;
+    
     QColor bgColor;
     if (!theme_color(theme, "editor.background", bgColor)) {
         // return false;
@@ -84,18 +86,44 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     QColor tabItemActiveFg;
     QColor tabItemHoverBg;
     QColor tabItemHoverFg;
-    // The tabs
 
-    if (!theme_color(theme, "tab.activeBackground", tabItemActiveBg) || !theme_color(theme, "tab.activeForeground", tabItemActiveFg)) {
-        tabItemActiveBg = itemActiveBg;
-        tabItemActiveFg = itemActiveFg;
+    // todo read border colors
+    QColor tabItemBorderTop;
+    QColor tabItemBorderLeft;
+    QColor tabItemBorderRight;    
+  
+    if (!theme_color(theme, "tab.activeBackground", tabItemActiveBg)) {
+        tabItemActiveBg = tabBg;
+    }
+    if (!theme_color(theme, "tab.activeForeground", tabItemActiveFg)) {
+        tabItemActiveFg = tabFg;
     }
     if (!theme_color(theme, "tab.inactiveBackground", tabItemBg) || !theme_color(theme, "tab.inactiveForeground", tabItemFg)) {
-        tabItemBg = itemActiveBg;
-        tabItemFg = itemActiveFg;
+        tabItemBg = tabBg;
+        tabItemFg = tabFg;
     }
-    tabItemHoverBg = tabItemActiveBg.darker(110);
-    tabItemHoverFg = tabItemActiveFg.darker(115);
+    if (!theme_color(theme, "tab.hoverBackground", tabItemHoverBg)) {
+        tabItemHoverBg = tabItemActiveBg.darker(110);
+    }
+    if (!theme_color(theme, "tab.hoverForeground", tabItemHoverFg)) {
+        tabItemHoverFg = tabItemActiveFg.darker(115);
+    }
+
+    QColor tabItemHoverBorderTop = tabItemBg.darker(105);
+    QColor tabItemHoverBorderLeft = tabItemBg.darker(105);
+    QColor tabItemHoverBorderRight = tabItemBg.darker(105);
+    
+    QColor tabItemActiveBorderTop = tabItemActiveBg.darker(105);
+    QColor tabItemActiveBorderLeft = tabItemActiveBg.darker(105);
+    QColor tabItemActiveBorderRight = tabItemActiveBg.darker(105);
+    if (theme_color(theme, "tab.activeBorder", borderColor)) {
+        tabItemActiveBorderTop = borderColor;
+        // tabItemActiveBorderLeft = borderColor;
+        // tabItemActiveBorderRight = borderColor;
+    }
+    if (theme_color(theme, "tab.activeBorderTop", borderColor)) {
+        tabItemActiveBorderTop = borderColor;
+    }
 
     // status bar
     QColor statusBg;
@@ -143,6 +171,14 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     colors["@tabItemHoverBg"] = tabItemHoverBg.name();
     colors["@tabItemActiveFg"] = tabItemActiveFg.name();
     colors["@tabItemHoverFg"] = tabItemHoverFg.name();
+
+    colors["@tabItemHoverBorderTop"] = tabItemHoverBorderTop.name();
+    colors["@tabItemHoverBorderLeft"] = tabItemHoverBorderLeft.name();
+    colors["@tabItemHoverBorderRight"] = tabItemHoverBorderRight.name();
+    
+    colors["@tabItemActiveBorderTop"] = tabItemActiveBorderTop.name();
+    colors["@tabItemActiveBorderLeft"] = tabItemActiveBorderLeft.name();
+    colors["@tabItemActiveBorderRight"] = tabItemActiveBorderRight.name();
 
     colors["@inputBg"] = inputBg.name();
     colors["@inputFg"] = inputFg.name();

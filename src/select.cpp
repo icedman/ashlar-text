@@ -183,7 +183,9 @@ void Select::trigger()
 {
     QApplication* app = qobject_cast<QApplication*>(QApplication::instance());
     TouchableWidget* widget = qobject_cast<TouchableWidget*>(app->focusWidget());
-    emit widget->pressed();
+    if (widget) {
+        emit widget->pressed();
+    }
     hide();
 }
 
@@ -192,11 +194,12 @@ void Select::updateSize()
     QScrollArea* area = items->findChild<QScrollArea*>();
     QList<TouchableWidget*> allItems = area->findChildren<TouchableWidget*>();
 
-    int visibleItems = 1; // allItems.size();
+    int visibleItems = allItems.size();
 
+    /*
     QWidget *prev = 0;
     for(auto item : allItems) {
-        if (item->property("mounted").toBool()) {
+        if (item && item->property("mounted").toBool()) {
             if (prev) {
                 QWidget::setTabOrder(prev, item);
             }
@@ -204,6 +207,7 @@ void Select::updateSize()
             prev = item;
         }
     }
+    */
 
     // qDebug() << allItems.size();
     // qDebug() << visibleItems;
