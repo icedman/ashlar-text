@@ -14,13 +14,15 @@ const styles = StyleSheet.create({
         fontSize: '10pt',
         marginLeft: 8,
         marginRight: 8,
-        background: 'transparent'
+        background: 'transparent',
+        minWidth: 80
     },
     cursor: {
         fontSize: '10pt',
         marginLeft: 8,
         marginRight: 8,
-        background: 'transparent'
+        background: 'transparent',
+        minWidth: 120
     }
 });
 

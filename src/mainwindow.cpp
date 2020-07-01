@@ -574,7 +574,7 @@ Editor* MainWindow::openTab(const QString& _path)
     tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
     tabs->setTabText(tabIdx, QFileInfo(_fileName).fileName());
     tabs->setTabIcon(tabIdx, engine->icon("preview"));
-    tabs->setIconSize(QSize(16,16));
+    tabs->setIconSize(QSize(12,12));
     
     selectTab(tabIdx);
 
@@ -647,6 +647,7 @@ void MainWindow::warmConfigure()
     engine->addFactory(new UICoreFactory());
     panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
     statusbar = qobject_cast<QStatusBar*>(engine->create("statusBar", "StatusBar", true)->widget());
+    statusbar->setSizeGripEnabled(false);
     setStatusBar(statusbar);
 
     select->setup();
