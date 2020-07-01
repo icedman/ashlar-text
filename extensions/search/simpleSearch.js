@@ -86,9 +86,9 @@ const SearchPanel = props => {
         // console.log(state.find);
         simpleSearch(state.find, state);
     };
-    
+
     const onSearchPrev = () => {
-        simpleSearch(state.find, {...state, prev: true });
+        simpleSearch(state.find, { ...state, prev: true });
     };
 
     setSelectedText = onFindChanged;

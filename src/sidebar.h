@@ -3,10 +3,10 @@
 
 #include <QFileSystemModel>
 #include <QModelIndex>
+#include <QStyledItemDelegate>
 #include <QThread>
 #include <QTimer>
 #include <QTreeView>
-#include <QStyledItemDelegate>
 
 #include "icons.h"
 
@@ -29,15 +29,15 @@ private Q_SLOTS:
 class SidebarItemDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
-    Sidebar *sidebar;
+    Sidebar* sidebar;
     QModelIndex hoverIndex;
-    
+
 public slots:
     void onHoverIndexChanged(const QModelIndex& index);
 };
-    
+
 class Sidebar : public QTreeView {
     Q_OBJECT
 public:
@@ -50,7 +50,7 @@ public:
     void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>()) override;
 
     void trigger(int button);
-    
+
     QStringList allFiles();
 
     QString root() { return rootPath; }
@@ -62,14 +62,14 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
     QTimer animateTimer;
     QTimer clickTimer;
     QString rootPath;
     QStringList excludeFiles;
     QStringList excludeFolders;
-    SidebarItemDelegate *itemDelegate;
+    SidebarItemDelegate* itemDelegate;
 
     float animTime;
     float width;
@@ -85,7 +85,7 @@ private Q_SLOTS:
     void onAnimate();
 
 signals:
-    void hoverIndexChanged(const QModelIndex &index);
+    void hoverIndexChanged(const QModelIndex& index);
 };
 
 #endif // SIDEBAR_H

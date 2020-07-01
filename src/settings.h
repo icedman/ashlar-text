@@ -42,6 +42,6 @@ bool theme_statusbar(theme_ptr theme, std::string name, QWidget& statusbar);
 bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar);
 */
 
-bool theme_application(theme_ptr theme, default_colors_t &colors);
+bool theme_application(theme_ptr theme, default_colors_t& colors);
 
 #endif // THEME_H

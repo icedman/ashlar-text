@@ -5,11 +5,11 @@
 #include <iostream>
 
 #include "commands.h"
+#include "icons.h"
 #include "mainwindow.h"
 #include "reader.h"
 #include "settings.h"
 #include "theme.h"
-#include "icons.h"
 
 #include "select.h"
 #include "sidebar.h"
@@ -118,7 +118,6 @@ void MainWindow::configure()
         }
     }
 
-    
     // load_extensions(QString("./extensions"), extensions);
     if (settings["theme"].isString()) {
         theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
@@ -132,7 +131,6 @@ void MainWindow::configure()
     if (settings["default_icons"].isString()) {
         icons_default = icon_theme_from_name(settings["default_icons"].asString().c_str(), extensions);
     }
-
 }
 
 void MainWindow::loadTheme(const QString& name)
@@ -216,7 +214,7 @@ void MainWindow::applySettings()
     if (editor_settings->tab_size > 8) {
         editor_settings->tab_size = 8;
     }
-    
+
     if (settings.isMember("sidebar") && settings["sidebar"] == true) {
         QFont font;
         font.setFamily(editor_settings->font);
@@ -272,7 +270,7 @@ void MainWindow::setupLayout()
     closeButton = new QPushButton(this);
     closeButton->setProperty("className", "closeButton");
     closeButton->setMaximumSize(28, 28);
-    closeButton->setIconSize(QSize(12,12));
+    closeButton->setIconSize(QSize(12, 12));
     connect(closeButton, SIGNAL(clicked()), this, SLOT(closeCurrentTab()));
 
     QHBoxLayout* thbox = new QHBoxLayout();
@@ -440,7 +438,7 @@ void MainWindow::closeCurrentTab()
 {
     closeTab(currentTab());
 }
-    
+
 void MainWindow::closeAllTabs()
 {
     for (auto path : editorsPath()) {
@@ -552,7 +550,7 @@ Editor* MainWindow::openTab(const QString& _path)
         selectTab(tabIdx);
         return currentEditor();
     }
-    
+
     QString _fileName = QFileInfo(path).fileName();
     if (_fileName.isEmpty()) {
         _fileName = UNTITLED_TEXT;
@@ -561,21 +559,21 @@ Editor* MainWindow::openTab(const QString& _path)
 
     int previewTab = tabs->findPreviewTab();
     if (previewTab != -1) {
-        Editor *previewEditor = tabs->editor(previewTab);
+        Editor* previewEditor = tabs->editor(previewTab);
         tabIdx = previewTab;
     }
 
     if (tabIdx == -1) {
         tabIdx = tabs->insertTab(tabInsertIndex, _fileName);
     }
-    
+
     Editor* _editor = createEditor(); // << creates a new editor
     editors->addWidget(_editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
     tabs->setTabText(tabIdx, QFileInfo(_fileName).fileName());
     tabs->setTabIcon(tabIdx, engine->icon("preview"));
-    tabs->setIconSize(QSize(12,12));
-    
+    tabs->setIconSize(QSize(12, 12));
+
     selectTab(tabIdx);
 
     return _editor;
@@ -652,7 +650,7 @@ void MainWindow::warmConfigure()
 
     select->setup();
     splitterv->addWidget(panels);
-    
+
     if (!hostPath.isEmpty()) {
         engine->runFromUrl(QUrl(hostPath));
     } else {
@@ -670,6 +668,7 @@ void MainWindow::attachJSObjects()
 {
     engine->frame->addToJavaScriptWindowObject("app", &jsApp);
     engine->frame->addToJavaScriptWindowObject("fs", &jsFs);
+    engine->frame->addToJavaScriptWindowObject("ps", &jsPs);
 }
 
 bool MainWindow::loadExtension(QString name)
@@ -719,6 +718,7 @@ void MainWindow::emitEvent(QString event, QString payload)
     }
 
     // qDebug() << payload;
+
     engine->runScript("try { ashlar.events.emit(\"" + event + "\", " + payload + "); } catch(err) { console.log(err) } ");
 }
 

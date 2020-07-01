@@ -5,11 +5,11 @@
 #include "commands.h"
 #include "editor.h"
 #include "gutter.h"
-#include "tabs.h"
 #include "mainwindow.h"
 #include "minimap.h"
 #include "reader.h"
 #include "settings.h"
+#include "tabs.h"
 #include "tmedit.h"
 
 Editor::Editor(QWidget* parent)
@@ -101,7 +101,8 @@ void Editor::invalidateBuffers()
     }
 }
 
-bool Editor::isPreview() {
+bool Editor::isPreview()
+{
     return preview;
 }
 

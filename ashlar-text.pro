@@ -1,6 +1,6 @@
 TARGET = ashlar
 
-QT += widgets svg webkitwidgets network xml
+QT += widgets svg webkitwidgets network xml core
 requires(qtConfig(filedialog))
 
 HEADERS         = src/commands.h \
@@ -17,6 +17,7 @@ HEADERS         = src/commands.h \
                   src/select.h \
                   src/tabs.h \
                   src/tmedit.h \
+                  src/process.h \
                   ./js-qt/qt/core.h \
                   ./js-qt/qt/engine.h \
                   ./easing/PennerEasing/Cubic.h
@@ -35,6 +36,7 @@ SOURCES         = src/commands.cpp \
                   src/settings.cpp \
                   src/tabs.cpp \
                   src/tmedit.cpp \
+                  src/process.cpp \
                   src/main.cpp \
                   ./js-qt/qt/core.cpp \
                   ./js-qt/qt/engine.cpp \

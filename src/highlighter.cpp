@@ -116,7 +116,7 @@ void Highlighter::highlightBlock(const QString& text)
     }
 
     blockData->buffer = QPixmap();
-    
+
     std::map<size_t, scope::scope_t> scopes;
     blockData->scopes.clear();
 
@@ -310,7 +310,6 @@ void Highlighter::highlightBlock(const QString& text)
             blockData->foldable = l.open;
         }
     }
-
 
     blockData->parser_state = parser_state;
     blockData->dirty = false;

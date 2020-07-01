@@ -129,9 +129,10 @@ static bool Commands::removeTab(Editor const* editor, QTextCursor cursor)
     return true;
 }
 
-static void removeCommentAtCursor(QString text, QTextCursor cursor) {
+static void removeCommentAtCursor(QString text, QTextCursor cursor)
+{
 }
-    
+
 static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!editor->lang || !editor->lang->lineComment.length()) {
@@ -170,16 +171,16 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
         cursor.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
             // qDebug() << cs.position() << cursor.selectionEnd();
-            
+
             QTextCursor cc(cs);
             cc.movePosition(QTextCursor::StartOfLine);
             cc = move_to_non_whitespace(cs);
             cs.setPosition(cc.position());
-            
+
             cc.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-            
+
             QString s = cc.selectedText();
-            int commentPosition = s.indexOf(singleLineComment);            
+            int commentPosition = s.indexOf(singleLineComment);
             bool hasComments = commentPosition == 0;
 
             // qDebug() << s << commentPosition;
@@ -195,10 +196,10 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
                     }
                 }
             }
-        
+
             if (!cs.movePosition(QTextCursor::NextBlock)) {
                 break;
-            }            
+            }
         }
         cursor.endEditBlock();
     }
@@ -557,7 +558,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
             } else {
                 cs.movePosition(QTextCursor::Start);
             }
-            
+
             e->setTextCursor(cs);
             if (!e->find(string, flags)) {
                 e->setTextCursor(cursor);
@@ -579,13 +580,13 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         }
         QTextCursor cursor = e->textCursor();
         QTextCursor cs(cursor);
-        
+
         if (flags & QTextDocument::FindBackward) {
             cs.movePosition(QTextCursor::End);
         } else {
             cs.movePosition(QTextCursor::Start);
         }
-        
+
         e->setTextCursor(cs);
         if (!e->find(regx, flags)) {
             e->setTextCursor(cursor);

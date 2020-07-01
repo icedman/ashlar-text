@@ -3,15 +3,34 @@
 
 #include <QObject>
 
+class Process;
 class JSFs : public QObject {
     Q_OBJECT
-
-public:
 public slots:
     QString readFile(QString path);
     QString readFileSync(QString path, QString options);
     bool appendFile(QString content, QString path);
     bool writeFile(QString content, QString path);
+};
+
+class JSPs : public QObject {
+    Q_OBJECT
+public slots:
+
+    int git();
+    int fzf();
+
+    int run(int idx, QStringList args);
+    void write(int idx, QString input);
+
+private Q_SLOTS:
+    void output(Process* process, QString out);
+    void finished(Process* process, int code);
+
+private:
+    Process* findProcess(int id);
+    int requestProcess();
+    QList<Process*> processes;
 };
 
 class Editor;
@@ -37,7 +56,7 @@ public slots:
     void theme(QString name);
 
     void toggleSidebar();
-    
+
     QString settings();
     void updateSettings(QString settings);
 

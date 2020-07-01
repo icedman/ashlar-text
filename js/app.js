@@ -82,6 +82,14 @@ const activate = () => {
     ashlar.events.on('tabClosed', tabClosed);
     ashlar.events.on('cursorPositionChanged', cursorPositionChanged);
 
+    ashlar.events.on('processOut', p => {
+        console.log(p);
+    });
+    ashlar.events.on('processFinished', p => {
+        console.log(p);
+        console.log('done');
+    });
+
     // this will fetch the second level files
     setTimeout(() => {
         app.allFiles();
@@ -104,5 +112,10 @@ const App = () => {
         </UIProvider>
     );
 };
+
+window.testGit = () => {
+    ps.run(ps.git(), ['--version']);
+};
+// window.testGit = () => { ps.run(ps.git(), ["--no-pager", "diff"]) };
 
 export default App;

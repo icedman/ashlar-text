@@ -32,7 +32,7 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
         QPixmap image;
 
         QColor color = mw->colors.treeFg;
-        
+
         if (info.isFile()) {
             QString suffix = info.suffix();
             image = icon_for_file(mw->icons, fileName, suffix, mw->extensions, color);
@@ -155,7 +155,7 @@ void Sidebar::trigger(int button)
             mw->tabbar()->removePreviewTag();
             return;
         }
-        
+
         QString btn = button == Qt::RightButton ? "right" : "left";
         mw->emitEvent("sidebarItemClicked", "{\"path\": \"" + fileName + "\", \"button\": \"" + btn + "\"}");
         if (btn == "right") {
@@ -169,7 +169,7 @@ void Sidebar::trigger(int button)
         }
     }
 }
-   
+
 void Sidebar::paintEvent(QPaintEvent* event)
 {
     QTreeView::paintEvent(event);
@@ -181,10 +181,10 @@ void Sidebar::keyPressEvent(QKeyEvent* event)
     if (isEnter) {
         trigger(Qt::LeftButton);
     }
-    
+
     QTreeView::keyPressEvent(event);
 }
-    
+
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 {
     // QTreeView::mouseDoubleClickEvent(event);
@@ -202,12 +202,12 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
     trigger(event->button());
 }
 
-void Sidebar::mouseMoveEvent(QMouseEvent *event)
+void Sidebar::mouseMoveEvent(QMouseEvent* event)
 {
     QModelIndex index = indexAt(event->pos());
     emit hoverIndexChanged(index);
 }
-    
+
 void Sidebar::_setRootPath()
 {
     MainWindow* mw = MainWindow::instance();
@@ -251,7 +251,7 @@ void Sidebar::animateShow()
 }
 
 void Sidebar::animateHide()
-{   
+{
     hide();
 }
 
@@ -341,10 +341,9 @@ QStringList Sidebar::allFiles()
     return files;
 }
 
-void SidebarItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void SidebarItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    if (index == sidebar->currentIndex() ||
-        index == hoverIndex) {
+    if (index == sidebar->currentIndex() || index == hoverIndex) {
         QRect r = option.rect;
         r.setLeft(0);
 

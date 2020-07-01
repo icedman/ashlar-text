@@ -155,7 +155,7 @@ bool Select::eventFilter(QObject* obj, QEvent* event)
             hide();
             return true;
         case Qt::Key_Return:
-            emit input->returnPressed();         
+            emit input->returnPressed();
             trigger();
             return true;
         case Qt::Key_Up:
@@ -198,12 +198,12 @@ void Select::updateSize()
     QApplication* app = qobject_cast<QApplication*>(QApplication::instance());
     QScrollArea* area = items->findChild<QScrollArea*>();
     QList<TouchableWidget*> allItems = area->findChildren<TouchableWidget*>();
-    
+
     int visibleItems = 0; // allItems.size();
     firstItem = qobject_cast<TouchableWidget*>(app->focusWidget());
 
-    QWidget *prev = 0;
-    for(auto item : allItems) {
+    QWidget* prev = 0;
+    for (auto item : allItems) {
         if (item->property("mounted").toBool()) {
             if (!firstItem) {
                 firstItem = item;

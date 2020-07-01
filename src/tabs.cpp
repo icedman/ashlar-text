@@ -56,7 +56,7 @@ void Tabs::removePreviewTag()
 {
     int previewIdx = findPreviewTab();
     if (previewIdx != -1) {
-        Editor *e = editor(previewIdx);
+        Editor* e = editor(previewIdx);
         setTabIcon(previewIdx, QIcon());
         e->setPreview(false);
     }

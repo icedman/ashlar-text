@@ -26,8 +26,8 @@ private:
 
     QLineEdit* input;
     QWidget* items;
-    TouchableWidget *firstItem;
-    
+    TouchableWidget* firstItem;
+
     QTimer updateTimer;
 
     QTimer animateTimer;

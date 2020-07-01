@@ -9,9 +9,10 @@
 
 #include "commands.h"
 #include "editor.h"
-#include "mainwindow.h"
-#include "sidebar.h"
 #include "js.h"
+#include "mainwindow.h"
+#include "process.h"
+#include "sidebar.h"
 
 static QString sanitizePath(QString path)
 {
@@ -24,6 +25,96 @@ static QString sanitizePath(QString path)
     qDebug() << path;
     qDebug() << projectPath;
     return QFileInfo(projectPath + "/" + path).absoluteFilePath();
+}
+
+//-----------------
+// limited process
+//-----------------
+int JSPs::requestProcess()
+{
+    Process* process = 0;
+    for (auto p : processes) {
+        if (p->isAvailable()) {
+            process = p;
+            break;
+        }
+    }
+
+    if (!process) {
+        process = new Process(this);
+        processes.append(process);
+        connect(process, SIGNAL(output(Process*, QString)), this, SLOT(output(Process*, QString)));
+        connect(process, SIGNAL(finished(Process*, int)), this, SLOT(finished(Process*, int)));
+    }
+
+    int id = processes.indexOf(process);
+    process->setProperty("id", id);
+
+    return id;
+}
+
+Process* JSPs::findProcess(int idx)
+{
+    if (idx >= 0 && idx < processes.size()) {
+        return processes[idx];
+    }
+    return NULL;
+}
+
+int JSPs::git()
+{
+    Process* process = findProcess(requestProcess());
+    if (!process) {
+        return -1;
+    }
+    process->init("git");
+    return processes.indexOf(process);
+}
+
+int JSPs::fzf()
+{
+    Process* process = findProcess(requestProcess());
+    process->init("fzf");
+    return processes.indexOf(process);
+}
+
+int JSPs::run(int idx, QStringList args)
+{
+    Process* process = findProcess(idx);
+    if (!process) {
+        return -1;
+    }
+    process->run(args);
+    return idx;
+}
+
+void JSPs::write(int idx, QString input)
+{
+    Process* process = findProcess(idx);
+    if (!process) {
+        return;
+    }
+    process->write(input);
+}
+
+void JSPs::output(Process* process, QString out)
+{
+    QStringList lines = out.split("\n");
+    if (lines.size() == 1) {
+        lines = out.split("\r");
+    }
+    for (auto l : lines) {
+        l = l.replace("\"", "&34;");
+        l = l.replace("\\", "&92;");
+        QString payload = process->program() + ":" + process->property("id").toString() + ":" + l;
+        MainWindow::instance()->emitEvent("processOut", payload);
+    }
+}
+
+void JSPs::finished(Process* process, int code)
+{
+    QString payload = process->program() + ":" + process->property("id").toString() + ":" + code;
+    MainWindow::instance()->emitEvent("processFinished", payload);
 }
 
 //-----------------
@@ -140,7 +231,7 @@ void JSApp::theme(QString name)
 
 void JSApp::toggleSidebar()
 {
-    MainWindow *mw = MainWindow::instance();
+    MainWindow* mw = MainWindow::instance();
     if (!mw->explorer()->isVisible()) {
         mw->explorer()->animateShow();
     } else {
@@ -231,18 +322,18 @@ void JSApp::zoomOut()
 
 void JSApp::setCursor(int line, int position, bool select)
 {
-    QTextBlock block = editor()->editor->document()->findBlockByLineNumber(line-1);
+    QTextBlock block = editor()->editor->document()->findBlockByLineNumber(line - 1);
     QTextCursor cursor = editor()->editor->textCursor();
     cursor.setPosition(position + block.position());
     editor()->editor->setTextCursor(cursor);
     // editor()->editor
 }
-    
+
 void JSApp::centerCursor()
 {
     editor()->editor->centerCursor();
 }
-    
+
 void JSApp::addExtraCursor()
 {
     editor()->editor->addExtraCursor();
@@ -332,25 +423,24 @@ QString JSApp::settings()
     const std::string output = Json::writeString(builder, MainWindow::instance()->settings);
     return output.c_str();
 }
-    
+
 void JSApp::updateSettings(QString settings)
 {
     Json::Value root;
     Json::Reader reader;
-    if (reader.parse( settings.toStdString().c_str(), root )) {
+    if (reader.parse(settings.toStdString().c_str(), root)) {
         if (root.isObject()) {
             std::vector<std::string> keys = root.getMemberNames();
-            for(auto k : keys) {
+            for (auto k : keys) {
                 // std::cout << k << std::endl;
                 MainWindow::instance()->settings[k] = root[k];
             }
         }
     }
 
-    MainWindow *mw = MainWindow::instance();
+    MainWindow* mw = MainWindow::instance();
     mw->applySettings();
     // todo force
     mw->currentEditor()->hide();
     mw->currentEditor()->show();
 }
-    

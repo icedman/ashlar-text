@@ -34,7 +34,7 @@ bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
     return true;
 }
 
-bool theme_application(theme_ptr theme, default_colors_t &default_colors)
+bool theme_application(theme_ptr theme, default_colors_t& default_colors)
 {
     QString basePath = QCoreApplication::applicationDirPath();
     QFile file(basePath + "/css/style.css");
@@ -45,7 +45,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     QString css = "";
 
     QColor borderColor;
-    
+
     QColor bgColor;
     if (!theme_color(theme, "editor.background", bgColor)) {
         // return false;
@@ -56,7 +56,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     }
 
     QColor fgDisabledColor = fgColor.darker(180);
-    
+
     // widgets in general
     QColor widgetBg = bgColor.darker(105);
     QColor widgetFg = fgColor.darker(110);
@@ -90,8 +90,8 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     // todo read border colors
     QColor tabItemBorderTop;
     QColor tabItemBorderLeft;
-    QColor tabItemBorderRight;    
-  
+    QColor tabItemBorderRight;
+
     if (!theme_color(theme, "tab.activeBackground", tabItemActiveBg)) {
         tabItemActiveBg = tabBg;
     }
@@ -112,7 +112,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     QColor tabItemHoverBorderTop = tabItemBg.darker(105);
     QColor tabItemHoverBorderLeft = tabItemBg.darker(105);
     QColor tabItemHoverBorderRight = tabItemBg.darker(105);
-    
+
     QColor tabItemActiveBorderTop = tabItemActiveBg.darker(105);
     QColor tabItemActiveBorderLeft = tabItemActiveBg.darker(105);
     QColor tabItemActiveBorderRight = tabItemActiveBg.darker(105);
@@ -175,7 +175,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     colors["@tabItemHoverBorderTop"] = tabItemHoverBorderTop.name();
     colors["@tabItemHoverBorderLeft"] = tabItemHoverBorderLeft.name();
     colors["@tabItemHoverBorderRight"] = tabItemHoverBorderRight.name();
-    
+
     colors["@tabItemActiveBorderTop"] = tabItemActiveBorderTop.name();
     colors["@tabItemActiveBorderLeft"] = tabItemActiveBorderLeft.name();
     colors["@tabItemActiveBorderRight"] = tabItemActiveBorderRight.name();
@@ -189,7 +189,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
 
     // qDebug () << statusBg.name();
     // save default colors
-    
+
     default_colors.bg = bgColor;
     default_colors.fg = fgColor;
     default_colors.widgetBg = widgetBg;

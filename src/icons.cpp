@@ -1,8 +1,8 @@
 #include <QDebug>
-#include <QPainter>
 #include <QDomDocument>
 #include <QDomElement>
 #include <QFile>
+#include <QPainter>
 #include <QSvgRenderer>
 
 #include <iostream>
@@ -26,15 +26,12 @@ enum icon_type_t { icon_none,
 static void SetAttrRecur(QDomElement elem, QString strtagname, QString strattr, QString strattrval)
 {
     // if it has the tagname then overwritte desired attribute
-    if (elem.tagName().compare(strtagname) == 0)
-    {
+    if (elem.tagName().compare(strtagname) == 0) {
         elem.setAttribute(strattr, strattrval);
     }
     // loop all children
-    for (int i = 0; i < elem.childNodes().count(); i++)
-    {
-        if (!elem.childNodes().at(i).isElement())
-        {
+    for (int i = 0; i < elem.childNodes().count(); i++) {
+        if (!elem.childNodes().at(i).isElement()) {
             continue;
         }
         SetAttrRecur(elem.childNodes().at(i).toElement(), strtagname, strattr, strattrval);
@@ -63,9 +60,8 @@ static QPixmap SVGIcon(QString path, int width, int height, QColor color)
     // use renderer to render over painter which paints on pixmap
     svgRenderer.render(&pixPainter);
     return pix;
-
 }
-    
+
 std::string to_utf8(uint32_t cp)
 {
     // https://stackoverflow.com/questions/28534221/c-convert-asii-escaped-unicode-string-into-utf8-string/47734595.
@@ -135,7 +131,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString filename, QString suffix, st
 
     std::string _suffix = suffix.toStdString();
     std::string cacheId = _suffix + color.name().toStdString();
-    
+
     static std::map<std::string, pixmap_wrapper_ptr> cache;
     auto it = cache.find(cacheId);
     if (it != cache.end()) {
@@ -160,7 +156,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString filename, QString suffix, st
     if (icons->definition.isMember(filename.toStdString())) {
         iconName = icons->definition[filename.toStdString()].asString();
     }
-    
+
     if (!iconName.length(), extensions.isMember(_suffix)) {
         iconName = extensions[_suffix].asString();
     }
@@ -186,7 +182,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString filename, QString suffix, st
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }
-    
+
     if (!iconName.length()) {
         return QPixmap();
     }
@@ -277,7 +273,7 @@ QPixmap icon_for_folder(icon_theme_ptr icons, QString folder, bool open, std::ve
 
     static std::map<std::string, pixmap_wrapper_ptr> cache;
     std::string cacheId = iconName + color.name().toStdString();
-    
+
     auto it = cache.find(cacheId);
     if (it != cache.end()) {
         // std::cout << "cached icon.." << std::endl;

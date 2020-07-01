@@ -8,8 +8,8 @@
 #include "extension.h"
 #include "icons.h"
 #include "json/json.h"
-#include "theme.h"
 #include "settings.h"
+#include "theme.h"
 
 #include "js.h"
 #include "qt/engine.h"
@@ -67,7 +67,7 @@ public:
 
     Sidebar* explorer() { return sidebar; }
     Tabs* tabbar() { return tabs; }
-    
+
     QSplitter* horizontalSplitter() { return splitter; }
     QSplitter* verticalSplitter() { return splitterv; }
 
@@ -77,7 +77,7 @@ public:
     icon_theme_ptr icons;
     icon_theme_ptr icons_default;
     default_colors_t colors;
-    
+
     editor_settings_ptr editor_settings;
     Json::Value settings;
 
@@ -93,7 +93,7 @@ public slots:
     void closeTab(int index);
     void closeAllTabs();
     void closeCurrentTab();
-    
+
     void loadAllExtensions();
 
 private Q_SLOTS:
@@ -115,6 +115,7 @@ private:
 
     QTimer updateTimer;
 
+    JSPs jsPs;
     JSFs jsFs;
     JSApp jsApp;
     Engine* engine;
