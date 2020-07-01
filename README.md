@@ -24,37 +24,40 @@ It does however uses webkit as its scripting engine - with the aim to easily for
 * auto-indent
 * bracket matching
 * bracket folding
+* ui: fuzzy file search
 
 # extras
 * animated sidebar
 
 # needs improvement
 * extension support
-* ui: fuzzy command palette (somewhat working)
-* ui: fuzzy file search (somewhat working)
+* ui: fuzzy command palette (use property command title/nls)
 * ui: menu (somewhat working)
 * auto complete (QCompleter doesn't always work as expected - not fuzzy)
-* ui in general (stabilize js-qt - too many.. create destroy.. add cached widgets)
 * ui improve flatlist (currently limited to 20 items)
+* bracket pairing
 
 # todo
+* preview mode
 * file search, fuzzy search
 * file system watch (on rename)
-* bracket pairing
 * git gutter
 * ui: dialog
 * package management
 * terminal
 * qprocess extension
-* icon fonts (fontawesome?)
-* handle paste of large files
+
+# needs refactoring
+* commands
+* editor/tmedit code
+* everything
 
 # issues
-* problem with very long lines
 * re-render minimap on resize window
 
 # wish list
 * atom or vscode extensions compatibility - possible at all?
+* provide wrapper/proxy for atom/vscode modules
 
 # progress screenshots
 

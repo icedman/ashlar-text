@@ -4,7 +4,9 @@
 #include <QTimer>
 #include <QtWidgets>
 
+class TouchableWidget;
 class QLineEdit;
+
 class Select : public QWidget {
     Q_OBJECT
 public:
@@ -24,6 +26,8 @@ private:
 
     QLineEdit* input;
     QWidget* items;
+    TouchableWidget *firstItem;
+    
     QTimer updateTimer;
 
     QTimer animateTimer;

@@ -7,6 +7,7 @@
 #include "Cubic.h"
 #include "mainwindow.h"
 #include "sidebar.h"
+#include "tabs.h"
 
 FileSystemModel::FileSystemModel(QObject* parent)
     : QFileSystemModel(parent)
@@ -58,16 +59,22 @@ Sidebar::Sidebar(QWidget* parent)
     , animateTimer(this)
     , clickTimer(this)
 {
+    itemDelegate = new SidebarItemDelegate();
+    itemDelegate->sidebar = this;
+
+    setMouseTracking(true);
+    setItemDelegate(itemDelegate);
     setHeaderHidden(true);
     setAnimated(true);
     hide();
 
     setIndentation(16);
-    setMinimumSize(250, 0);
+    setMinimumSize(0, 0);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     clickTimer.setSingleShot(true);
 
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(onAnimate()));
+    connect(this, SIGNAL(hoverIndexChanged(const QModelIndex&)), itemDelegate, SLOT(onHoverIndexChanged(const QModelIndex&)));
 }
 
 void Sidebar::setRootPath(QString path, bool deferred, bool show)
@@ -102,6 +109,7 @@ void Sidebar::setActiveFile(QString path)
     }
     QModelIndex index = ((QFileSystemModel*)model())->index(path);
     if (index.isValid()) {
+        setCurrentIndex(index);
         setSelection(visualRect(index), QItemSelectionModel::ClearAndSelect);
     }
 }
@@ -136,6 +144,47 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
     }
 }
 
+void Sidebar::trigger(int button)
+{
+    QModelIndex index = currentIndex();
+    if (index.isValid()) {
+        MainWindow* mw = MainWindow::instance();
+        QString fileName = fileModel->filePath(index);
+
+        if (mw->currentEditor()->fileName == fileName) {
+            mw->tabbar()->removePreviewTag();
+            return;
+        }
+        
+        QString btn = button == Qt::RightButton ? "right" : "left";
+        mw->emitEvent("sidebarItemClicked", "{\"path\": \"" + fileName + "\", \"button\": \"" + btn + "\"}");
+        if (btn == "right") {
+            return;
+        }
+
+        if (QFileInfo(fileName).isDir()) {
+            isExpanded(index) ? collapse(index) : expand(index);
+        } else {
+            mw->openFile(fileName);
+        }
+    }
+}
+   
+void Sidebar::paintEvent(QPaintEvent* event)
+{
+    QTreeView::paintEvent(event);
+}
+
+void Sidebar::keyPressEvent(QKeyEvent* event)
+{
+    bool isEnter = (!(event->modifiers() & Qt::ControlModifier) && (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Enter - 1));
+    if (isEnter) {
+        trigger(Qt::LeftButton);
+    }
+    
+    QTreeView::keyPressEvent(event);
+}
+    
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 {
     // QTreeView::mouseDoubleClickEvent(event);
@@ -150,24 +199,15 @@ void Sidebar::mousePressEvent(QMouseEvent* event)
     }
     clickTimer.start(150);
 
-    QModelIndex index = currentIndex();
-    if (index.isValid()) {
-        MainWindow* mw = MainWindow::instance();
-        QString fileName = fileModel->filePath(index);
-
-        QString btn = event->button() == Qt::RightButton ? "right" : "left";
-        mw->emitEvent("sidebarItemClicked", "{\"path\": \"" + fileName + "\", \"button\": \"" + btn + "\"}");
-        if (btn == "right") {
-            return;
-        }
-
-        if (QFileInfo(fileName).isDir()) {
-            isExpanded(index) ? collapse(index) : expand(index);
-        } else {
-            mw->openFile(fileName);
-        }
-    }
+    trigger(event->button());
 }
+
+void Sidebar::mouseMoveEvent(QMouseEvent *event)
+{
+    QModelIndex index = indexAt(event->pos());
+    emit hoverIndexChanged(index);
+}
+    
 void Sidebar::_setRootPath()
 {
     MainWindow* mw = MainWindow::instance();
@@ -202,7 +242,7 @@ void Sidebar::animateShow()
     }
 
     MainWindow* mw = MainWindow::instance();
-    animTime = -250;
+    animTime = -25;
     width = 0;
     targetWidth = 250;
 
@@ -211,7 +251,7 @@ void Sidebar::animateShow()
 }
 
 void Sidebar::animateHide()
-{
+{   
     hide();
 }
 
@@ -228,6 +268,10 @@ void Sidebar::onAnimate()
     if (animTime >= duration) {
         width = targetWidth;
         animateTimer.stop();
+
+        if (width == 0) {
+            hide();
+        }
     }
 
     setVisible(width > 0);
@@ -295,4 +339,26 @@ QStringList Sidebar::allFiles()
         fetchFiles(fs, fs->index(rootPath), files);
     }
     return files;
+}
+
+void SidebarItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (index == sidebar->currentIndex() ||
+        index == hoverIndex) {
+        QRect r = option.rect;
+        r.setLeft(0);
+
+        painter->setOpacity(0.7);
+        painter->fillRect(r, MainWindow::instance()->colors.treeHoverBg);
+        painter->setOpacity(1.0);
+
+        // if (sidebar->isExpandable(index) && sidebar->isExpanded(index)) {
+        // }
+    }
+    QStyledItemDelegate::paint(painter, option, index);
+}
+
+void SidebarItemDelegate::onHoverIndexChanged(const QModelIndex& index)
+{
+    hoverIndex = index;
 }

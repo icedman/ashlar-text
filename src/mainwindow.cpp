@@ -118,8 +118,8 @@ void MainWindow::configure()
         }
     }
 
+    
     // load_extensions(QString("./extensions"), extensions);
-
     if (settings["theme"].isString()) {
         theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
     } else {
@@ -133,14 +133,52 @@ void MainWindow::configure()
         icons_default = icon_theme_from_name(settings["default_icons"].asString().c_str(), extensions);
     }
 
+}
+
+void MainWindow::loadTheme(const QString& name)
+{
+    theme_ptr _theme = theme_from_name(name, extensions);
+    if (_theme) {
+        // swap(theme, _theme);
+        theme = _theme;
+        applyTheme();
+    }
+}
+
+void MainWindow::applyTheme()
+{
+    theme_application(theme, colors);
+
+    // update all editors
+    for (int i = 0; i < editors->count(); i++) {
+        Editor* editor = (Editor*)editors->widget(i);
+        editor->setTheme(theme);
+    }
+
+    // register icons
+    engine->registerIcon("close", icon_for_file(icons_default, "close", "icon_close", extensions, colors.tabFg));
+    engine->registerIcon("wrap", icon_for_file(icons_default, "wrap", "icon_wrap", extensions, colors.tabFg));
+    engine->registerIcon("preview", icon_for_file(icons_default, "preview", "icon_preview", extensions, colors.tabFg));
+
+    // reapply closeButton color
+    closeButton->setIcon(engine->icon("close"));
+}
+
+void MainWindow::setHost(QString path)
+{
+    hostPath = path;
+}
+
+void MainWindow::applySettings()
+{
     // editor settings
     editor_settings->mini_map = settings.isMember("mini_map") && settings["mini_map"] == true;
     editor_settings->gutter = settings.isMember("gutter") && settings["gutter"] == true;
 
     if (settings.isMember("font")) {
-        editor_settings->font = settings["font"].asString();
+        strncpy(editor_settings->font, settings["font"].asString().c_str(), 32);
     } else {
-        editor_settings->font = "monospace";
+        strcpy(editor_settings->font, "monospace");
     }
 
     if (settings.isMember("font_size")) {
@@ -178,57 +216,23 @@ void MainWindow::configure()
     if (editor_settings->tab_size > 8) {
         editor_settings->tab_size = 8;
     }
-}
-
-void MainWindow::loadTheme(const QString& name)
-{
-    theme_ptr _theme = theme_from_name(name, extensions);
-    if (_theme) {
-        // swap(theme, _theme);
-        theme = _theme;
-        applyTheme();
-    }
-}
-
-void MainWindow::applyTheme()
-{
-    theme_application(theme, colors);
-
-    // update all editors
-    for (int i = 0; i < editors->count(); i++) {
-        Editor* editor = (Editor*)editors->widget(i);
-        editor->setTheme(theme);
-    }
-
-    // register icons
-    engine->registerIcon("close", icon_for_file(icons_default, "close", "icon_close", extensions, colors.tabFg));
-    engine->registerIcon("sync", icon_for_file(icons_default, "sync", "icon_sync", extensions, colors.tabFg));
-
-    // reapply closeButton color
-    closeButton->setIcon(engine->icon("close"));
-}
-
-void MainWindow::setHost(QString path)
-{
-    hostPath = path;
-}
-
-void MainWindow::applySettings()
-{
+    
     if (settings.isMember("sidebar") && settings["sidebar"] == true) {
         QFont font;
-        font.setFamily(editor_settings->font.c_str());
+        font.setFamily(editor_settings->font);
         font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         sidebar->setFont(font);
-        // sidebar->show();
+        if (sidebar->root() != "") {
+            sidebar->animateShow();
+        }
     } else {
         sidebar->hide();
     }
 
     if (settings.isMember("statusbar") == true) {
         QFont font;
-        font.setFamily(editor_settings->font.c_str());
+        font.setFamily(editor_settings->font);
         font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         statusBar()->setFont(font);
@@ -257,8 +261,8 @@ void MainWindow::setupLayout()
     tabs->setExpanding(false);
     tabs->setTabsClosable(false);
 
-    connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabSelected(int)));
-    connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(tabClose(int)));
+    connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(selectTab(int)));
+    connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
     QWidget* mainPane = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
@@ -298,7 +302,7 @@ void MainWindow::newFile(const QString& path)
     Editor* editor = createEditor();
     editors->addWidget(editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(editor));
-    tabSelected(tabIdx);
+    selectTab(tabIdx);
 
     if (path.isEmpty()) {
         editor->setLanguage(language_from_file("untitled.txt", extensions));
@@ -377,7 +381,7 @@ void MainWindow::openFile(const QString& path)
         if (currentEditor()->fileName != fileName) {
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
-            tabSelected(tabs->findTabByPath(currentEditor()->fileName));
+            selectTab(tabs->findTabByPath(currentEditor()->fileName));
         }
 
         if (tabs->count() == 2) {
@@ -386,7 +390,7 @@ void MainWindow::openFile(const QString& path)
             if (idx != -1) {
                 Editor* e = tabs->editor(idx);
                 if (e && !e->editor->document()->isUndoAvailable()) {
-                    tabClose(idx);
+                    closeTab(idx);
                 }
             }
         }
@@ -408,7 +412,7 @@ Editor* MainWindow::createEditor()
     return editor;
 }
 
-void MainWindow::tabSelected(int index)
+void MainWindow::selectTab(int index)
 {
     if (index >= tabs->count()) {
         index = tabs->count() - 1;
@@ -434,14 +438,14 @@ void MainWindow::tabSelected(int index)
 
 void MainWindow::closeCurrentTab()
 {
-    tabClose(currentTab());
+    closeTab(currentTab());
 }
-
+    
 void MainWindow::closeAllTabs()
 {
     for (auto path : editorsPath()) {
         int idx = tabs->findTabByPath(path);
-        tabClose(idx);
+        closeTab(idx);
         if (tabs->findTabByPath(path) != -1) {
             // close cancelled
             break;
@@ -449,14 +453,14 @@ void MainWindow::closeAllTabs()
     }
 }
 
-void MainWindow::tabClose(int index)
+void MainWindow::closeTab(int index)
 {
     bool untitledTab = false;
 
     // std::cout << "Close " << index << std::endl;
 
     if (index >= 0 && index < tabs->count()) {
-        tabSelected(index);
+        selectTab(index);
         untitledTab = (tabs->tabText(0) == UNTITLED_TEXT);
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
@@ -517,7 +521,7 @@ void MainWindow::tabClose(int index)
         return;
     }
 
-    tabSelected(index);
+    selectTab(index);
 }
 
 Editor* MainWindow::openTab(const QString& _path)
@@ -545,25 +549,40 @@ Editor* MainWindow::openTab(const QString& _path)
     }
 
     if (tabIdx != -1) {
-        tabSelected(tabIdx);
+        selectTab(tabIdx);
         return currentEditor();
     }
-
+    
     QString _fileName = QFileInfo(path).fileName();
     if (_fileName.isEmpty()) {
         _fileName = UNTITLED_TEXT;
         path = QFileInfo(_fileName).absoluteFilePath();
     }
 
-    tabIdx = tabs->insertTab(tabInsertIndex, _fileName);
+    int previewTab = tabs->findPreviewTab();
+    if (previewTab != -1) {
+        Editor *previewEditor = tabs->editor(previewTab);
+        tabIdx = previewTab;
+    }
+
+    if (tabIdx == -1) {
+        tabIdx = tabs->insertTab(tabInsertIndex, _fileName);
+    }
+    
     Editor* _editor = createEditor(); // << creates a new editor
     editors->addWidget(_editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
-    tabSelected(tabIdx);
+    tabs->setTabText(tabIdx, QFileInfo(_fileName).fileName());
+    tabs->setTabIcon(tabIdx, engine->icon("preview"));
+    tabs->setIconSize(QSize(16,16));
+    
+    selectTab(tabIdx);
+
     return _editor;
 }
 
 int MainWindow::currentTab() { return tabs->currentIndex(); }
+
 void MainWindow::setupMenu()
 {
     // File

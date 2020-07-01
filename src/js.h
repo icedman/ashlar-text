@@ -36,6 +36,11 @@ public slots:
     void exit();
     void theme(QString name);
 
+    void toggleSidebar();
+    
+    QString settings();
+    void updateSettings(QString settings);
+
     QString projectPath();
 
     // active editor
@@ -52,6 +57,8 @@ public slots:
     void zoomOut();
     void addExtraCursor();
     void removeExtraCursors();
+    void setCursor(int line, int position, bool select);
+    void centerCursor();
     bool find(QString string, QString options = QString());
     bool findAndCreateCursor(QString string, QString options = QString());
     QString selectedText();

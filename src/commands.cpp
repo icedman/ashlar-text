@@ -104,7 +104,7 @@ static bool Commands::removeTab(Editor const* editor, QTextCursor cursor)
 
     bool isWhiteSpace = false;
     QTextCursor cs(cursor);
-    if (cs.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor)) {
+    if (cs.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, 2)) {
         isWhiteSpace = (cs.selectedText().trimmed().length() == 0);
     }
 
@@ -540,12 +540,24 @@ static bool Commands::find(Editor const* editor, QString string, QString options
     if (options.indexOf("whole_") != -1) {
         flags |= QTextDocument::FindWholeWords;
     }
+    if (options.indexOf("search_up") != -1) {
+        flags |= QTextDocument::FindBackward;
+    }
 
     if (!regex) {
         if (!e->find(string, flags)) {
+            if (options.indexOf("wrap") == -1) {
+                return false;
+            }
             QTextCursor cursor = e->textCursor();
             QTextCursor cs(cursor);
-            cs.movePosition(QTextCursor::Start);
+
+            if (flags & QTextDocument::FindBackward) {
+                cs.movePosition(QTextCursor::End);
+            } else {
+                cs.movePosition(QTextCursor::Start);
+            }
+            
             e->setTextCursor(cs);
             if (!e->find(string, flags)) {
                 e->setTextCursor(cursor);
@@ -556,14 +568,24 @@ static bool Commands::find(Editor const* editor, QString string, QString options
         }
 
         // e->centerCursor();
+        e->paintToBuffer();
         return true;
     }
 
     QRegExp regx(string);
     if (!e->find(regx, flags)) {
+        if (options.indexOf("wrap") == -1) {
+            return false;
+        }
         QTextCursor cursor = e->textCursor();
         QTextCursor cs(cursor);
-        cs.movePosition(QTextCursor::Start);
+        
+        if (flags & QTextDocument::FindBackward) {
+            cs.movePosition(QTextCursor::End);
+        } else {
+            cs.movePosition(QTextCursor::Start);
+        }
+        
         e->setTextCursor(cs);
         if (!e->find(regx, flags)) {
             e->setTextCursor(cursor);
@@ -574,6 +596,7 @@ static bool Commands::find(Editor const* editor, QString string, QString options
     }
 
     // e->centerCursor();
+    e->paintToBuffer();
     return true;
 }
 

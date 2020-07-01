@@ -68,13 +68,13 @@ QTreeView::item {
   padding: 2px;
 }
 QTreeView::item::hover {
-  background: @treeItemHoverBg;
+  background: transparent;
   color: @treeItemHoverFg;
   border: none;
 }
 QTreeView::item::!selected::focus,
 QTreeView::item::selected {
-  background: @treeItemActiveBg;
+  background: transparent;
   color: @treeItemActiveFg;
   border: none;
 }

@@ -14,11 +14,19 @@
 		},
 		"_sync": {
 			"iconPath": "./fa/sync.svg"
+		},
+		"_wrap": {
+			"iconPath": "./fa/retweet.svg"
+		},
+		"_preview": {
+			"iconPath": "./fa/eye.svg"
 		}
 	},
 	"folderExpanded": "_folder_open",
 	"folder": "_folder",
 	"file": "_file",
 	"close": "_close",
-	"sync": "_sync"
+	"wrap": "_wrap",
+	"sync": "_sync",
+	"preview": "_preview"
 }

@@ -4,6 +4,8 @@
 #include <QTabBar>
 
 class Editor;
+class QToolButton;
+
 class Tabs : public QTabBar {
     Q_OBJECT
 public:
@@ -11,6 +13,8 @@ public:
 
     int findTabByName(QString name);
     int findTabByPath(QString path);
+    int findPreviewTab();
+    void removePreviewTag();
 
     Editor* editor(int idx);
 };

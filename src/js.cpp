@@ -5,10 +5,12 @@
 #include <QLineEdit>
 #include <QPushButton>
 
+#include <iostream>
+
 #include "commands.h"
 #include "editor.h"
 #include "mainwindow.h"
-
+#include "sidebar.h"
 #include "js.h"
 
 static QString sanitizePath(QString path)
@@ -78,7 +80,7 @@ void JSApp::log(QString log)
 void JSApp::tab(int i)
 {
     MainWindow* mw = MainWindow::instance();
-    mw->tabSelected(i);
+    mw->selectTab(i);
 }
 
 void JSApp::newTab()
@@ -90,7 +92,7 @@ void JSApp::newTab()
 void JSApp::closeTab()
 {
     MainWindow* mw = MainWindow::instance();
-    mw->tabClose(mw->currentTab());
+    mw->closeCurrentTab();
 }
 
 void JSApp::exit()
@@ -134,6 +136,16 @@ void JSApp::theme(QString name)
 {
     MainWindow* mw = MainWindow::instance();
     mw->loadTheme(name);
+}
+
+void JSApp::toggleSidebar()
+{
+    MainWindow *mw = MainWindow::instance();
+    if (!mw->explorer()->isVisible()) {
+        mw->explorer()->animateShow();
+    } else {
+        mw->explorer()->animateHide();
+    }
 }
 
 QString JSApp::projectPath()
@@ -217,6 +229,20 @@ void JSApp::zoomOut()
     // editor()->invalidateBuffers();
 }
 
+void JSApp::setCursor(int line, int position, bool select)
+{
+    QTextBlock block = editor()->editor->document()->findBlockByLineNumber(line-1);
+    QTextCursor cursor = editor()->editor->textCursor();
+    cursor.setPosition(position + block.position());
+    editor()->editor->setTextCursor(cursor);
+    // editor()->editor
+}
+    
+void JSApp::centerCursor()
+{
+    editor()->editor->centerCursor();
+}
+    
 void JSApp::addExtraCursor()
 {
     editor()->editor->addExtraCursor();
@@ -299,3 +325,32 @@ void JSApp::openFile(QString path)
     qDebug() << sanitized;
     MainWindow::instance()->openFile(sanitized);
 }
+
+QString JSApp::settings()
+{
+    Json::StreamWriterBuilder builder;
+    const std::string output = Json::writeString(builder, MainWindow::instance()->settings);
+    return output.c_str();
+}
+    
+void JSApp::updateSettings(QString settings)
+{
+    Json::Value root;
+    Json::Reader reader;
+    if (reader.parse( settings.toStdString().c_str(), root )) {
+        if (root.isObject()) {
+            std::vector<std::string> keys = root.getMemberNames();
+            for(auto k : keys) {
+                // std::cout << k << std::endl;
+                MainWindow::instance()->settings[k] = root[k];
+            }
+        }
+    }
+
+    MainWindow *mw = MainWindow::instance();
+    mw->applySettings();
+    // todo force
+    mw->currentEditor()->hide();
+    mw->currentEditor()->show();
+}
+    

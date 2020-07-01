@@ -196,6 +196,7 @@ bool theme_application(theme_ptr theme, default_colors_t &default_colors)
     default_colors.widgetFg = widgetFg;
     default_colors.treeBg = treeBg;
     default_colors.treeFg = treeFg;
+    default_colors.treeHoverBg = itemHoverBg;
     default_colors.tabBg = tabBg;
     default_colors.tabFg = tabFg;
     default_colors.statusBg = statusBg;

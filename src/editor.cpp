@@ -5,6 +5,7 @@
 #include "commands.h"
 #include "editor.h"
 #include "gutter.h"
+#include "tabs.h"
 #include "mainwindow.h"
 #include "minimap.h"
 #include "reader.h"
@@ -22,6 +23,7 @@ Editor::Editor(QWidget* parent)
     , savingTimer(this)
     , updateTimer(this)
     , dirty(false)
+    , preview(true)
 {
     savingTimer.setSingleShot(true);
     connect(&watcher, SIGNAL(fileChanged(const QString&)), this, SLOT(fileChanged(const QString&)));
@@ -99,8 +101,21 @@ void Editor::invalidateBuffers()
     }
 }
 
+bool Editor::isPreview() {
+    return preview;
+}
+
+void Editor::setPreview(bool p)
+{
+    preview = p;
+}
+
 void Editor::makeDirty(bool undoAvailable)
 {
+    if (preview) {
+        MainWindow::instance()->tabbar()->removePreviewTag();
+        preview = false;
+    }
     dirty = undoAvailable;
 }
 
@@ -215,7 +230,7 @@ void Editor::setupEditor()
     }
 
     QFont font;
-    font.setFamily(settings->font.c_str());
+    font.setFamily(settings->font);
     font.setPointSize(settings->font_size);
     font.setFixedPitch(true);
 

@@ -78,6 +78,8 @@ let TouchState;
 const FuzzyList = ({ item }) => {
     const [state, setState] = React.useState({
         find: '',
+        placeholder: '',
+        mode: '',
         data: data,
         update: uuid()
     });
@@ -96,14 +98,16 @@ const FuzzyList = ({ item }) => {
     }, 150);
 
     const onSearch = evt => {
-        console.log('execute search!');
-        console.log(state.find);
+        if (state.mode === 'line') {
+            app.setCursor(state.find, 0, false);
+        }        
     };
 
-    const touchState = data => {
+    const touchState = (data, args) => {
         setState({
             find: '',
             data: data,
+            ...(args ||{}),
             update: uuid()
         });
     };
@@ -124,6 +128,7 @@ const FuzzyList = ({ item }) => {
             <TextInput
                 id="select::input"
                 // text={state.find}
+                placeholder={state.placeholder}
                 onChangeText={onFindChanged}
                 onSubmitEditing={onSearch}
                 style={styles.input}
@@ -142,19 +147,24 @@ const FuzzyList = ({ item }) => {
 
 /* commands */
 const show_command_search = args => {
-    data = Object.keys(ashlar.commands.commands()).map(c => {
-        return {
-            title: c,
-            command: c
-        };
-    });
-    fuse = new Fuse(data, options);
-    TouchState(data);
+    if (args == ':') {
+        data = [];
+        args = { mode: 'line', placeholder: 'jump to line number' }
+    } else {
+        data = Object.keys(ashlar.commands.commands()).map(c => {
+            return {
+                title: c,
+                command: c
+            };
+        });
+    }
+    fuse = new Fuse(data, { ...options } );
+    TouchState(data, { mode: 'command', placeholder: 'find command', ...(args || {})});
     setTimeout(() => {
         app.showCommandPalette();
     }, 50);
 };
-
+    
 const show_file_search = args => {
     let files = app.allFiles();
     data = files.map(f => {
@@ -166,7 +176,7 @@ const show_file_search = args => {
         return { title: leafname, path: f };
     });
     fuse = new Fuse(data, { ...options, minMatchCharLength: 1 });
-    TouchState([]);
+    TouchState([], { mode: 'file', placeholder: 'find file' } );
     setTimeout(() => {
         app.showCommandPalette();
     }, 50);
@@ -174,18 +184,25 @@ const show_file_search = args => {
 
 const fuzzy_commands = [
     {
+        name: 'show_line_jump',
+        action: () => {
+            show_command_search(':');
+        },
+        keys: 'ctrl+g'
+    },
+    {
         name: 'show_command_search',
         action: () => {
             show_command_search();
         },
-        keys: 'ctrl+p'
+        keys: 'ctrl+shift+p'
     },
     {
         name: 'show_file_search',
         action: () => {
             show_file_search();
         },
-        keys: 'ctrl+shift+p'
+        keys: 'ctrl+p'
     }
 ];
 

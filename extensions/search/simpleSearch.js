@@ -30,7 +30,10 @@ const styles = StyleSheet.create({
     },
     icon: {
         margin: 2,
-        border: 'none'
+        padding: 4,
+        border: 'none',
+        iconWidth: 16,
+        iconHeight: 16
     },
     button: {
         margin: 2
@@ -96,7 +99,7 @@ const SearchPanel = props => {
           <Button text='.*' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, regex: evt.target.value}); }}/>
           <Button text='Aa' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, cased: evt.target.value}); }}/>
           <Button text='""' style={styles.icon} checkable onClick={(evt)=>{ setState({...state, word:  evt.target.value}); }}/>
-          <Button icon='sync' style={styles.icon} checked={state.wrap} checkable onClick={(evt)=>{ setState({...state, wrap:  evt.target.value}); }}/>
+          <Button icon='wrap' style={styles.icon} checked={state.wrap} checkable onClick={(evt)=>{ setState({...state, wrap:  evt.target.value}); }}/>
           <TextInput id='panel::search::input' text={state.find} style={styles.input}
               onChangeText={onFindChanged}
               onSubmitEditing={onSearch}

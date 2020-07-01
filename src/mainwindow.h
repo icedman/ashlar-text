@@ -65,6 +65,9 @@ public:
 
     static MainWindow* instance();
 
+    Sidebar* explorer() { return sidebar; }
+    Tabs* tabbar() { return tabs; }
+    
     QSplitter* horizontalSplitter() { return splitter; }
     QSplitter* verticalSplitter() { return splitterv; }
 
@@ -86,10 +89,11 @@ protected:
 
 public slots:
     void warmConfigure();
-    void tabSelected(int index);
-    void tabClose(int index);
+    void selectTab(int index);
+    void closeTab(int index);
     void closeAllTabs();
     void closeCurrentTab();
+    
     void loadAllExtensions();
 
 private Q_SLOTS:

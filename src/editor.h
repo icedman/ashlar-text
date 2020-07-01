@@ -23,7 +23,6 @@ struct editor_settings_t {
     bool mini_map;
     bool gutter;
     float font_size;
-    std::string font;
     int tab_size;
     bool tab_to_spaces;
     bool word_wrap;
@@ -31,6 +30,7 @@ struct editor_settings_t {
     bool auto_close;
     bool debug_scopes;
     bool smooth_scroll;
+    char font[64];
 };
 
 typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;
@@ -50,6 +50,9 @@ public:
     bool saveFile(const QString& path = QString());
     void newFile(const QString& path = QString());
     void toggleFold(size_t line);
+
+    bool isPreview();
+    void setPreview(bool p);
 
     void invalidateBuffers();
     bool hasUnsavedChanges();
@@ -86,6 +89,7 @@ private:
     QFileSystemWatcher watcher;
 
     bool dirty;
+    bool preview;
 
 private Q_SLOTS:
     void updateScrollBar();

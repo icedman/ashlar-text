@@ -40,7 +40,8 @@ const baseCommands = [
     { name: "zoom_out",                 action: () => { app.zoomOut(); }},
     { name: "new_tab",                  action: () => { app.newTab(); }},
     { name: "close_tab",                action: () => { app.closeTab(); }},
-    { name: "open_tab",                 action: (tabIndex) => { app.tab(tabIndex); }}
+    { name: "open_tab",                 action: (tabIndex) => { app.tab(tabIndex); }},
+    { name: "toggle_sidebar",           action: () => { app.toggleSidebar(); }},
 ]
 
 baseCommands.forEach(cmd => {
