@@ -16,11 +16,13 @@
    "_theme": "Monokai",
    "_theme": "Bluloco Light",
    "_theme": "Bluloco Dark",
-   "_theme": "Dracula",
-   "theme": "Shades of Purple",
+   "theme": "Dracula",
+   "_theme": "Shades of Purple",
    
-   "_icon_theme": "vs-seti",
-   "icon_theme": "material-icon-theme",
+   "icon_theme": "vs-seti",
+   "_icon_theme": "material-icon-theme",
+   
+   "default_icons": "editor-icons",
 
    "gutter": true,
    "mini_map": true,
