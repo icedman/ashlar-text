@@ -17,7 +17,7 @@ MiniMap::MiniMap(QWidget* parent)
     connect(&animateTimer, SIGNAL(timeout()), this, SLOT(updateScroll()));
 }
 
-static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float advanceY)
+static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float advanceY, int h = 1)
 {
     if (!block.isValid()) {
         return -1;
@@ -32,6 +32,9 @@ static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float adva
             int w = span.length;
             p.setPen(QColor(span.red, span.green, span.blue));
             p.drawLine(x, y - offsetY, x + w, y - offsetY);
+            if (h == 2) {
+                p.drawLine(x, y - offsetY + 1, x + w, y - offsetY + 1);
+            }
         }
         // p.drawPixmap(0, y - offsetY, 120, 8, blockData->buffer, 0,0,blockData->buffer.width(), blockData->buffer.height());
         return y - offsetY;
@@ -42,6 +45,7 @@ static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float adva
 
 void MiniMap::paintEvent(QPaintEvent* event)
 {
+    float scaleX = 0.75;
     float advanceY = 2.0;
 
     if (editor->highlighter->isDirty() || buffer.height() != height()) {
@@ -53,7 +57,9 @@ void MiniMap::paintEvent(QPaintEvent* event)
         pt.drawPixmap(rect(), buffer, buffer.rect());
         QTextCursor cursor = editor->editor->textCursor();
         QTextBlock block = cursor.block();
-        renderOneLine(pt, block, offsetY, advanceY);
+        
+        pt.scale(scaleX, 1);
+        renderOneLine(pt, block, offsetY, advanceY, 2);
         return;
     }
 
@@ -61,7 +67,6 @@ void MiniMap::paintEvent(QPaintEvent* event)
 
     QTextDocument* doc = editor->editor->document();
     int lines = doc->lineCount() + 1;
-    float scaleX = 0.75;
 
     offsetY = 0;
 

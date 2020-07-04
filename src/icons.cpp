@@ -164,7 +164,7 @@ QPixmap icon_for_file(icon_theme_ptr icons, QString filename, QString suffix, st
     if (!iconName.length()) {
         Json::Value languageIds = icons->definition["languageIds"];
 
-        std::string _fileName = "x." + _suffix;
+        std::string _fileName = "file." + _suffix;
         language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
         if (lang) {
             if (languageIds.isMember(lang->id)) {

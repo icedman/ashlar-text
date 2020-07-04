@@ -56,6 +56,7 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent)
     , fileModel(0)
+    , lastWidth(0)
     , animateTimer(this)
     , clickTimer(this)
 {
@@ -208,6 +209,11 @@ void Sidebar::mouseMoveEvent(QMouseEvent* event)
     emit hoverIndexChanged(index);
 }
 
+void Sidebar::leaveEvent(QEvent* event)
+{
+    emit hoverIndexChanged(QModelIndex());
+}
+
 void Sidebar::_setRootPath()
 {
     MainWindow* mw = MainWindow::instance();
@@ -243,8 +249,11 @@ void Sidebar::animateShow()
 
     MainWindow* mw = MainWindow::instance();
     animTime = -25;
-    width = 0;
-    targetWidth = 250;
+    startWidth = 0;
+    targetWidth = lastWidth;
+    if (targetWidth < 250) {
+        targetWidth = 250;
+    }
 
     mw->horizontalSplitter()->setSizes({ 0, mw->width() });
     animateTimer.start(25);
@@ -252,7 +261,21 @@ void Sidebar::animateShow()
 
 void Sidebar::animateHide()
 {
+    MainWindow* mw = MainWindow::instance();
+    lastWidth = mw->horizontalSplitter()->sizes()[0];
     hide();
+    /*
+    if (!isVisible()) {
+        return;
+    }
+
+    animTime = -25;
+    startWidth = mw->horizontalSplitter()->sizes()[0];
+    targetWidth = 0;
+
+    // mw->horizontalSplitter()->setSizes({ 0, mw->width() });
+    animateTimer.start(25);
+    */
 }
 
 void Sidebar::onAnimate()
@@ -264,16 +287,24 @@ void Sidebar::onAnimate()
     if (animTime < 0) {
         return;
     }
-    width = Cubic::easeOut(animTime, 0, targetWidth, duration);
+    int s = startWidth;
+    int t = targetWidth;
+    if (targetWidth == 0) {
+        t = s;
+        s = 0;
+    }
+    int width = Cubic::easeOut(animTime, s, t, duration);
     if (animTime >= duration) {
-        width = targetWidth;
+        width = t;
         animateTimer.stop();
-
-        if (width == 0) {
-            hide();
-        }
     }
 
+    // qDebug() << startWidth << targetWidth << width;
+
+    if (targetWidth == 0) {
+        width = startWidth - width;
+    }
+    
     setVisible(width > 0);
     mw->horizontalSplitter()->setSizes({ width, mw->width() });
 }

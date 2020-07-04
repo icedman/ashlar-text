@@ -63,6 +63,7 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
     QTimer animateTimer;
     QTimer clickTimer;
@@ -72,8 +73,9 @@ protected:
     SidebarItemDelegate* itemDelegate;
 
     float animTime;
-    float width;
+    float startWidth;
     float targetWidth;
+    float lastWidth;
 
     bool showOnLoad;
 

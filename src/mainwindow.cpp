@@ -99,10 +99,17 @@ void MainWindow::about()
            "highlighting rules using regular expressions.</p>"));
 }
 
+
 void MainWindow::configure()
 {
     editor_settings = std::make_shared<editor_settings_t>();
-    QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory);
+    QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory) + "/settings.json";
+
+    if (!QFile(userSettings).exists()) {
+        QFile::copy(":/resources/settings.json", userSettings);
+        QFile::setPermissions(userSettings, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser);
+    }
+
     load_settings(userSettings, settings);
 
     QString userExtensions = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar/extensions", QStandardPaths::LocateDirectory);
@@ -685,9 +692,13 @@ bool MainWindow::loadExtension(QString name)
 void MainWindow::loadAllExtensions()
 {
     // keybinding
-    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory);
-    keyBindingPath += "/keybinding.json";
+    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".ashlar", QStandardPaths::LocateDirectory) + "/keybinding.json";
 
+    if (!QFile(keyBindingPath).exists()) {
+        QFile::copy(":/resources/keybinding.json", keyBindingPath);
+        QFile::setPermissions(keyBindingPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser);
+    }
+    
     QFile file(keyBindingPath);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { console.log(err) }";

@@ -19,8 +19,16 @@ static QString sanitizePath(QString path)
     QString projectPath = MainWindow::instance()->projectPath;
     path = path.replace("~", "");
     path = path.replace("..", "");
-    if ((path + "/").contains(QFileInfo(projectPath).absolutePath())) {
-        projectPath = "";
+
+    QFileInfo fileInfo(projectPath);
+    
+    QStringList allowedFiles = { "package.json", "package.nls.json" };
+    if (allowedFiles.contains(fileInfo.fileName())) {
+        // pass through
+    } else {    
+        if ((path + "/").contains(fileInfo.absolutePath())) {
+            projectPath = "";
+        }
     }
     qDebug() << path;
     qDebug() << projectPath;
@@ -400,7 +408,7 @@ void JSApp::runScriptFile(QString path)
     MainWindow::instance()->js()->runScriptFile(path);
 }
 
-void JSApp::reloadExtensions()
+void JSApp::loadExtensions()
 {
     MainWindow::instance()->loadAllExtensions();
 }

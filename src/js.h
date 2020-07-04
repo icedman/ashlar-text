@@ -90,7 +90,7 @@ public slots:
     QStringList scopesAtCursor();
     QString language();
 
-    void reloadExtensions();
+    void loadExtensions();
     // void loadExtension(QString name);
     void runScriptFile(QString path);
 

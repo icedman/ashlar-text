@@ -25,8 +25,10 @@ import qt from './lib/engine';
 
 let TouchState = () => {};
 let RequestPanel = id => {};
+let RequestPalette = id => {};
 
 const panelRegistry = {};
+const paletteRegistry = {};
 const menuRegistry = {};
 const statusRegistry = {};
 
@@ -62,6 +64,15 @@ export const Widgets = () => {
         );
     };
 
+    const showPalette = ({ palette }) => {
+        ui.dispatch(
+            ui.setState({
+                ...state,
+                palette: palette
+            })
+        );
+    };
+
     const touchState = () => {
         ui.dispatch(
             ui.setState({
@@ -73,29 +84,43 @@ export const Widgets = () => {
 
     TouchState = touchState;
     RequestPanel = showPanel;
+    RequestPalette = showPalette;
 
     React.useEffect(() => {
         events.on('keyPressed', KeyListener);
         events.on('requestPanel', RequestPanel);
+        events.on('requestPalette', RequestPalette);
         return () => {
             events.off('keyPressed', KeyListener);
             events.off('requestPanel', RequestPanel);
+            events.off('requestPalette', RequestPalette);
         };
     }, []);
 
     let show = state.panel && state.panel.length ? true : false;
     let renderedPanels = Object.keys(panelRegistry).map((k, idx) => {
         const Component = panelRegistry[k];
-        return <Component key={`${k}-${idx}`}></Component>;
+        return <Component key={`panel-${k}-${idx}`}></Component>;
     });
     let renderedStatus = Object.keys(statusRegistry).map((k, idx) => {
         const Component = statusRegistry[k];
-        return <Component key={`${k}-${idx}`}></Component>;
+        return <Component key={`status-${k}-${idx}`}></Component>;
     });
+
+    /*
+    let renderedPalette = Object.keys(paletteRegistry)
+    .filter(k => (k === state.palette))
+    .map((k, idx) => {
+        const Component = paletteRegistry[k];
+        console.log('got one');
+        return <Component key={`palette-${k}-${idx}`}></Component>;
+    });
+    */
 
     return (
         <React.Fragment>
             <pre>{JSON.stringify(state, null, 4)}</pre>
+            {/*renderedPalette*/}
             <StackedView
                 id="panels"
                 current={state.panel}
@@ -113,7 +138,24 @@ export const ui = {
         statusRegistry[id] = status;
         TouchState();
     },
+    
+    showStatus: (msg, timeout) => {
+        ShowStatus(msg, timeout);
+    },
 
+    // palette is current hogged by the fuzzy extension; because this needs to be quickly shown; 
+    /*
+    registerPalette: (id, palette) => {
+        paletteRegistry[id] = palette;
+        TouchState();
+    },
+
+    showPalette: id => {
+        events.emit('requestPalette', { palette: id });
+        setTimeout(app.showCommandPalette, 250);
+    },
+    */
+    
     registerPanel: (id, panel) => {
         panelRegistry[id] = panel;
         TouchState();
@@ -121,10 +163,6 @@ export const ui = {
 
     showPanel: id => {
         events.emit('requestPanel', { panel: id });
-    },
-
-    showStatus: (msg, timeout) => {
-        ShowStatus(msg, timeout);
     },
 
     React,

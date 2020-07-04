@@ -14,7 +14,7 @@
 
 void load_settings(const QString path, Json::Value& settings)
 {
-    Json::Value obj = parse::loadJson(path.toStdString() + "/settings.json");
+    Json::Value obj = parse::loadJson(path.toStdString());
     if (!obj.isObject()) {
         return;
     }

@@ -3,9 +3,9 @@ import { v4 as uuid } from 'uuid';
 
 export const Store = React.createContext();
 
-let initialState = JSON.parse(window.localStorage.getItem('todos', '{}'));
+let initialState = JSON.parse(window.localStorage.getItem('ui', '{}'));
 
-if (!initialState || !initialState.todos) {
+if (!initialState || !initialState.ui) {
     initialState = {};
 }
 /* params: { path:value } */

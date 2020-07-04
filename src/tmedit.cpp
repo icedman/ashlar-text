@@ -439,8 +439,9 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         size_t ws = count_indent_size(cursor.block().text() + "?");
         if (ws >= cursor.position() - cursor.block().position()) {
             cursor.beginEditBlock();
-            cursor.movePosition(QTextCursor::Up);
-            cursor.movePosition(QTextCursor::EndOfLine);
+            if (cursor.movePosition(QTextCursor::Up)) {
+                cursor.movePosition(QTextCursor::EndOfLine);
+            }
             cursor.insertText("\n");
             cursor.endEditBlock();
             updateExtraCursors(e);

@@ -52,6 +52,8 @@ SOURCES         = src/commands.cpp \
                   ./tm-parser/textmate/theme/theme.cpp \
                   ./tm-parser/textmate/theme/util.cpp
 
+RESOURCES += resources.qrc
+                  
 QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
 

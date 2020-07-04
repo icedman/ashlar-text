@@ -1,19 +1,20 @@
-import React from 'react';
 import events from './events';
 
 import commands from './commands';
 import extensions from './extensions';
 import keybinding from './keybinding';
+import nls from './nls';
 
 // ui
 import { StoreProvider as UIProvider } from './uiContext';
-import { ui, Panels } from './ui';
+import { ui } from './ui';
 import qt from './lib/engine';
 
 const ashlar = {
     commands,
     extensions,
     keybinding,
+    nls,
     events,
     ui,
     qt
@@ -48,10 +49,9 @@ baseCommands.forEach(cmd => {
     commands.registerCommand(cmd.name, cmd.action);
 });
 
-// defer
+// load all extensions
 setTimeout(() => {
-    console.log(fs);
-    app.reloadExtensions();
+    app.loadExtensions();
 }, 500);
 
 export default ashlar;
