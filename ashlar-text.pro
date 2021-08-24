@@ -18,8 +18,8 @@ HEADERS         = src/commands.h \
                   src/tabs.h \
                   src/tmedit.h \
                   src/process.h \
-                  ./js-qt/qt/core.h \
-                  ./js-qt/qt/engine.h \
+                  ./js-qt-native/qt/core.h \
+                  ./js-qt-native/qt/engine.h \
                   ./easing/PennerEasing/Cubic.h
 
 SOURCES         = src/commands.cpp \
@@ -38,8 +38,8 @@ SOURCES         = src/commands.cpp \
                   src/tmedit.cpp \
                   src/process.cpp \
                   src/main.cpp \
-                  ./js-qt/qt/core.cpp \
-                  ./js-qt/qt/engine.cpp \
+                  ./js-qt-native/qt/core.cpp \
+                  ./js-qt-native/qt/engine.cpp \
                   ./easing/PennerEasing/Cubic.cpp \
                   ./tm-parser/textmate/parser/grammar.cpp \
                   ./tm-parser/textmate/parser/reader.cpp \
@@ -59,16 +59,22 @@ CONFIG += c++17
 
 INCPATH +=  ./src
 INCPATH +=  ./easing/PennerEasing
-INCPATH +=  ./js-qt
+INCPATH +=  ./js-qt-native
 INCPATH +=  ./tm-parser/textmate/parser
 INCPATH +=  ./tm-parser/textmate/scopes
 INCPATH +=  ./tm-parser/textmate/theme
 
-INCPATH += ./tm-parser/subprojects/jsoncpp-1.8.4/include 
-LIBS+= ./tm-parser/build/subprojects/jsoncpp-1.8.4/libjsoncpp.a
+# INCPATH += ./tm-parser/subprojects/jsoncpp-1.8.4/include 
+# LIBS+= ./tm-parser/build/subprojects/jsoncpp-1.8.4/libjsoncpp.a
 
-INCPATH += ./Onigmo
-LIBS+= ./Onigmo/.libs/libonigmo.a
+INCPATH += /usr/json/include 
+LIBS += /usr/lib/libjsoncpp.so
+
+# INCPATH += ./Onigmo
+# LIBS+= ./Onigmo/.libs/libonigmo.a
+
+INCPATH += /usr/include
+LIBS += /usr/lib/libonigmo.so
 
 resources.path += /usr/local/share/ashlar
 resources.files += ./resources/* \
