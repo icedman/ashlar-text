@@ -243,18 +243,32 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
             break;
     }
 
+    std::string scopeName = "source.";
+    scopeName += resolvedLanguage;
+
     if (!resolvedLanguage.empty()) {
         // std::cout << resolvedLanguage << std::endl;
+
+        for (int j=0; j<2; j++)
         for (int i = 0; i < resolvedGrammars.size(); i++) {
             Json::Value g = resolvedGrammars[i];
-            if (!g.isMember("language")) {
-                continue;
+
+            bool foundGrammar = false;
+
+            if (j == 0 && g.isMember("scopeName") && g["scopeName"].asString().compare(scopeName) == 0) {
+                foundGrammar = true;
             }
 
-            if (g["language"].asString().compare(resolvedLanguage) == 0) {
+            if (j == 1 && g.isMember("language") && g["language"].asString().compare(resolvedLanguage) == 0) {
+                foundGrammar = true;
+            }
+
+            if (foundGrammar) {
                 QString path = QDir(resolvedExtension.path).filePath(g["path"].asString().c_str());
                 lang->grammar = parse::parse_grammar(parse::loadJson(path.toStdString()));
                 lang->id = resolvedLanguage;
+
+                qDebug() << "grammar " << path.toStdString().c_str();
 
                 // language configuration
                 if (!resolvedConfiguration.empty()) {
@@ -267,8 +281,8 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                 qDebug() << "langauge matched" << lang->id.c_str();
                 qDebug() << path;
 
-                // cache.emplace(suffix, lang);
-                // return lang;
+                cache.emplace(suffix, lang);
+                return lang;
             }
         }
     }

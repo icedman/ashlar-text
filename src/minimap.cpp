@@ -155,9 +155,9 @@ void MiniMap::mouseMoveEvent(QMouseEvent* event)
 {
     QScrollBar::mouseMoveEvent(event);
     QPointF pos = event->localPos();
-    scrollByMouseY(pos.y());
-    animateTimer.stop();
-    setValue(scrollToY);
+    // scrollByMouseY(pos.y());
+    // animateTimer.stop();
+    // setValue(scrollToY);
 }
 
 void MiniMap::mousePressEvent(QMouseEvent* event)
